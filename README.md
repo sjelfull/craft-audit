@@ -1,8 +1,8 @@
 # Audit plugin for Craft CMS 3.x
 
-Log adding/updating/deleting of elements
+Audit log for Craft 3
 
-![Screenshot](resources/img/plugin-logo.png)
+![Screenshot](resources/img/icon.png)
 
 ## Requirements
 
@@ -18,7 +18,7 @@ To install the plugin, follow these instructions.
 
 2. Then tell Composer to load the plugin:
 
-        composer require sjelfull/audit
+        composer require superbig/craft3-audit
 
 3. In the Control Panel, go to Settings → Plugins and click the “Install” button for Audit.
 
@@ -34,10 +34,8 @@ To install the plugin, follow these instructions.
 
 -Insert text here-
 
-## Audit Roadmap
+## Credits
 
-Some things to do, and ideas for potential features:
-
-* Release it
+- [Audit icon by Dinosoft Labs](https://thenounproject.com/term/audit/1266939)
 
 Brought to you by [Superbig](https://superbig.co)
