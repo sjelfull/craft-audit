@@ -93,6 +93,14 @@ class Audit extends Plugin
             }
         );*/
 
+        Event::on(
+            UrlManager::class,
+            UrlManager::EVENT_REGISTER_CP_URL_RULES,
+            function (RegisterUrlRulesEvent $event) {
+                $event->rules['audit'] = 'audit/default/index';
+            }
+        );
+
         Craft::info(
             Craft::t(
                 'audit',

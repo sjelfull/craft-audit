@@ -100,6 +100,22 @@ class AuditModel extends Model
 
     protected $_element = null;
 
+    public static function createFromRecord ($record)
+    {
+        $model              = new self();
+        $model->event       = $record->event;
+        $model->title       = $record->title;
+        $model->userId      = $record->userId;
+        $model->elementId   = $record->elementId;
+        $model->elementType = $record->elementType;
+        $model->ip          = $record->ip;
+        $model->userAgent   = $record->userAgent;
+        $model->siteId      = $record->siteId;
+        $model->snapshot    = unserialize($record->snapshot);
+
+        return $model;
+    }
+
     // Public Methods
     // =========================================================================
 
@@ -111,5 +127,10 @@ class AuditModel extends Model
         return [
             //['someAttribute', 'default', 'value' => 'Some Default'],
         ];
+    }
+
+    public function getEventLabel ()
+    {
+        return self::EVENT_LABELS[ $this->event ] ?? '';
     }
 }

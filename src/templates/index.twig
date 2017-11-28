@@ -33,7 +33,28 @@
 {% endset %}
 
 {% set content %}
-    <h2>{{ "Index CP Section body goes here"|t('audit') }}</h2>
-    <img src="{{ iconUrl }}" height="64" width="64" />
-    <p class="textline"></p>
+    <table class="data fullwidth">
+        <thead>
+        <tr>
+            <th>Event</th>
+            <th>Title</th>
+            <th></th>
+            <th></th>
+            <th>User</th>
+            <th>Date</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for log in logs %}
+            <tr>
+                <td>{{ log.getEventLabel() }}</td>
+                <td>{{ log.title }}</td>
+                <td></td>
+                <td>{{ log.userId }}</td>
+                <td>{{ log.ip }}</td>
+                <td>{{ log.dateCreated }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 {% endset %}

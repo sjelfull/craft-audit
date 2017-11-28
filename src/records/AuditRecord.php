@@ -10,10 +10,13 @@
 
 namespace superbig\audit\records;
 
+use craft\records\User;
+use craft\records\Element;
 use superbig\audit\Audit;
 
 use Craft;
 use craft\db\ActiveRecord;
+use yii\db\ActiveQueryInterface;
 
 /**
  * @author    Superbig
@@ -44,5 +47,25 @@ class AuditRecord extends ActiveRecord
     public static function tableName ()
     {
         return '{{%audit_log}}';
+    }
+
+    /**
+     * Returns the entry’s author.
+     *
+     * @return ActiveQueryInterface The relational query object.
+     */
+    public function getUser (): ActiveQueryInterface
+    {
+        return $this->hasOne(User::class, [ 'id' => 'userId' ]);
+    }
+
+    /**
+     * Returns the entry’s element.
+     *
+     * @return ActiveQueryInterface The relational query object.
+     */
+    public function getElement (): ActiveQueryInterface
+    {
+        return $this->hasOne(Element::class, [ 'id' => 'elementId' ]);
     }
 }

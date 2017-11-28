@@ -14,6 +14,8 @@ use superbig\audit\Audit;
 
 use Craft;
 use craft\web\Controller;
+use superbig\audit\models\AuditModel;
+use superbig\audit\records\AuditRecord;
 
 /**
  * @author    Superbig
@@ -41,9 +43,16 @@ class DefaultController extends Controller
      */
     public function actionIndex()
     {
-        $result = 'Welcome to the DefaultController actionIndex() method';
+        $records = AuditRecord::find()->all();
+        $models = [];
 
-        return $result;
+        if ( $records ) {
+            foreach ($records as $record) {
+                $models[] = AuditModel::createFromRecord($record);
+            }
+        }
+
+        return $this->renderTemplate('audit/index', [ 'logs' => $models ]);
     }
 
     /**
