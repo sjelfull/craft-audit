@@ -1,0 +1,39 @@
+{#
+/**
+ * Audit plugin for Craft CMS 3.x
+ *
+ * Audit index.twig
+ *
+ * @author    Superbig
+ * @copyright Copyright (c) 2017 Superbig
+ * @link      https://superbig.co
+ * @package   Audit
+ * @since     1.0.0
+ */
+#}
+
+{% extends "_layouts/cp" %}
+{% import "_includes/forms" as forms %}
+
+{% do view.registerAssetBundle("superbig\\audit\\assetbundles\\audit\\AuditAsset") %}
+{% do view.registerAssetBundle("superbig\\audit\\assetbundles\\indexcpsection\\IndexCPSectionAsset") %}
+
+{% set docsUrl = "https://github.com/sjelfull/audit/blob/master/README.md" %}
+
+{% set title = "Audit" %}
+
+{% set pluginCpUrl = url('audit') %}
+
+{% set iconUrl = view.getAssetManager().getPublishedUrl('@superbig/audit/assetbundles/indexcpsection/dist', true) ~ '/img/Index-icon.svg' %}
+
+{% set extraPageHeaderHtml %}
+    <div class="buttons">
+        <a href="{{ pluginCpUrl }}" class="btn submit add icon">{{ "Click Me!"|t('audit') }}</a>
+    </div>
+{% endset %}
+
+{% set content %}
+    <h2>{{ "Index CP Section body goes here"|t('audit') }}</h2>
+    <img src="{{ iconUrl }}" height="64" width="64" />
+    <p class="textline"></p>
+{% endset %}

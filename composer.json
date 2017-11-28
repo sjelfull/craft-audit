@@ -1,0 +1,50 @@
+{
+    "name": "superbig/craft3-audit",
+    "description": "Log adding/updating/deleting of elements",
+    "type": "craft-plugin",
+    "version": "2.0.0",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "craft-plugin",
+        "audit"
+    ],
+    "support": {
+        "docs": "https://github.com/sjelfull/craft3-audit/blob/master/README.md",
+        "issues": "https://github.com/sjelfull/craft3-audit/issues"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Superbig",
+            "homepage": "https://superbig.co"
+        }
+    ],
+    "require": {
+        "craftcms/cms": "~3.0.0-beta.23"
+    },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+          "superbig\\audit\\": "src/"
+        }
+    },
+    "extra": {
+        "name": "Audit",
+        "handle": "audit",
+        "schemaVersion": "1.0.0",
+        "hasCpSettings": true,
+        "hasCpSection": true,
+        "changelogUrl": "https://raw.githubusercontent.com/sjelfull/craft3-audit/master/CHANGELOG.md",
+        "components": {
+            "auditService": "superbig\\audit\\services\\AuditService"
+        },
+        "class": "superbig\\audit\\Audit"
+    }
+}
