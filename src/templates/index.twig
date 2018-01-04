@@ -37,10 +37,10 @@
         <thead>
         <tr>
             <th>Event</th>
+            <th>Element type</th>
             <th>Title</th>
-            <th></th>
-            <th></th>
             <th>User</th>
+            <th>IP</th>
             <th>Date</th>
         </tr>
         </thead>
@@ -48,13 +48,17 @@
         {% for log in logs %}
             <tr>
                 <td>{{ log.getEventLabel() }}</td>
-                <td>{{ log.title }}</td>
-                <td></td>
-                <td>{{ log.userId }}</td>
+                <td>{{ log.getElementLabel() }}</td>
+                <td>{{ log.getElementLink() }}</td>
+                <td>{{ log.getUserLink() }}</td>
                 <td>{{ log.ip }}</td>
                 <td>{{ log.dateCreated }}</td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
+
+    <div class="pagination-wrapper">
+        {% include 'audit/_pagination' with { paginator: paginator } %}
+    </div>
 {% endset %}

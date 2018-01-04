@@ -9,3 +9,40 @@
  * @package   Audit
  * @since     1.0.0
  */
+.pagination-wrapper {
+    margin: 30px 0 30px;
+}
+.pagination {
+    display: flex;
+}
+
+.pagination li {
+    border: 1px solid #eee;
+    border-width: 1px 0 1px 1px;
+}
+
+    .pagination li.active {
+        background: #80889057;
+    }
+
+.pagination .next,
+.pagination .prev {
+
+}
+
+.pagination .next {
+    border-width: 1px 1px 1px 1px;
+}
+
+.pagination a,
+.pagination span {
+    color: #000;
+    display: block;
+    padding: 15px 15px;
+    line-height: 1;
+    text-decoration: none;
+}
+
+.pagination a:hover {
+    background: #eee;
+}

@@ -1,0 +1,15 @@
+<ul class="pagination">
+    <li class="prev{{ not paginator.getPrevUrl() ? ' disabled' : '' }}">{{ (paginator.getPrevUrl() ? '<a href="'~ paginator.getPrevUrl() ~'">&laquo; Previous</a>' : '<span>&laquo; Previous</span>') | raw }}</li>
+
+    {% for page in paginator.getPages() %}
+        {% if page['url'] is defined %}
+            <li {{ page.isCurrent ? 'class="active"' }}>
+                <a href="{{ page.url }}">{{ page.num }}</a>
+            </li>
+        {% else %}
+            <li class="disabled"><span>{{ page.num }}</span></li>
+        {% endif %}
+    {% endfor %}
+
+    <li class="next{{ not paginator.getNextUrl() ? ' disabled' }}">{{ (paginator.getNextUrl() ? '<a href="' ~ paginator.getNextUrl() ~ '">Next &raquo;</a>' : '<span>Next &raquo;</span>') | raw }}</li>
+</ul>

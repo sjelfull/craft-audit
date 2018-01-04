@@ -10,12 +10,18 @@
 
 namespace superbig\audit\controllers;
 
+use craft\helpers\Template;
+use craft\web\UrlManager;
 use superbig\audit\Audit;
 
 use Craft;
 use craft\web\Controller;
 use superbig\audit\models\AuditModel;
 use superbig\audit\records\AuditRecord;
+use yii\data\Pagination;
+use yii\widgets\LinkPager;
+
+use JasonGrimes\Paginator;
 
 /**
  * @author    Superbig
@@ -33,7 +39,7 @@ class DefaultController extends Controller
      *         The actions must be in 'kebab-case'
      * @access protected
      */
-    protected $allowAnonymous = ['index', 'do-something'];
+    protected $allowAnonymous = [ 'index', 'do-something' ];
 
     // Public Methods
     // =========================================================================
@@ -41,9 +47,30 @@ class DefaultController extends Controller
     /**
      * @return mixed
      */
-    public function actionIndex()
+    public function actionIndex ()
     {
-        $records = AuditRecord::find()->all();
+        $query        = AuditRecord::find()
+                                   ->orderBy('dateCreated desc')
+                                   ->with('user');
+        $countQuery   = clone $query;
+        $totalItems   = $countQuery->count();
+        $itemsPerPage = 20;
+        $currentPage  = Craft::$app->getRequest()->getParam('page', 1);
+        $urlPattern   = '/admin/audit?page=(:num)';
+        $paginator    = new Paginator($totalItems, $itemsPerPage, $currentPage, $urlPattern);
+
+
+        $countQuery = clone $query;
+        $pages      = new Pagination([
+            'totalCount' => $countQuery->count(),
+            'route'      => 'audit',
+            'urlManager' => Craft::$app->getUrlManager(),
+        ]);
+        $records    = $query
+            ->offset(($currentPage - 1) * $itemsPerPage)
+            ->limit($itemsPerPage)
+            ->all();
+
         $models = [];
 
         if ( $records ) {
@@ -52,13 +79,21 @@ class DefaultController extends Controller
             }
         }
 
-        return $this->renderTemplate('audit/index', [ 'logs' => $models ]);
+        $pager = LinkPager::widget([
+            'pagination' => $pages,
+        ]);
+
+        return $this->renderTemplate('audit/index', [
+            'logs'       => $models,
+            'pagination' => Template::raw($pager),
+            'paginator'  => $paginator,
+        ]);
     }
 
     /**
      * @return mixed
      */
-    public function actionDoSomething()
+    public function actionDoSomething ()
     {
         $result = 'Welcome to the DefaultController actionDoSomething() method';
 

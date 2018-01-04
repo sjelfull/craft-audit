@@ -11,6 +11,7 @@
 namespace superbig\audit\models;
 
 use craft\base\ElementInterface;
+use craft\helpers\Template;
 use DateTime;
 use superbig\audit\Audit;
 
@@ -111,6 +112,7 @@ class AuditModel extends Model
         $model->ip          = $record->ip;
         $model->userAgent   = $record->userAgent;
         $model->siteId      = $record->siteId;
+        $model->dateCreated = $record->dateCreated;
         $model->snapshot    = unserialize($record->snapshot);
 
         return $model;
@@ -132,5 +134,71 @@ class AuditModel extends Model
     public function getEventLabel ()
     {
         return self::EVENT_LABELS[ $this->event ] ?? '';
+    }
+
+    public function getElement ()
+    {
+        if ( !$this->elementId || !$this->elementType ) {
+            return null;
+        }
+
+        if ( !$this->_element ) {
+            $this->_element = Craft::$app->getElements()->getElementById($this->elementId, $this->elementType, $this->siteId);
+        }
+
+        return $this->_element;
+    }
+
+    public function getElementLabel ()
+    {
+        $element = $this->getElement();
+
+        if ( !$element ) {
+            return null;
+        }
+
+        return $element::displayName();
+    }
+
+    public function getElementLink ()
+    {
+        $element = $this->getElement();
+
+        if ( !$element && $this->title ) {
+            return $this->title;
+        }
+
+        if ( !$element ) {
+            return null;
+        }
+
+        $text = $element->hasTitles() ? $this->title : 'Edit';
+
+        return Template::raw('<a href="' . $element->getCpEditUrl() . '">' . $text . '</a>');
+    }
+
+    public function getUserLink ()
+    {
+        $user = $this->getUser();
+
+        if ( !$user ) {
+            return null;
+        }
+
+        $text = $user->username;
+
+        return Template::raw('<a href="' . $user->getCpEditUrl() . '">' . $text . '</a>');
+    }
+
+    /**
+     * @return \craft\elements\User|null
+     */
+    public function getUser ()
+    {
+        if ( $this->userId && !$this->_user ) {
+            $this->_user = Craft::$app->getUsers()->getUserById($this->userId);
+        }
+
+        return $this->_user;
     }
 }
