@@ -173,8 +173,13 @@ class AuditModel extends Model
         }
 
         $text = $element->hasTitles() ? $this->title : 'Edit';
+        $url  = $element->getCpEditUrl();
 
-        return Template::raw('<a href="' . $element->getCpEditUrl() . '">' . $text . '</a>');
+        if ( $this->elementType === Asset::class ) {
+            $url = $element->getUrl();
+        }
+
+        return Template::raw('<a href="' . $url . '">' . $text . '</a>');
     }
 
     public function getUserLink ()
