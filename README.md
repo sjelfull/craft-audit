@@ -36,6 +36,6 @@ To install the plugin, follow these instructions.
 
 ## Credits
 
-- [Audit icon by Dinosoft Labs](https://thenounproject.com/term/audit/1266939)
+- [Auditing icon by Ralf Schmitzer](https://thenounproject.com/term/auditing/960985)
 
 Brought to you by [Superbig](https://superbig.co)
