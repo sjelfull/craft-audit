@@ -1,8 +1,16 @@
 # Audit plugin for Craft CMS 3.x
 
-Audit log for Craft 3
+Audit log for Craft 3.
 
-![Screenshot](resources/img/icon.png)
+_Note: This plugin is WIP, and not ready for production use._
+
+![Plugin icon](resources/img/icon.png)
+
+## Screenshots
+
+![Screenshot of index view](resources/screenshots/audit-index.png)
+
+![Screenshot of details view](resources/screenshots/audit-details.png)
 
 ## Requirements
 
