@@ -32,6 +32,12 @@
             <table class="fullwidth data borderless">
                 <tbody>
                     <tr>
+                        <td><strong>Event</strong></td>
+                        <td>
+                            {{ log.getEventLabel() }}
+                        </td>
+                    </tr>
+                    <tr>
                         <td><strong>User</strong></td>
                         <td>
                             {{ log.getUserLink() }}
@@ -53,6 +59,20 @@
                         <td><strong>Browser</strong></td>
                         <td>
                             <span title="Full agent string: {{ log.userAgent | escape }}">{{ log.getAgent().browser }} {{ log.getAgent().version }}</span>
+                        </td>
+                    </tr>
+                    {% if log.getElementLabel() %}
+                        <tr>
+                            <td><strong>Type</strong></td>
+                            <td>
+                                {{ log.getElementLabel() }}
+                            </td>
+                        </tr>
+                    {% endif %}
+                    <tr>
+                        <td><strong>Title</strong></td>
+                        <td>
+                            {{ log.getElementLink() }}
                         </td>
                     </tr>
                     <tr>
