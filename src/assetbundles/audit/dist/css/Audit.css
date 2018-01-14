@@ -46,3 +46,39 @@
 .pagination a:hover {
     background: #eee;
 }
+
+
+.audit-updater {}
+.audit-updater__status {
+    display: none;
+}
+
+.audit-db-warning {
+
+}
+.audit-db-warning:before { font-family: 'Craft'; speak: none; -webkit-font-feature-settings: "liga", "dlig"; -moz-font-feature-settings: "liga=1, dlig=1"; -moz-font-feature-settings: "liga", "dlig"; -ms-font-feature-settings: "liga", "dlig"; -o-font-feature-settings: "liga", "dlig"; font-feature-settings: "liga", "dlig"; text-rendering: optimizeLegibility; font-weight: normal; font-variant: normal; text-transform: none; line-height: 1; direction: ltr; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; display: inline-block; text-align: center; font-style: normal; vertical-align: middle; word-wrap: normal !important; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; content: 'alert'; padding-right: 5px; }
+
+.audit-updater__status.is-visible {
+}
+
+.audit-updater__start {
+    margin-bottom: 10px;
+}
+
+.audit-updater__spinner {
+    transition: max-width 0.25s ease-in-out;
+    max-width: 24px;
+}
+
+.is-done .audit-updater__spinner {
+    max-width: 0;
+}
+
+.audit-updater__status-text {
+    color: #a7a7a7;
+    line-height: 30px;
+}
+
+.has-error .audit-updater__status-text {
+    color: red;
+}

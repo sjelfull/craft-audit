@@ -91,12 +91,20 @@ class DefaultController extends Controller
     }
 
     /**
+     * @param int|null $id
+     *
      * @return mixed
+     * @internal param array $variables
+     *
      */
-    public function actionDoSomething ()
+    public function actionDetails (int $id = null)
     {
-        $result = 'Welcome to the DefaultController actionDoSomething() method';
+        //$id = Craft::$app->getRequest()->getRequiredParam('id');
 
-        return $result;
+        $log = Audit::$plugin->auditService->getEventById($id);
+
+        return $this->renderTemplate('audit/_view', [
+            'log' => $log,
+        ]);
     }
 }

@@ -11,7 +11,9 @@
 namespace superbig\audit\models;
 
 use craft\base\ElementInterface;
+use craft\elements\Asset;
 use craft\helpers\Template;
+use craft\helpers\UrlHelper;
 use DateTime;
 use superbig\audit\Audit;
 
@@ -25,22 +27,39 @@ use craft\base\Model;
  */
 class AuditModel extends Model
 {
-    const EVENT_SAVED_ELEMENT   = 'saved-element';
-    const EVENT_CREATED_ELEMENT = 'created-element';
-    const EVENT_DELETED_ELEMENT = 'deleted-element';
-    const USER_LOGGED_OUT       = 'user-logged-out';
-    const USER_LOGGED_IN        = 'user-logged-in';
+    const EVENT_SAVED_ELEMENT      = 'saved-element';
+    const EVENT_CREATED_ELEMENT    = 'created-element';
+    const EVENT_DELETED_ELEMENT    = 'deleted-element';
+    const USER_LOGGED_OUT          = 'user-logged-out';
+    const USER_LOGGED_IN           = 'user-logged-in';
+    const EVENT_SAVED_DRAFT        = 'saved-draft';
+    const EVENT_CREATED_DRAFT      = 'created-draft';
+    const EVENT_DELETED_DRAFT      = 'deleted-draft';
+    const EVENT_PLUGIN_INSTALLED   = 'installed-plugin';
+    const EVENT_PLUGIN_UNINSTALLED = 'uninstalled-plugin';
 
     const EVENT_LABELS = [
-        self::EVENT_SAVED_ELEMENT   => 'Saved element',
-        self::EVENT_CREATED_ELEMENT => 'Created element',
-        self::EVENT_DELETED_ELEMENT => 'Deleted element',
-        self::USER_LOGGED_IN        => 'Logged in',
-        self::USER_LOGGED_OUT       => 'Logged out',
+        self::EVENT_SAVED_ELEMENT      => 'Saved element',
+        self::EVENT_CREATED_ELEMENT    => 'Created element',
+        self::EVENT_DELETED_ELEMENT    => 'Deleted element',
+        self::EVENT_SAVED_DRAFT        => 'Saved draft',
+        self::EVENT_CREATED_DRAFT      => 'Created draft',
+        self::EVENT_DELETED_DRAFT      => 'Created draft',
+        self::USER_LOGGED_IN           => 'Logged in',
+        self::USER_LOGGED_OUT          => 'Logged out',
+
+        // Plugins
+        self::EVENT_PLUGIN_INSTALLED   => 'Plugin installed',
+        self::EVENT_PLUGIN_UNINSTALLED => 'Plugin uninstalled',
     ];
 
     // Public Properties
     // =========================================================================
+
+    /**
+     * @var integer|null
+     */
+    public $id = null;
 
     /**
      * @var integer|null
@@ -104,6 +123,7 @@ class AuditModel extends Model
     public static function createFromRecord ($record)
     {
         $model              = new self();
+        $model->id          = $record->id;
         $model->event       = $record->event;
         $model->title       = $record->title;
         $model->userId      = $record->userId;
@@ -205,5 +225,22 @@ class AuditModel extends Model
         }
 
         return $this->_user;
+    }
+
+    public function getAgent ()
+    {
+        $parser = parse_user_agent($this->userAgent);
+
+        return $parser;
+    }
+
+    public function getSnapshotTable ()
+    {
+        return Template::raw('<pre>' . print_r($this->snapshot, true) . '</pre>');
+    }
+
+    public function getCpEditUrl ()
+    {
+        return UrlHelper::cpUrl('audit/log/' . $this->id);
     }
 }

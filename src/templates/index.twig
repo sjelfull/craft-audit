@@ -37,11 +37,12 @@
         <thead>
         <tr>
             <th>Event</th>
-            <th>Element type</th>
+            <th>Type</th>
             <th>Title</th>
             <th>User</th>
             <th>IP</th>
             <th>Date</th>
+            <th class="thin"></th>
         </tr>
         </thead>
         <tbody>
@@ -53,6 +54,9 @@
                 <td>{{ log.getUserLink() }}</td>
                 <td>{{ log.ip }}</td>
                 <td>{{ log.dateCreated }}</td>
+                <td>
+                    <a href="{{ log.getCpEditUrl() }}">&rarr;</a>
+                </td>
             </tr>
         {% endfor %}
         </tbody>

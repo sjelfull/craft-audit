@@ -43,6 +43,23 @@ class AuditService extends Component
         return $this->getEventsByAttributes([ 'elementId' => $elementId, 'elementType' => $elementType ]);
     }
 
+    /**
+     * @param null $id
+     *
+     * @return null|AuditModel
+     */
+    public function getEventById ($id = null)
+    {
+        $models = null;
+        $record = AuditRecord::findOne($id);
+
+        if ( !$record ) {
+            return null;
+        }
+
+        return AuditModel::createFromRecord($record);
+    }
+
     public function getEventsByHandle ($handle = null)
     {
         return $this->getEventsByAttributes([ 'eventHandle' => $handle ]);

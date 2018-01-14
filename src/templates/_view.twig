@@ -1,0 +1,136 @@
+{#
+/**
+ * Audit plugin for Craft CMS 3.x
+ *
+ * Audit index.twig
+ *
+ * @author    Superbig
+ * @copyright Copyright (c) 2017 Superbig
+ * @link      https://superbig.co
+ * @package   Audit
+ * @since     1.0.0
+ */
+#}
+
+{% extends "_layouts/cp" %}
+{% import "_includes/forms" as forms %}
+
+{% do view.registerAssetBundle("superbig\\audit\\assetbundles\\audit\\AuditAsset") %}
+{% do view.registerAssetBundle("superbig\\audit\\assetbundles\\indexcpsection\\IndexCPSectionAsset") %}
+
+{% set docsUrl = "https://github.com/sjelfull/audit/blob/master/README.md" %}
+
+{% set title = "Audit Details" %}
+
+{% set pluginCpUrl = url('audit') %}
+
+{% set iconUrl = view.getAssetManager().getPublishedUrl('@superbig/audit/assetbundles/indexcpsection/dist', true) ~ '/img/Index-icon.svg' %}
+
+{% set content %}
+    <div class="pane">
+        <div style="width: 50%;">
+            <table class="fullwidth data borderless">
+                <tbody>
+                    <tr>
+                        <td><strong>User</strong></td>
+                        <td>
+                            {{ log.getUserLink() }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Date</strong></td>
+                        <td>
+                            {{ log.dateCreated }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>IP address</strong></td>
+                        <td>
+                            {{ log.ip }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Browser</strong></td>
+                        <td>
+                            <span title="Full agent string: {{ log.userAgent | escape }}">{{ log.getAgent().browser }} {{ log.getAgent().version }}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Snapshot</strong></td>
+                        <td>
+                            {{ log.getSnapshotTable() }}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% set ipInfo = craft.audit.getLocationInfoForIp(log.ip) %}
+    {% set ipInfo = craft.audit.getLocationInfoForIp('84.215.212.44') %}
+
+    {% if ipInfo %}
+        <div class="pane">
+            <h2>Location</h2>
+            <div style="height:500px;" id="auditMap" data-lat="{{ ipInfo.location.latitude }}" data-lon="{{ ipInfo.location.longitude }}"></div>
+
+            <table class="data">
+                <tbody>
+                <tr>
+                    <td class="light">Latitude</td>
+                    <td>{{ ipInfo.location.latitude }}</td>
+                </tr>
+                <tr>
+                    <td class="light">Longitude</td>
+                    <td>{{ ipInfo.location.longitude }}</td>
+                </tr>
+                <tr>
+                    <td class="light">Accuracy radius</td>
+                    <td>{{ ipInfo.location.accuracyRadius }}</td>
+                </tr>
+                <tr>
+                    <td class="light">City</td>
+                    <td>{{ ipInfo.city.name }}</td>
+                </tr>
+                <tr>
+                    <td class="light">Subdivision</td>
+                    <td>{{ ipInfo.mostSpecificSubdivision.name }}</td>
+                </tr>
+                <tr>
+                    <td class="light">Country</td>
+                    <td>{{ ipInfo.country.name }}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
+    <script>
+        function initMap() {
+            var mapElement = document.getElementById('auditMap');
+
+            if (mapElement) {
+                var lat = mapElement.dataset.lat;
+                var lon = mapElement.dataset.lon;
+
+                var point = new google.maps.LatLng(
+                    parseFloat(lat),
+                    parseFloat(lon));
+
+                var map = new google.maps.Map(mapElement, {
+                    center: point,
+                    zoom: 12
+                });
+
+                var marker = new google.maps.Marker({
+                    map: map,
+                    position: point,
+                });
+            }
+        }
+    </script>
+
+    <script async defer
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCXtMOFNuC4XzpJcGQpL1wsAWTOgvOXNwk&callback=initMap">
+    </script>
+{% endset %}

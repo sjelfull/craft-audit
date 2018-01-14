@@ -12,6 +12,9 @@ namespace superbig\audit;
 
 use craft\events\ElementEvent;
 
+use craft\web\twig\variables\CraftVariable;
+use superbig\audit\models\AuditModel;
+use superbig\audit\services\Audit_GeoService;
 use superbig\audit\services\AuditService as AuditServiceService;
 use superbig\audit\models\Settings;
 
@@ -24,6 +27,7 @@ use craft\services\Elements;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 
+use superbig\audit\variables\AuditVariable;
 use yii\base\Event;
 use yii\web\User;
 use yii\web\UserEvent;
@@ -36,6 +40,7 @@ use yii\web\UserEvent;
  * @since     1.0.0
  *
  * @property  AuditServiceService $auditService
+ * @property  Audit_GeoService    $geo
  * @method  Settings getSettings()
  */
 class Audit extends Plugin
@@ -94,10 +99,21 @@ class Audit extends Plugin
         );*/
 
         Event::on(
+            CraftVariable::class,
+            CraftVariable::EVENT_INIT,
+            function (Event $event) {
+                /** @var CraftVariable $variable */
+                $variable = $event->sender;
+                $variable->set('audit', AuditVariable::class);
+            }
+        );
+
+        Event::on(
             UrlManager::class,
             UrlManager::EVENT_REGISTER_CP_URL_RULES,
             function (RegisterUrlRulesEvent $event) {
-                $event->rules['audit'] = 'audit/default/index';
+                $event->rules['audit']              = 'audit/default/index';
+                $event->rules['audit/log/<id:\d+>'] = 'audit/default/details';
             }
         );
 
@@ -127,10 +143,13 @@ class Audit extends Plugin
      */
     protected function settingsHtml (): string
     {
+        $validDb = $this->geo->checkValidDb();
+
         return Craft::$app->view->renderTemplate(
             'audit/settings',
             [
-                'settings' => $this->getSettings()
+                'settings' => $this->getSettings(),
+                'validDb'  => $validDb,
             ]
         );
     }
