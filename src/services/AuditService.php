@@ -12,6 +12,9 @@ namespace superbig\audit\services;
 
 use craft\base\Element;
 use craft\base\ElementInterface;
+use craft\base\Plugin;
+use craft\base\PluginInterface;
+use craft\models\EntryDraft;
 use superbig\audit\Audit;
 
 use Craft;
@@ -151,6 +154,22 @@ class AuditService extends Component
     {
         $model        = $this->_getStandardModel();
         $model->event = AuditModel::USER_LOGGED_OUT;
+
+        return $this->_saveRecord($model);
+    }
+
+
+    public function onPluginEvent (string $event, PluginInterface $plugin): bool
+    {
+        $model           = $this->_getStandardModel();
+        $model->event    = $event;
+        $model->title    = $plugin->name;
+        $snapshot        = [
+            'title'   => $plugin->name,
+            'handle'  => $plugin->handle,
+            'version' => $plugin->version,
+        ];
+        $model->snapshot = $snapshot;
 
         return $this->_saveRecord($model);
     }

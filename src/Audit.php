@@ -199,6 +199,21 @@ class Audit extends Plugin
             }
         );
 
+        // Plugins
+        Event::on(
+            Plugins::class,
+            Plugins::EVENT_AFTER_INSTALL_PLUGIN,
+            function (PluginEvent $event) {
+                $this->auditService->onPluginEvent(AuditModel::EVENT_PLUGIN_INSTALLED, $event->plugin);
+            }
+        );
 
+        Event::on(
+            Plugins::class,
+            Plugins::EVENT_AFTER_UNINSTALL_PLUGIN,
+            function (PluginEvent $event) {
+                $this->auditService->onPluginEvent(AuditModel::EVENT_PLUGIN_UNINSTALLED, $event->plugin);
+            }
+        );
     }
 }
