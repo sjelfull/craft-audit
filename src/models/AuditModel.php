@@ -39,6 +39,7 @@ class AuditModel extends Model
     const EVENT_PLUGIN_INSTALLED   = 'installed-plugin';
     const EVENT_PLUGIN_UNINSTALLED = 'uninstalled-plugin';
     const EVENT_PLUGIN_DISABLED    = 'disabled-plugin';
+    const EVENT_PLUGIN_ENABLED    = 'enabled-plugin';
 
     const EVENT_LABELS = [
         self::EVENT_SAVED_ELEMENT      => 'Saved element',
@@ -54,6 +55,7 @@ class AuditModel extends Model
         self::EVENT_PLUGIN_INSTALLED   => 'Plugin installed',
         self::EVENT_PLUGIN_UNINSTALLED => 'Plugin uninstalled',
         self::EVENT_PLUGIN_DISABLED    => 'Plugin disabled',
+        self::EVENT_PLUGIN_ENABLED    => 'Plugin enabled',
     ];
 
     // Public Properties

@@ -223,5 +223,13 @@ class Audit extends Plugin
                 $this->auditService->onPluginEvent(AuditModel::EVENT_PLUGIN_DISABLED, $event->plugin);
             }
         );
+
+        Event::on(
+            Plugins::class,
+            Plugins::EVENT_AFTER_ENABLE_PLUGIN,
+            function (PluginEvent $event) {
+                $this->auditService->onPluginEvent(AuditModel::EVENT_PLUGIN_ENABLED, $event->plugin);
+            }
+        );
     }
 }

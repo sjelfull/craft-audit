@@ -38,12 +38,12 @@ class AuditService extends Component
     // Public Methods
     // =========================================================================
 
-    public function getEventsForElement (ElementInterface $element)
+    public function getEventsForElement(ElementInterface $element)
     {
         $elementId   = $element->getId();
         $elementType = get_class($element);
 
-        return $this->getEventsByAttributes([ 'elementId' => $elementId, 'elementType' => $elementType ]);
+        return $this->getEventsByAttributes(['elementId' => $elementId, 'elementType' => $elementType]);
     }
 
     /**
@@ -51,29 +51,38 @@ class AuditService extends Component
      *
      * @return null|AuditModel
      */
-    public function getEventById ($id = null)
+    public function getEventById($id = null)
     {
         $models = null;
         $record = AuditRecord::findOne($id);
 
-        if ( !$record ) {
+        if (!$record) {
             return null;
         }
 
         return AuditModel::createFromRecord($record);
     }
 
-    public function getEventsByHandle ($handle = null)
+    public function getEventsByHandle($handle = null)
     {
-        return $this->getEventsByAttributes([ 'eventHandle' => $handle ]);
+        return $this->getEventsByAttributes(['eventHandle' => $handle]);
     }
 
-    public function getEventsByAttributes ($attributes = [])
+    public function getEventsBySessionId($id = null)
+    {
+        if (!$id) {
+            return null;
+        }
+        
+        return $this->getEventsByAttributes(['sessionId' => $id]);
+    }
+
+    public function getEventsByAttributes($attributes = [])
     {
         $models  = null;
         $records = AuditRecord::findAll($attributes);
 
-        if ( $records ) {
+        if ($records) {
             foreach ($records as $record) {
                 $models[] = AuditModel::createFromRecord($record);
             }
@@ -89,7 +98,7 @@ class AuditService extends Component
      *
      * @return bool
      */
-    public function onSaveElement (ElementInterface $element, $isNew = false)
+    public function onSaveElement(ElementInterface $element, $isNew = false)
     {
         $model              = $this->_getStandardModel();
         $model->event       = $isNew ? AuditModel::EVENT_CREATED_ELEMENT : AuditModel::EVENT_SAVED_ELEMENT;
@@ -100,7 +109,7 @@ class AuditService extends Component
             'elementType' => get_class($element),
         ];
 
-        if ( $element->hasTitles() ) {
+        if ($element->hasTitles()) {
             $model->title      = $element->title;
             $snapshot['title'] = $element->title;
         }
@@ -115,7 +124,7 @@ class AuditService extends Component
      *
      * @return bool
      */
-    public function onDeleteElement (ElementInterface $element)
+    public function onDeleteElement(ElementInterface $element)
     {
         $model              = $this->_getStandardModel();
         $model->event       = AuditModel::EVENT_DELETED_ELEMENT;
@@ -125,7 +134,7 @@ class AuditService extends Component
             'elementType' => get_class($element),
         ];
 
-        if ( $element->hasTitles() ) {
+        if ($element->hasTitles()) {
             $model->title      = $element->title;
             $snapshot['title'] = $element->title;
         }
@@ -145,12 +154,12 @@ class AuditService extends Component
         return $this->_saveRecord($model);
     }
 
-    public function onBeforeLogout ()
+    public function onBeforeLogout()
     {
         Craft::$app->getSession()->set('audit.userId', Craft::$app->getUser()->id);
     }
 
-    public function onLogout ()
+    public function onLogout()
     {
         $model        = $this->_getStandardModel();
         $model->event = AuditModel::USER_LOGGED_OUT;
@@ -159,7 +168,7 @@ class AuditService extends Component
     }
 
 
-    public function onPluginEvent (string $event, PluginInterface $plugin): bool
+    public function onPluginEvent(string $event, PluginInterface $plugin): bool
     {
         $model           = $this->_getStandardModel();
         $model->event    = $event;
@@ -177,16 +186,17 @@ class AuditService extends Component
     /**
      * @return AuditModel
      */
-    private function _getStandardModel ()
+    private function _getStandardModel()
     {
         $app              = Craft::$app;
         $request          = $app->getRequest();
         $model            = new AuditModel();
         $model->ip        = $request->getUserIP();
         $model->userAgent = $request->getUserAgent();
-        $model->siteId    = Craft::$app->getSites()->currentSite->id;
+        $model->siteId    = $app->getSites()->currentSite->id;
+        $model->sessionId = $app->getSession()->getId();
 
-        if ( $userId = Craft::$app->getSession()->get('audit.userId', null) ) {
+        if ($userId = Craft::$app->getSession()->get('audit.userId', null)) {
             $model->userId = $userId;
         }
         else {
@@ -206,7 +216,7 @@ class AuditService extends Component
      *
      * @return bool
      */
-    public function _saveRecord (AuditModel $model, $unique = true)
+    public function _saveRecord(AuditModel $model, $unique = true)
     {
         try {
             /*if ( $model->id ) {
@@ -226,7 +236,7 @@ class AuditService extends Component
             $record->snapshot    = serialize($model->snapshot);
             $record->sessionId   = $model->sessionId;
 
-            if ( !$record->save() ) {
+            if (!$record->save()) {
                 Craft::error(
                     Craft::t('audit', 'An error occured when saving audit log record: {error}',
                         [
@@ -236,12 +246,11 @@ class AuditService extends Component
             }
 
             return true;
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             Craft::error(
                 Craft::t('audit', 'An error occured when saving audit log record: {error}',
                     [
-                        'error' => $e->getMessage()
+                        'error' => $e->getMessage(),
                     ]),
                 'audit');
 
