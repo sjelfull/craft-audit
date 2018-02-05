@@ -41,7 +41,7 @@
     "extra": {
         "name": "Audit",
         "handle": "audit",
-        "schemaVersion": "1.0.0",
+        "schemaVersion": "1.0.1",
         "hasCpSettings": true,
         "hasCpSection": true,
         "changelogUrl": "https://raw.githubusercontent.com/sjelfull/craft-audit/master/CHANGELOG.md",

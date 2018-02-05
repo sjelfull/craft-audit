@@ -224,6 +224,7 @@ class AuditService extends Component
             $record->userAgent   = $model->userAgent;
             $record->siteId      = $model->siteId;
             $record->snapshot    = serialize($model->snapshot);
+            $record->sessionId   = $model->sessionId;
 
             if ( !$record->save() ) {
                 Craft::error(

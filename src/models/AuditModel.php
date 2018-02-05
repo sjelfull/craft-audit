@@ -19,6 +19,7 @@ use superbig\audit\Audit;
 
 use Craft;
 use craft\base\Model;
+use superbig\audit\records\AuditRecord;
 
 /**
  * @author    Superbig
@@ -118,11 +119,16 @@ class AuditModel extends Model
      */
     public $snapshot = [];
 
+    /**
+     * @var string
+     */
+    public $sessionId = null;
+
     protected $_user = null;
 
     protected $_element = null;
 
-    public static function createFromRecord ($record)
+    public static function createFromRecord (AuditRecord $record)
     {
         $model              = new self();
         $model->id          = $record->id;
@@ -136,6 +142,7 @@ class AuditModel extends Model
         $model->siteId      = $record->siteId;
         $model->dateCreated = $record->dateCreated;
         $model->snapshot    = unserialize($record->snapshot);
+        $model->sessionId    = $record->sessionId;
 
         return $model;
     }

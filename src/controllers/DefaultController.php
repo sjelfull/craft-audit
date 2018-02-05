@@ -97,14 +97,16 @@ class DefaultController extends Controller
      * @internal param array $variables
      *
      */
-    public function actionDetails (int $id = null)
+    public function actionDetails(int $id = null)
     {
         //$id = Craft::$app->getRequest()->getRequiredParam('id');
 
-        $log = Audit::$plugin->auditService->getEventById($id);
+        $log           = Audit::$plugin->auditService->getEventById($id);
+        $logsInSession = Audit::$plugin->auditService->getEventsBySessionId($log->sessionId);
 
         return $this->renderTemplate('audit/_view', [
             'log' => $log,
+            'logsInSession' => $logsInSession,
         ]);
     }
 }

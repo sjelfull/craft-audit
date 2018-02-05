@@ -82,3 +82,7 @@
 .has-error .audit-updater__status-text {
     color: red;
 }
+
+.audit-table-current-entry {
+    opacity: 0.4;
+}

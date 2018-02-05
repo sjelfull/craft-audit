@@ -35,6 +35,7 @@ use yii\db\ActiveQueryInterface;
  * @property string       $ip
  * @property string       $userAgent
  * @property string|null  $snapshot
+ * @property string|null  $sessionId
  */
 class AuditRecord extends ActiveRecord
 {
