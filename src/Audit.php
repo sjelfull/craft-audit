@@ -195,7 +195,7 @@ class Audit extends Plugin
             Elements::class,
             Elements::EVENT_AFTER_DELETE_ELEMENT,
             function (ElementEvent $event) {
-                $this->auditService->onDeleteElement($event->element, $event->isNew);
+                $this->auditService->onDeleteElement($event->element);
             }
         );
 
