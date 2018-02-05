@@ -39,7 +39,7 @@ class DefaultController extends Controller
      *         The actions must be in 'kebab-case'
      * @access protected
      */
-    protected $allowAnonymous = [ 'index', 'do-something' ];
+    protected $allowAnonymous = [];
 
     // Public Methods
     // =========================================================================
@@ -47,46 +47,33 @@ class DefaultController extends Controller
     /**
      * @return mixed
      */
-    public function actionIndex ()
+    public function actionIndex()
     {
+        $itemsPerPage = 20;
+        $currentPage  = Craft::$app->getRequest()->getParam('page', 1);
+        $urlPattern   = '/admin/audit?page=(:num)';
         $query        = AuditRecord::find()
                                    ->orderBy('dateCreated desc')
                                    ->with('user');
         $countQuery   = clone $query;
         $totalItems   = $countQuery->count();
-        $itemsPerPage = 20;
-        $currentPage  = Craft::$app->getRequest()->getParam('page', 1);
-        $urlPattern   = '/admin/audit?page=(:num)';
         $paginator    = new Paginator($totalItems, $itemsPerPage, $currentPage, $urlPattern);
 
-
-        $countQuery = clone $query;
-        $pages      = new Pagination([
-            'totalCount' => $countQuery->count(),
-            'route'      => 'audit',
-            'urlManager' => Craft::$app->getUrlManager(),
-        ]);
-        $records    = $query
+        $records = $query
             ->offset(($currentPage - 1) * $itemsPerPage)
             ->limit($itemsPerPage)
             ->all();
+        $models  = [];
 
-        $models = [];
-
-        if ( $records ) {
+        if ($records) {
             foreach ($records as $record) {
                 $models[] = AuditModel::createFromRecord($record);
             }
         }
 
-        $pager = LinkPager::widget([
-            'pagination' => $pages,
-        ]);
-
         return $this->renderTemplate('audit/index', [
-            'logs'       => $models,
-            'pagination' => Template::raw($pager),
-            'paginator'  => $paginator,
+            'logs'      => $models,
+            'paginator' => $paginator,
         ]);
     }
 
@@ -99,13 +86,11 @@ class DefaultController extends Controller
      */
     public function actionDetails(int $id = null)
     {
-        //$id = Craft::$app->getRequest()->getRequiredParam('id');
-
         $log           = Audit::$plugin->auditService->getEventById($id);
         $logsInSession = Audit::$plugin->auditService->getEventsBySessionId($log->sessionId);
 
         return $this->renderTemplate('audit/_view', [
-            'log' => $log,
+            'log'           => $log,
             'logsInSession' => $logsInSession,
         ]);
     }
