@@ -93,13 +93,13 @@ class AuditService extends Component
 
     /**
      * @param ElementInterface $element
-     *
      * @param bool             $isNew
      *
      * @return bool
      */
     public function onSaveElement(ElementInterface $element, $isNew = false)
     {
+        /** @var Element $element */
         $model              = $this->_getStandardModel();
         $model->event       = $isNew ? AuditModel::EVENT_CREATED_ELEMENT : AuditModel::EVENT_SAVED_ELEMENT;
         $model->elementId   = $element->getId();
@@ -114,7 +114,11 @@ class AuditService extends Component
             $snapshot['title'] = $element->title;
         }
 
-        $model->snapshot = $model->snapshot + $snapshot;
+        if ($element->hasContent()) {
+            $snapshot['content'] = $element->getSerializedFieldValues();
+        }
+
+        $model->snapshot = array_merge($model->snapshot, $snapshot);
 
         return $this->_saveRecord($model);
     }
@@ -139,7 +143,7 @@ class AuditService extends Component
             $snapshot['title'] = $element->title;
         }
 
-        $model->snapshot = $model->snapshot + $snapshot;
+        $model->snapshot = array_merge($model->snapshot, $snapshot);
 
         return $this->_saveRecord($model);
     }
