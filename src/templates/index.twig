@@ -36,8 +36,8 @@
     <table class="data fullwidth">
         <thead>
         <tr>
-            <th>Event</th>
-            <th>Type</th>
+            <th class="audit-column--event">Event</th>
+            <th class="audit-column--element">Type</th>
             <th>Title</th>
             <th>User</th>
             <th>IP</th>
@@ -48,7 +48,7 @@
         <tbody>
         {% for log in logs %}
             <tr>
-                <td>{{ log.getEventLabel() }}</td>
+                <td class="audit-index__event-label">{{ log.getEventLabel() }}</td>
                 <td>{{ log.getElementLabel() }}</td>
                 <td>{{ log.getElementLink() }}</td>
                 <td>{{ log.getUserLink() }}</td>
