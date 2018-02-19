@@ -59,7 +59,7 @@ class Audit extends Plugin
     /**
      * @inheritdoc
      */
-    public function init ()
+    public function init()
     {
         parent::init();
         self::$plugin = $this;
@@ -101,7 +101,7 @@ class Audit extends Plugin
         Event::on(
             CraftVariable::class,
             CraftVariable::EVENT_INIT,
-            function (Event $event) {
+            function(Event $event) {
                 /** @var CraftVariable $variable */
                 $variable = $event->sender;
                 $variable->set('audit', AuditVariable::class);
@@ -111,7 +111,7 @@ class Audit extends Plugin
         Event::on(
             UrlManager::class,
             UrlManager::EVENT_REGISTER_CP_URL_RULES,
-            function (RegisterUrlRulesEvent $event) {
+            function(RegisterUrlRulesEvent $event) {
                 $event->rules['audit']              = 'audit/default/index';
                 $event->rules['audit/log/<id:\d+>'] = 'audit/default/details';
             }
@@ -121,7 +121,7 @@ class Audit extends Plugin
             Craft::t(
                 'audit',
                 '{name} plugin loaded',
-                [ 'name' => $this->name ]
+                ['name' => $this->name]
             ),
             __METHOD__
         );
@@ -133,7 +133,7 @@ class Audit extends Plugin
     /**
      * @inheritdoc
      */
-    protected function createSettingsModel ()
+    protected function createSettingsModel()
     {
         return new Settings();
     }
@@ -141,7 +141,7 @@ class Audit extends Plugin
     /**
      * @inheritdoc
      */
-    protected function settingsHtml (): string
+    protected function settingsHtml(): string
     {
         $validDb = $this->geo->checkValidDb();
 
@@ -154,13 +154,13 @@ class Audit extends Plugin
         );
     }
 
-    protected function initLogEvents ()
+    protected function initLogEvents()
     {
         // Users
         Event::on(
             User::class,
             User::EVENT_AFTER_LOGIN,
-            function (UserEvent $event) {
+            function(UserEvent $event) {
                 $this->auditService->onLogin();
             }
         );
@@ -169,7 +169,7 @@ class Audit extends Plugin
         Event::on(
             User::class,
             User::EVENT_BEFORE_LOGOUT,
-            function (UserEvent $event) {
+            function(UserEvent $event) {
                 $this->auditService->onBeforeLogout();
             }
         );
@@ -177,7 +177,7 @@ class Audit extends Plugin
         Event::on(
             User::class,
             User::EVENT_AFTER_LOGOUT,
-            function (UserEvent $event) {
+            function(UserEvent $event) {
                 $this->auditService->onLogout();
             }
         );
@@ -186,7 +186,7 @@ class Audit extends Plugin
         Event::on(
             Elements::class,
             Elements::EVENT_AFTER_SAVE_ELEMENT,
-            function (ElementEvent $event) {
+            function(ElementEvent $event) {
                 $this->auditService->onSaveElement($event->element, $event->isNew);
             }
         );
@@ -194,7 +194,7 @@ class Audit extends Plugin
         Event::on(
             Elements::class,
             Elements::EVENT_AFTER_DELETE_ELEMENT,
-            function (ElementEvent $event) {
+            function(ElementEvent $event) {
                 $this->auditService->onDeleteElement($event->element);
             }
         );
@@ -203,7 +203,7 @@ class Audit extends Plugin
         Event::on(
             Plugins::class,
             Plugins::EVENT_AFTER_INSTALL_PLUGIN,
-            function (PluginEvent $event) {
+            function(PluginEvent $event) {
                 $this->auditService->onPluginEvent(AuditModel::EVENT_PLUGIN_INSTALLED, $event->plugin);
             }
         );
@@ -211,7 +211,7 @@ class Audit extends Plugin
         Event::on(
             Plugins::class,
             Plugins::EVENT_AFTER_UNINSTALL_PLUGIN,
-            function (PluginEvent $event) {
+            function(PluginEvent $event) {
                 $this->auditService->onPluginEvent(AuditModel::EVENT_PLUGIN_UNINSTALLED, $event->plugin);
             }
         );
@@ -219,7 +219,7 @@ class Audit extends Plugin
         Event::on(
             Plugins::class,
             Plugins::EVENT_AFTER_DISABLE_PLUGIN,
-            function (PluginEvent $event) {
+            function(PluginEvent $event) {
                 $this->auditService->onPluginEvent(AuditModel::EVENT_PLUGIN_DISABLED, $event->plugin);
             }
         );
@@ -227,7 +227,7 @@ class Audit extends Plugin
         Event::on(
             Plugins::class,
             Plugins::EVENT_AFTER_ENABLE_PLUGIN,
-            function (PluginEvent $event) {
+            function(PluginEvent $event) {
                 $this->auditService->onPluginEvent(AuditModel::EVENT_PLUGIN_ENABLED, $event->plugin);
             }
         );

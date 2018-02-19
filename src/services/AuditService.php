@@ -132,6 +132,7 @@ class AuditService extends Component
      */
     public function onDeleteElement(ElementInterface $element)
     {
+        /** @var Element $element */
         $model              = $this->_getStandardModel();
         $model->event       = AuditModel::EVENT_DELETED_ELEMENT;
         $model->elementType = get_class($element);
