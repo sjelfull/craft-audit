@@ -15,7 +15,7 @@ use craft\events\ElementEvent;
 use craft\web\twig\variables\CraftVariable;
 use superbig\audit\models\AuditModel;
 use superbig\audit\services\Audit_GeoService;
-use superbig\audit\services\AuditService as AuditServiceService;
+use superbig\audit\services\AuditService;
 use superbig\audit\models\Settings;
 
 use Craft;
@@ -39,7 +39,7 @@ use yii\web\UserEvent;
  * @package   Audit
  * @since     1.0.0
  *
- * @property  AuditServiceService $auditService
+ * @property  AuditService $auditService
  * @property  Audit_GeoService    $geo
  * @method  Settings getSettings()
  */

@@ -19,6 +19,7 @@ use superbig\audit\Audit;
 
 use Craft;
 use craft\base\Component;
+use superbig\audit\events\SnapshotEvent;
 use superbig\audit\models\AuditModel;
 use superbig\audit\records\AuditRecord;
 use yii\base\Exception;
@@ -33,7 +34,8 @@ class AuditService extends Component
     // Public Methods
     // =========================================================================
 
-    const EVENT_TRIGGER = 'eventTrigger';
+    const EVENT_TRIGGER  = 'eventTrigger';
+    const EVENT_SNAPSHOT = 'snapshot';
 
     // Public Methods
     // =========================================================================
@@ -118,7 +120,7 @@ class AuditService extends Component
             $snapshot['content'] = $element->getSerializedFieldValues();
         }
 
-        $model->snapshot = array_merge($model->snapshot, $snapshot);
+        $model->snapshot = $this->afterSnapshot(array_merge($model->snapshot, $snapshot));
 
         return $this->_saveRecord($model);
     }
@@ -143,7 +145,7 @@ class AuditService extends Component
             $snapshot['title'] = $element->title;
         }
 
-        $model->snapshot = array_merge($model->snapshot, $snapshot);
+        $model->snapshot = $this->afterSnapshot(array_merge($model->snapshot, $snapshot));
 
         return $this->_saveRecord($model);
     }
@@ -185,6 +187,22 @@ class AuditService extends Component
         $model->snapshot = $snapshot;
 
         return $this->_saveRecord($model);
+    }
+
+    /**
+     * @param $snapshot
+     *
+     * @return array
+     */
+    protected function afterSnapshot($snapshot)
+    {
+        $event = new SnapshotEvent([
+            'snapshot' => $snapshot,
+        ]);
+
+        $this->trigger(self::EVENT_SNAPSHOT, $event);
+
+        return $event->snapshot;
     }
 
     /**
