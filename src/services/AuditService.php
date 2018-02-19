@@ -75,7 +75,7 @@ class AuditService extends Component
         if (!$id) {
             return null;
         }
-        
+
         return $this->getEventsByAttributes(['sessionId' => $id]);
     }
 
@@ -120,7 +120,7 @@ class AuditService extends Component
             $snapshot['content'] = $element->getSerializedFieldValues();
         }
 
-        $model->snapshot = $this->afterSnapshot(array_merge($model->snapshot, $snapshot));
+        $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
 
         return $this->_saveRecord($model);
     }
@@ -146,7 +146,7 @@ class AuditService extends Component
             $snapshot['title'] = $element->title;
         }
 
-        $model->snapshot = $this->afterSnapshot(array_merge($model->snapshot, $snapshot));
+        $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
 
         return $this->_saveRecord($model);
     }
@@ -191,13 +191,15 @@ class AuditService extends Component
     }
 
     /**
-     * @param $snapshot
+     * @param AuditModel $auditModel
+     * @param            $snapshot
      *
      * @return array
      */
-    protected function afterSnapshot($snapshot)
+    protected function afterSnapshot(AuditModel $auditModel, $snapshot)
     {
         $event = new SnapshotEvent([
+            'audit'    => $auditModel,
             'snapshot' => $snapshot,
         ]);
 
