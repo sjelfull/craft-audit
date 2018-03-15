@@ -196,7 +196,7 @@ class Audit_GeoService extends Component
                     'error' => 'Remote checksum for Country database doesn\'t match downloaded database. Please try again or contact support.'
                 ];
             }
-            Craft::trace('Unpacking database to: ' . $databaseUnpackedPath, __METHOD__);
+            Craft::debug('Unpacking database to: ' . $databaseUnpackedPath, __METHOD__);
             $write = file_put_contents($databaseUnpackedPath, $result);
             if ( !$write ) {
                 Craft::error('Was not able to write unpacked database to: ' . $databaseUnpackedPath, __METHOD__);
