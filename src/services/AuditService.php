@@ -213,19 +213,23 @@ class AuditService extends Component
      */
     private function _getStandardModel()
     {
-        $app              = Craft::$app;
-        $request          = $app->getRequest();
-        $model            = new AuditModel();
-        $model->ip        = $request->getUserIP();
-        $model->userAgent = $request->getUserAgent();
-        $model->siteId    = $app->getSites()->currentSite->id;
-        $model->sessionId = $app->getSession()->getId();
+        $app           = Craft::$app;
+        $request       = $app->getRequest();
+        $model         = new AuditModel();
+        $model->siteId = $app->getSites()->currentSite->id;
 
-        if ($userId = Craft::$app->getSession()->get('audit.userId', null)) {
-            $model->userId = $userId;
-        }
-        else {
-            $model->userId = $app->getUser()->id;
+        if (!$request->isConsoleRequest) {
+            $session          = $app->getSession();
+            $model->sessionId = $session->getId();
+            $model->ip        = $request->getUserIP();
+            $model->userAgent = $request->getUserAgent();
+
+            if ($userId = $session->get('audit.userId', null)) {
+                $model->userId = $userId;
+            }
+            else {
+                $model->userId = $app->getUser()->getIdentity()->id;
+            }
         }
 
         $model->snapshot = [
