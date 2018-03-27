@@ -16,6 +16,12 @@
 
 {% do view.registerAssetBundle("superbig\\audit\\assetbundles\\audit\\AuditAsset") %}
 
+{{ forms.lightswitchField({
+    name: 'enabled',
+    label: 'Enabled',
+    on: true,
+}) }}
+
 {% if not validDb %}
     <p class="warning audit-db-warning" data-db-warning>You need to download a copy of the MaxMind GeoLite database before using the plugin.</p>
 {% endif %}

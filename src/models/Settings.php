@@ -27,10 +27,13 @@ class Settings extends Model
 
     /**
      * How many days to keep log entries around
-     *
-     * @var string
      */
-    public $pruneDuration = 30;
+    public $pruneDays = 30;
+
+    /**
+     * Enabled status
+     */
+    public $enabled = true;
 
     // Public Methods
     // =========================================================================
@@ -38,11 +41,11 @@ class Settings extends Model
     /**
      * @inheritdoc
      */
-    public function rules ()
+    public function rules()
     {
-        return [
-            [ 'someAttribute', 'string' ],
-            [ 'someAttribute', 'default', 'value' => 'Some Default' ],
-        ];
+        return array_merge(parent::rules(), [
+            ['enabled', 'boolean'],
+            ['pruneDays', 'integer'],
+        ]);
     }
 }

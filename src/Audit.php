@@ -69,7 +69,22 @@ class Audit extends Plugin
         parent::init();
         self::$plugin = $this;
 
-        $this->initLogEvents();
+        /**
+         * Install our event listeners. We do it only after we receive the event
+         * EVENT_AFTER_LOAD_PLUGINS so that any pending db migrations can be run
+         * before our event listeners kick in
+         */
+        // Handler: EVENT_AFTER_LOAD_PLUGINS
+        if (!Craft::$app->getRequest()->isConsoleRequest) {
+            if ($this->getSettings()->enabled) {
+                Event::on(
+                    Plugins::class,
+                    Plugins::EVENT_AFTER_LOAD_PLUGINS,
+                    function() {
+                        $this->initLogEvents();
+                    });
+            }
+        }
 
         /*Event::on(
             UrlManager::class,
