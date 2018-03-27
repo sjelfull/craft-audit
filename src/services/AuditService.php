@@ -151,8 +151,10 @@ class AuditService extends Component
         return $this->_saveRecord($model);
     }
 
-
-    public function onLogin ()
+    /**
+     * @return bool
+     */
+    public function onLogin()
     {
         $model        = $this->_getStandardModel();
         $model->event = AuditModel::USER_LOGGED_IN;
@@ -161,12 +163,10 @@ class AuditService extends Component
         return $this->_saveRecord($model);
     }
 
+    /**
+     * @return bool
+     */
     public function onBeforeLogout()
-    {
-        Craft::$app->getSession()->set('audit.userId', Craft::$app->getUser()->id);
-    }
-
-    public function onLogout()
     {
         $model        = $this->_getStandardModel();
         $model->event = AuditModel::USER_LOGGED_OUT;
@@ -174,7 +174,12 @@ class AuditService extends Component
         return $this->_saveRecord($model);
     }
 
-
+    /**
+     * @param string          $event
+     * @param PluginInterface $plugin
+     *
+     * @return bool
+     */
     public function onPluginEvent(string $event, PluginInterface $plugin): bool
     {
         $model           = $this->_getStandardModel();
@@ -223,13 +228,7 @@ class AuditService extends Component
             $model->sessionId = $session->getId();
             $model->ip        = $request->getUserIP();
             $model->userAgent = $request->getUserAgent();
-
-            if ($userId = $session->get('audit.userId', null)) {
-                $model->userId = $userId;
-            }
-            else {
-                $model->userId = $app->getUser()->getIdentity()->id;
-            }
+            $model->userId    = $app->getUser()->getIdentity()->id;
         }
 
         $model->snapshot = [
