@@ -39,10 +39,10 @@ class Install extends Migration
     /**
      * @inheritdoc
      */
-    public function safeUp ()
+    public function safeUp()
     {
         $this->driver = Craft::$app->getConfig()->getDb()->driver;
-        if ( $this->createTables() ) {
+        if ($this->createTables()) {
             $this->createIndexes();
             $this->addForeignKeys();
             // Refresh the db schema caches
@@ -56,7 +56,7 @@ class Install extends Migration
     /**
      * @inheritdoc
      */
-    public function safeDown ()
+    public function safeDown()
     {
         $this->driver = Craft::$app->getConfig()->getDb()->driver;
         $this->removeTables();
@@ -70,12 +70,12 @@ class Install extends Migration
     /**
      * @return bool
      */
-    protected function createTables ()
+    protected function createTables()
     {
         $tablesCreated = false;
 
         $tableSchema = Craft::$app->db->schema->getTableSchema('{{%audit_log}}');
-        if ( $tableSchema === null ) {
+        if ($tableSchema === null) {
             $tablesCreated = true;
             $this->createTable(
                 $this->tableName,
@@ -85,6 +85,7 @@ class Install extends Migration
                     'dateUpdated' => $this->dateTime()->notNull(),
                     'uid'         => $this->uid(),
                     'siteId'      => $this->integer()->notNull(),
+                    'sessionId'   => $this->string()->null()->defaultValue(null),
                     'elementId'   => $this->integer()->null()->defaultValue(null),
                     'elementType' => $this->string()->null()->defaultValue(null),
                     'userId'      => $this->integer()->null()->defaultValue(null),
@@ -104,7 +105,7 @@ class Install extends Migration
     /**
      * @return void
      */
-    protected function createIndexes ()
+    protected function createIndexes()
     {
         $this->createIndex(
             $this->db->getIndexName(
@@ -128,6 +129,17 @@ class Install extends Migration
             false
         );
 
+        $this->createIndex(
+            $this->db->getIndexName(
+                $this->tableName,
+                'sessionId',
+                false
+            ),
+            $this->tableName,
+            'sessionId',
+            false
+        );
+
         // Additional commands depending on the db driver
         switch ($this->driver) {
             case DbConfig::DRIVER_MYSQL:
@@ -140,7 +152,7 @@ class Install extends Migration
     /**
      * @return void
      */
-    protected function addForeignKeys ()
+    protected function addForeignKeys()
     {
         $this->addForeignKey(
             $this->db->getForeignKeyName($this->tableName, 'siteId'),
@@ -176,14 +188,14 @@ class Install extends Migration
     /**
      * @return void
      */
-    protected function insertDefaultData ()
+    protected function insertDefaultData()
     {
     }
 
     /**
      * @return void
      */
-    protected function removeTables ()
+    protected function removeTables()
     {
         $this->dropTableIfExists('{{%audit_log}}');
     }

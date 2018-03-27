@@ -39,14 +39,9 @@ class m180205_103457_add_session_id extends Migration
      */
     protected function modifyTable()
     {
-        $columnCreated = false;
+        $columnCreated = true;
 
-        $tableSchema = Craft::$app->db->schema->getTableSchema('{{%audit_log}}');
-        if ($tableSchema !== null) {
-            $columnCreated = true;
-
-            $this->addColumn($this->tableName, 'sessionId', $this->string()->null()->defaultValue(null));
-        }
+        $this->addColumn($this->tableName, 'sessionId', $this->string()->defaultValue(null));
 
         return $columnCreated;
     }
