@@ -33,36 +33,40 @@
 {% endset %}
 
 {% set content %}
-    <table class="data fullwidth">
-        <thead>
-        <tr>
-            <th class="audit-column--event">Event</th>
-            <th class="audit-column--element">Type</th>
-            <th>Title</th>
-            <th>User</th>
-            <th>IP</th>
-            <th>Date</th>
-            <th class="thin"></th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for log in logs %}
+    {% if logs %}
+        <table class="data fullwidth">
+            <thead>
             <tr>
-                <td><span class="audit-index__event-label">{{ log.getEventLabel() }}</span></td>
-                <td class="audit-column--element">{{ log.getElementLabel() }}</td>
-                <td>{{ log.getElementLink() }}</td>
-                <td>{{ log.getUserLink() }}</td>
-                <td>{{ log.ip }}</td>
-                <td>{{ log.dateCreated }}</td>
-                <td>
-                    <a href="{{ log.getCpEditUrl() }}">&rarr;</a>
-                </td>
+                <th class="audit-column--event">Event</th>
+                <th class="audit-column--element">Type</th>
+                <th>Title</th>
+                <th>User</th>
+                <th>IP</th>
+                <th>Date</th>
+                <th class="thin"></th>
             </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+            {% for log in logs %}
+                <tr>
+                    <td><span class="audit-index__event-label">{{ log.getEventLabel() }}</span></td>
+                    <td class="audit-column--element">{{ log.getElementLabel() }}</td>
+                    <td>{{ log.getElementLink() }}</td>
+                    <td>{{ log.getUserLink() }}</td>
+                    <td>{{ log.ip }}</td>
+                    <td>{{ log.dateCreated }}</td>
+                    <td>
+                        <a href="{{ log.getCpEditUrl() }}">&rarr;</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
 
-    <div class="pagination-wrapper">
-        {% include 'audit/_pagination' with { paginator: paginator } %}
-    </div>
+        <div class="pagination-wrapper">
+            {% include 'audit/_pagination' with { paginator: paginator } %}
+        </div>
+    {% else %}
+        <p>No log entries.</p>
+    {% endif %}
 {% endset %}
