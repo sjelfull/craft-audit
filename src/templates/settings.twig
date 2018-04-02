@@ -30,42 +30,45 @@
     name: 'enabledGeolocation',
     label: 'Enable geolocation',
     on: settings.enabledGeolocation,
+    toggle: 'audit-geolocation-section'
 }) }}
 
-<h3>Updating database</h3>
+<div class="{{ not settings.enabledGeolocation ? 'hidden' }}" id="audit-geolocation-section">
+    <h3>Updating database</h3>
 
-{% if not validDb %}
-    <p class="warning audit-db-warning{{ not settings.enabledGeolocation ? ' hidden' }}" data-db-warning>You need to download a copy of the MaxMind GeoLite database before using the plugin.</p>
-{% endif %}
+    {% if not validDb %}
+        <p class="warning audit-db-warning{{ not settings.enabledGeolocation ? ' hidden' }}" data-db-warning>You need to download a copy of the MaxMind GeoLite database before using the plugin.</p>
+    {% endif %}
 
-<p>The Geolocation database provided by MaxMind should be updated from time to time. You can either do this manually, or setup a cron job that calls the controller on a regular basis. MaxMind databases are updated on the first Tuesday of each month.</p>
+    <p>The Geolocation database provided by MaxMind should be updated from time to time. You can either do this manually, or setup a cron job that calls the controller on a regular basis. MaxMind databases are updated on the first Tuesday of each month.</p>
 
-<div class="audit-updater" data-audit-updater>
-    <button class="btn submit audit-updater__start js-start" type="button">{{ validDb ? 'Update database' : 'Download database' }}</button>
-    <div class="audit-updater__status js-status">
-        <div class="spinner audit-updater__spinner js-spinner"></div>
-        <span class="audit-updater__status-text js-statusText"></span>
+    <div class="audit-updater" data-audit-updater>
+        <button class="btn submit audit-updater__start js-start" type="button">{{ validDb ? 'Update database' : 'Download database' }}</button>
+        <div class="audit-updater__status js-status">
+            <div class="spinner audit-updater__spinner js-spinner"></div>
+            <span class="audit-updater__status-text js-statusText"></span>
+        </div>
     </div>
+
+    <hr>
+
+    <h3>Via a HTTP call</h3>
+
+    <p>You can make a request to this url at a planned interval. Recommended interval is once every month, on the first Wednesday of the month.</p>
+
+    {{ forms.textareaField({
+        value: siteUrl('audit/update-database', { key: settings.updateAuthKey }),
+        rows: 1,
+        disabled: true
+    }) }}
+
+    <h3>Via the console command</h3>
+
+    <p>Run the following command via the <em>craft</em> console script:</p>
+
+    {{ forms.textareaField({
+        value: './craft audit/default/update-database',
+        rows: 1,
+        disabled: true
+    }) }}
 </div>
-
-<hr>
-
-<h3>Via a HTTP call</h3>
-
-<p>You can make a request to this url at a planned interval. Recommended interval is once every month, on the first Wednesday of the month.</p>
-
-{{ forms.textareaField({
-    value: siteUrl('audit/update-database', { key: settings.updateAuthKey }),
-    rows: 1,
-    disabled: true
-}) }}
-
-<h3>Via the console command</h3>
-
-<p>Run the following command via the <em>craft</em> console script:</p>
-
-{{ forms.textareaField({
-    value: './craft audit/default/update-database',
-    rows: 1,
-    disabled: true
-}) }}
