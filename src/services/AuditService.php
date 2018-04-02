@@ -12,6 +12,7 @@ namespace superbig\audit\services;
 
 use craft\base\Element;
 use craft\base\ElementInterface;
+use craft\base\Plugin;
 use craft\base\PluginInterface;
 use craft\helpers\Template;
 use DateTime;
@@ -126,28 +127,37 @@ class AuditService extends Component
      */
     public function onSaveElement(ElementInterface $element, $isNew = false)
     {
-        /** @var Element $element */
-        $model              = $this->_getStandardModel();
-        $model->event       = $isNew ? AuditModel::EVENT_CREATED_ELEMENT : AuditModel::EVENT_SAVED_ELEMENT;
-        $model->elementId   = $element->getId();
-        $model->elementType = get_class($element);
-        $snapshot           = [
-            'elementId'   => $element->getId(),
-            'elementType' => get_class($element),
-        ];
+        try {
+            /** @var Element $element */
+            $model              = $this->_getStandardModel();
+            $model->event       = $isNew ? AuditModel::EVENT_CREATED_ELEMENT : AuditModel::EVENT_SAVED_ELEMENT;
+            $model->elementId   = $element->getId();
+            $model->elementType = get_class($element);
+            $snapshot           = [
+                'elementId'   => $element->getId(),
+                'elementType' => get_class($element),
+            ];
 
-        if ($element->hasTitles()) {
-            $model->title      = $element->title;
-            $snapshot['title'] = $element->title;
+            if ($element->hasTitles()) {
+                $model->title      = $element->title;
+                $snapshot['title'] = $element->title;
+            }
+
+            if ($element->hasContent()) {
+                $snapshot['content'] = $element->getSerializedFieldValues();
+            }
+
+            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
+
+            return $this->_saveRecord($model);
+        } catch (\Exception $e) {
+            Craft::error(
+                Craft::t('audit', 'Error when logging: {error}', ['error' => $e->getMessage()]),
+                __METHOD__
+            );
+
+            return false;
         }
-
-        if ($element->hasContent()) {
-            $snapshot['content'] = $element->getSerializedFieldValues();
-        }
-
-        $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
-
-        return $this->_saveRecord($model);
     }
 
     /**
@@ -157,23 +167,32 @@ class AuditService extends Component
      */
     public function onDeleteElement(ElementInterface $element)
     {
-        /** @var Element $element */
-        $model              = $this->_getStandardModel();
-        $model->event       = AuditModel::EVENT_DELETED_ELEMENT;
-        $model->elementType = get_class($element);
-        $snapshot           = [
-            'elementId'   => $element->getId(),
-            'elementType' => get_class($element),
-        ];
+        try {
+            /** @var Element $element */
+            $model              = $this->_getStandardModel();
+            $model->event       = AuditModel::EVENT_DELETED_ELEMENT;
+            $model->elementType = get_class($element);
+            $snapshot           = [
+                'elementId'   => $element->getId(),
+                'elementType' => get_class($element),
+            ];
 
-        if ($element->hasTitles()) {
-            $model->title      = $element->title;
-            $snapshot['title'] = $element->title;
+            if ($element->hasTitles()) {
+                $model->title      = $element->title;
+                $snapshot['title'] = $element->title;
+            }
+
+            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
+
+            return $this->_saveRecord($model);
+        } catch (\Exception $e) {
+            Craft::error(
+                Craft::t('audit', 'Error when logging: {error}', ['error' => $e->getMessage()]),
+                __METHOD__
+            );
+
+            return false;
         }
-
-        $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
-
-        return $this->_saveRecord($model);
     }
 
     /**
@@ -181,11 +200,19 @@ class AuditService extends Component
      */
     public function onLogin()
     {
-        $model        = $this->_getStandardModel();
-        $model->event = AuditModel::USER_LOGGED_IN;
+        try {
+            $model        = $this->_getStandardModel();
+            $model->event = AuditModel::USER_LOGGED_IN;
 
+            return $this->_saveRecord($model);
+        } catch (\Exception $e) {
+            Craft::error(
+                Craft::t('audit', 'Error when logging: {error}', ['error' => $e->getMessage()]),
+                __METHOD__
+            );
 
-        return $this->_saveRecord($model);
+            return false;
+        }
     }
 
     /**
@@ -193,10 +220,19 @@ class AuditService extends Component
      */
     public function onBeforeLogout()
     {
-        $model        = $this->_getStandardModel();
-        $model->event = AuditModel::USER_LOGGED_OUT;
+        try {
+            $model        = $this->_getStandardModel();
+            $model->event = AuditModel::USER_LOGGED_OUT;
 
-        return $this->_saveRecord($model);
+            return $this->_saveRecord($model);
+        } catch (\Exception $e) {
+            Craft::error(
+                Craft::t('audit', 'Error when logging: {error}', ['error' => $e->getMessage()]),
+                __METHOD__
+            );
+
+            return false;
+        }
     }
 
     /**
@@ -207,17 +243,27 @@ class AuditService extends Component
      */
     public function onPluginEvent(string $event, PluginInterface $plugin): bool
     {
-        $model           = $this->_getStandardModel();
-        $model->event    = $event;
-        $model->title    = $plugin->name;
-        $snapshot        = [
-            'title'   => $plugin->name,
-            'handle'  => $plugin->handle,
-            'version' => $plugin->version,
-        ];
-        $model->snapshot = $snapshot;
+        /** @var Plugin $plugin */
+        try {
+            $model           = $this->_getStandardModel();
+            $model->event    = $event;
+            $model->title    = $plugin->name;
+            $snapshot        = [
+                'title'   => $plugin->name,
+                'handle'  => $plugin->handle,
+                'version' => $plugin->version,
+            ];
+            $model->snapshot = $snapshot;
 
-        return $this->_saveRecord($model);
+            return $this->_saveRecord($model);
+        } catch (\Exception $e) {
+            Craft::error(
+                Craft::t('audit', 'Error when logging: {error}', ['error' => $e->getMessage()]),
+                __METHOD__
+            );
+
+            return false;
+        }
     }
 
     /**
