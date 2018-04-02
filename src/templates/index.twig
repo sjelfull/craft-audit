@@ -49,7 +49,7 @@
         {% for log in logs %}
             <tr>
                 <td><span class="audit-index__event-label">{{ log.getEventLabel() }}</span></td>
-                <td>{{ log.getElementLabel() }}</td>
+                <td class="audit-column--element">{{ log.getElementLabel() }}</td>
                 <td>{{ log.getElementLink() }}</td>
                 <td>{{ log.getUserLink() }}</td>
                 <td>{{ log.ip }}</td>
