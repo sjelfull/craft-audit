@@ -148,8 +148,8 @@
     color: red;
 }
 
-.audit-table-current-entry {
-    opacity: 0.4;
+.audit-table-current-entry td {
+    background-color: #eee;
 }
 
 :root .audit-snapshot-table tbody tr:first-child td,
