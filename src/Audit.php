@@ -217,14 +217,6 @@ class Audit extends Plugin
             }
         );
 
-        Event::on(
-            User::class,
-            User::EVENT_AFTER_LOGOUT,
-            function(UserEvent $event) {
-                $this->auditService->onLogout();
-            }
-        );
-
         // Elements
         Event::on(
             Elements::class,
