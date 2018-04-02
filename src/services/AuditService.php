@@ -285,4 +285,30 @@ class AuditService extends Component
             return false;
         }
     }
+
+    public function outputObjectAsTable($input, $end = true)
+    {
+        $output = '<table class="audit-snapshot-table">';
+
+        foreach ($input as $key => $value) {
+            if (empty($value)) {
+                continue;
+            }
+
+            if (is_array($value)) {
+                $sub    = $this->outputObjectAsTable($value, false);
+                $output .= "<tr><td><strong>$key</strong>:</td><td>$sub</td></tr>";
+            }
+            else {
+                $output .= "<tr><td><strong>$key</strong></td><td>$value</td></tr>";
+            }
+        }
+        $output .= "</table>";
+
+        if ($end) {
+            $output = Template::raw($output);
+        }
+
+        return $output;
+    }
 }

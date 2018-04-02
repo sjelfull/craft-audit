@@ -151,3 +151,13 @@
 .audit-table-current-entry {
     opacity: 0.4;
 }
+
+:root .audit-snapshot-table tbody tr:first-child td,
+:root .audit-snapshot-table tbody td {
+    border-top: 0;
+    border-bottom: 0;
+}
+
+:root .audit-snapshot-table tbody td:first-child {
+    min-width: 100px;
+}

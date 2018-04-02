@@ -39,7 +39,7 @@ class AuditModel extends Model
     const EVENT_PLUGIN_INSTALLED   = 'installed-plugin';
     const EVENT_PLUGIN_UNINSTALLED = 'uninstalled-plugin';
     const EVENT_PLUGIN_DISABLED    = 'disabled-plugin';
-    const EVENT_PLUGIN_ENABLED    = 'enabled-plugin';
+    const EVENT_PLUGIN_ENABLED     = 'enabled-plugin';
 
     const EVENT_LABELS = [
         self::EVENT_SAVED_ELEMENT      => 'Saved element',
@@ -55,7 +55,7 @@ class AuditModel extends Model
         self::EVENT_PLUGIN_INSTALLED   => 'Plugin installed',
         self::EVENT_PLUGIN_UNINSTALLED => 'Plugin uninstalled',
         self::EVENT_PLUGIN_DISABLED    => 'Plugin disabled',
-        self::EVENT_PLUGIN_ENABLED    => 'Plugin enabled',
+        self::EVENT_PLUGIN_ENABLED     => 'Plugin enabled',
     ];
 
     // Public Properties
@@ -130,7 +130,7 @@ class AuditModel extends Model
 
     protected $_element = null;
 
-    public static function createFromRecord (AuditRecord $record)
+    public static function createFromRecord(AuditRecord $record)
     {
         $model              = new self();
         $model->id          = $record->id;
@@ -144,7 +144,7 @@ class AuditModel extends Model
         $model->siteId      = $record->siteId;
         $model->dateCreated = $record->dateCreated;
         $model->snapshot    = unserialize($record->snapshot);
-        $model->sessionId    = $record->sessionId;
+        $model->sessionId   = $record->sessionId;
 
         return $model;
     }
@@ -155,69 +155,69 @@ class AuditModel extends Model
     /**
      * @inheritdoc
      */
-    public function rules ()
+    public function rules()
     {
         return [
             //['someAttribute', 'default', 'value' => 'Some Default'],
         ];
     }
 
-    public function getEventLabel ()
+    public function getEventLabel()
     {
         return self::EVENT_LABELS[ $this->event ] ?? '';
     }
 
-    public function getElement ()
+    public function getElement()
     {
-        if ( !$this->elementId || !$this->elementType ) {
+        if (!$this->elementId || !$this->elementType) {
             return null;
         }
 
-        if ( !$this->_element ) {
+        if (!$this->_element) {
             $this->_element = Craft::$app->getElements()->getElementById($this->elementId, $this->elementType, $this->siteId);
         }
 
         return $this->_element;
     }
 
-    public function getElementLabel ()
+    public function getElementLabel()
     {
         $element = $this->getElement();
 
-        if ( !$element ) {
+        if (!$element) {
             return null;
         }
 
         return $element::displayName();
     }
 
-    public function getElementLink ()
+    public function getElementLink()
     {
         $element = $this->getElement();
 
-        if ( !$element && $this->title ) {
+        if (!$element && $this->title) {
             return $this->title;
         }
 
-        if ( !$element ) {
+        if (!$element) {
             return null;
         }
 
         $text = $element->hasTitles() ? $this->title : 'Edit';
         $url  = $element->getCpEditUrl();
 
-        if ( $this->elementType === Asset::class ) {
+        if ($this->elementType === Asset::class) {
             $url = $element->getUrl();
         }
 
         return Template::raw('<a href="' . $url . '">' . $text . '</a>');
     }
 
-    public function getUserLink ()
+    public function getUserLink()
     {
         $user = $this->getUser();
 
-        if ( !$user ) {
+        if (!$user) {
             return null;
         }
 
@@ -229,28 +229,28 @@ class AuditModel extends Model
     /**
      * @return \craft\elements\User|null
      */
-    public function getUser ()
+    public function getUser()
     {
-        if ( $this->userId && !$this->_user ) {
+        if ($this->userId && !$this->_user) {
             $this->_user = Craft::$app->getUsers()->getUserById($this->userId);
         }
 
         return $this->_user;
     }
 
-    public function getAgent ()
+    public function getAgent()
     {
         $parser = parse_user_agent($this->userAgent);
 
         return $parser;
     }
 
-    public function getSnapshotTable ()
+    public function getSnapshotTable()
     {
-        return Template::raw('<pre>' . print_r($this->snapshot, true) . '</pre>');
+        return Audit::$plugin->auditService->outputObjectAsTable($this->snapshot);
     }
 
-    public function getCpEditUrl ()
+    public function getCpEditUrl()
     {
         return UrlHelper::cpUrl('audit/log/' . $this->id);
     }
