@@ -12,10 +12,9 @@ namespace superbig\audit\services;
 
 use craft\base\Element;
 use craft\base\ElementInterface;
-use craft\base\Plugin;
 use craft\base\PluginInterface;
 use craft\helpers\Template;
-use craft\models\EntryDraft;
+use DateTime;
 use superbig\audit\Audit;
 
 use Craft;
@@ -336,5 +335,21 @@ class AuditService extends Component
         }
 
         return $output;
+    }
+
+    /**
+     * @return int|string
+     */
+    public function pruneLogs()
+    {
+        $pruneDays = Audit::$plugin->getSettings()->pruneDays ?? 30;
+        $date      = (new DateTime())->modify('-' . $pruneDays . ' days')->format('Y-m-d H:i:s');
+        $query     = AuditRecord::find()->where('dateCreated <= :pruneDate', [':pruneDate' => $date]);
+        $count     = $query->count();
+
+        // Delete
+        AuditRecord::deleteAll('dateCreated <= :pruneDate', [':pruneDate' => $date]);
+
+        return $count;
     }
 }

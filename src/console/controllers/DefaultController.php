@@ -75,4 +75,16 @@ class DefaultController extends Controller
 
         return ExitCode::OK;
     }
+
+    /**
+     * Clean old log entries
+     */
+    public function actionPruneLogs()
+    {
+        $count = Audit::$plugin->auditService->pruneLogs();
+
+        ConsoleHelper::output('Deleted ' . $count . ' entries');
+
+        return ExitCode::OK;
+    }
 }
