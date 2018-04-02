@@ -86,8 +86,9 @@ class DefaultController extends Controller
      */
     public function actionDetails(int $id = null)
     {
-        $log           = Audit::$plugin->auditService->getEventById($id);
-        $logsInSession = Audit::$plugin->auditService->getEventsBySessionId($log->sessionId);
+        $service       = Audit::$plugin->auditService;
+        $log           = $service->getEventById($id);
+        $logsInSession = $service->getEventsBySessionId($log->sessionId);
 
         return $this->renderTemplate('audit/_view', [
             'settings'      => Audit::$plugin->getSettings(),

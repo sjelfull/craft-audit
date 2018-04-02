@@ -40,6 +40,16 @@ class AuditService extends Component
     // Public Methods
     // =========================================================================
 
+    public function init()
+    {
+        parent::init();
+    }
+
+    /**
+     * @param ElementInterface $element
+     *
+     * @return array|null
+     */
     public function getEventsForElement(ElementInterface $element)
     {
         $elementId   = $element->getId();
@@ -65,11 +75,21 @@ class AuditService extends Component
         return AuditModel::createFromRecord($record);
     }
 
+    /**
+     * @param null $handle
+     *
+     * @return array|null
+     */
     public function getEventsByHandle($handle = null)
     {
         return $this->getEventsByAttributes(['eventHandle' => $handle]);
     }
 
+    /**
+     * @param null $id
+     *
+     * @return array|null
+     */
     public function getEventsBySessionId($id = null)
     {
         if (!$id) {
@@ -79,6 +99,11 @@ class AuditService extends Component
         return $this->getEventsByAttributes(['sessionId' => $id]);
     }
 
+    /**
+     * @param array $attributes
+     *
+     * @return array|null
+     */
     public function getEventsByAttributes($attributes = [])
     {
         $models  = null;
