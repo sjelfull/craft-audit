@@ -130,6 +130,11 @@ class AuditModel extends Model
 
     protected $_element = null;
 
+    /**
+     * @param AuditRecord $record
+     *
+     * @return AuditModel
+     */
     public static function createFromRecord(AuditRecord $record)
     {
         $model              = new self();
@@ -157,16 +162,20 @@ class AuditModel extends Model
      */
     public function rules()
     {
-        return [
-            //['someAttribute', 'default', 'value' => 'Some Default'],
-        ];
+        return [];
     }
 
+    /**
+     * @return mixed|string
+     */
     public function getEventLabel()
     {
         return self::EVENT_LABELS[ $this->event ] ?? '';
     }
 
+    /**
+     * @return ElementInterface|null
+     */
     public function getElement()
     {
         if (!$this->elementId || !$this->elementType) {
@@ -180,6 +189,9 @@ class AuditModel extends Model
         return $this->_element;
     }
 
+    /**
+     * @return null|string
+     */
     public function getElementLabel()
     {
         $element = $this->getElement();
@@ -191,6 +203,9 @@ class AuditModel extends Model
         return $element::displayName();
     }
 
+    /**
+     * @return null|string|\Twig_Markup
+     */
     public function getElementLink()
     {
         $element = $this->getElement();
@@ -213,6 +228,9 @@ class AuditModel extends Model
         return Template::raw('<a href="' . $url . '">' . $text . '</a>');
     }
 
+    /**
+     * @return null|\Twig_Markup
+     */
     public function getUserLink()
     {
         $user = $this->getUser();
@@ -238,6 +256,9 @@ class AuditModel extends Model
         return $this->_user;
     }
 
+    /**
+     * @return string[]
+     */
     public function getAgent()
     {
         $parser = parse_user_agent($this->userAgent);
@@ -257,11 +278,17 @@ class AuditModel extends Model
         return Audit::$plugin->geo->getLocationInfoForIp($this->ip);
     }
 
+    /**
+     * @return string|\Twig_Markup
+     */
     public function getSnapshotTable()
     {
         return Audit::$plugin->auditService->outputObjectAsTable($this->snapshot);
     }
 
+    /**
+     * @return string
+     */
     public function getCpEditUrl()
     {
         return UrlHelper::cpUrl('audit/log/' . $this->id);
