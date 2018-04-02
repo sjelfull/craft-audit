@@ -14,6 +14,7 @@ use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\base\Plugin;
 use craft\base\PluginInterface;
+use craft\helpers\Template;
 use craft\models\EntryDraft;
 use superbig\audit\Audit;
 
