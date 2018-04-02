@@ -33,7 +33,7 @@ class AuditVariable extends Component
      *
      * @return mixed|null
      */
-    public function getLocationInfoForIp ($ipAddress = null)
+    public function getLocationInfoForIp($ipAddress = null)
     {
         return Audit::$plugin->geo->getLocationInfoForIp($ipAddress);
     }
