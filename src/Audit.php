@@ -12,6 +12,7 @@ namespace superbig\audit;
 
 use craft\events\ElementEvent;
 
+use craft\helpers\StringHelper;
 use craft\web\twig\variables\CraftVariable;
 use superbig\audit\models\AuditModel;
 use superbig\audit\services\Audit_GeoService;
@@ -89,16 +90,33 @@ class Audit extends Plugin
                         $this->initLogEvents();
                     });
             }
+
+            Event::on(
+                Plugins::class,
+                Plugins::EVENT_AFTER_INSTALL_PLUGIN,
+                function(PluginEvent $event) {
+                    if ($event->plugin === $this) {
+                        $settings = $this->getSettings();
+
+                        if (empty($settings->updateAuthKey)) {
+                            $settings->updateAuthKey = StringHelper::randomString(16);
+
+                            Craft::$app->getPlugins()->savePluginSettings($this, $settings->toArray());
+                        }
+                    }
+                }
+            );
         }
 
-        /*Event::on(
+        Event::on(
             UrlManager::class,
             UrlManager::EVENT_REGISTER_SITE_URL_RULES,
-            function (RegisterUrlRulesEvent $event) {
-                $event->rules['siteActionTrigger1'] = 'audit/default';
+            function(RegisterUrlRulesEvent $event) {
+                $event->rules['audit/update-database'] = 'audit/geo/update-database';
             }
         );
 
+        /*
         Event::on(
             UrlManager::class,
             UrlManager::EVENT_REGISTER_CP_URL_RULES,

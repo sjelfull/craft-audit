@@ -35,6 +35,16 @@ class Settings extends Model
      */
     public $enabled = true;
 
+    /**
+     * Enabled status
+     */
+    public $enabledGeolocation = true;
+
+    /**
+     * Update authentication key
+     */
+    public $updateAuthKey = '';
+
     // Public Methods
     // =========================================================================
 
@@ -45,6 +55,7 @@ class Settings extends Model
     {
         return array_merge(parent::rules(), [
             ['enabled', 'boolean'],
+            ['enabledGeolocation', 'boolean'],
             ['pruneDays', 'integer'],
         ]);
     }

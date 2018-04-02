@@ -90,6 +90,7 @@ class DefaultController extends Controller
         $logsInSession = Audit::$plugin->auditService->getEventsBySessionId($log->sessionId);
 
         return $this->renderTemplate('audit/_view', [
+            'settings'      => Audit::$plugin->getSettings(),
             'log'           => $log,
             'logsInSession' => $logsInSession,
         ]);

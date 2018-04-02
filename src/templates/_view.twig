@@ -11,6 +11,7 @@
  * @since     1.0.0
  */
 #}
+{# @var settings \superbig\audit\models\Settings #}
 
 {% extends "_layouts/cp" %}
 {% import "_includes/forms" as forms %}
@@ -86,43 +87,45 @@
         </div>
     </div>
 
-    {% set ipInfo = craft.audit.getLocationInfoForIp(log.ip) %}
-    {% set ipInfo = craft.audit.getLocationInfoForIp('84.215.212.44') %}
+    {% if settings.enabledGeolocation %}
+        {% set ipInfo = craft.audit.getLocationInfoForIp(log.ip) %}
+        {% set ipInfo = craft.audit.getLocationInfoForIp('84.215.212.44') %}
 
-    {% if ipInfo %}
-        <div class="pane">
-            <h2>Location</h2>
-            <div style="height:500px;" id="auditMap" data-lat="{{ ipInfo.location.latitude }}" data-lon="{{ ipInfo.location.longitude }}"></div>
+        {% if ipInfo %}
+            <div class="pane">
+                <h2>Location</h2>
+                <div style="height:500px;" id="auditMap" data-lat="{{ ipInfo.location.latitude }}" data-lon="{{ ipInfo.location.longitude }}"></div>
 
-            <table class="data">
-                <tbody>
-                <tr>
-                    <td class="light">Latitude</td>
-                    <td>{{ ipInfo.location.latitude }}</td>
-                </tr>
-                <tr>
-                    <td class="light">Longitude</td>
-                    <td>{{ ipInfo.location.longitude }}</td>
-                </tr>
-                <tr>
-                    <td class="light">Accuracy radius</td>
-                    <td>{{ ipInfo.location.accuracyRadius }}</td>
-                </tr>
-                <tr>
-                    <td class="light">City</td>
-                    <td>{{ ipInfo.city.name }}</td>
-                </tr>
-                <tr>
-                    <td class="light">Subdivision</td>
-                    <td>{{ ipInfo.mostSpecificSubdivision.name }}</td>
-                </tr>
-                <tr>
-                    <td class="light">Country</td>
-                    <td>{{ ipInfo.country.name }}</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
+                <table class="data">
+                    <tbody>
+                    <tr>
+                        <td class="light">Latitude</td>
+                        <td>{{ ipInfo.location.latitude }}</td>
+                    </tr>
+                    <tr>
+                        <td class="light">Longitude</td>
+                        <td>{{ ipInfo.location.longitude }}</td>
+                    </tr>
+                    <tr>
+                        <td class="light">Accuracy radius</td>
+                        <td>{{ ipInfo.location.accuracyRadius }}</td>
+                    </tr>
+                    <tr>
+                        <td class="light">City</td>
+                        <td>{{ ipInfo.city.name }}</td>
+                    </tr>
+                    <tr>
+                        <td class="light">Subdivision</td>
+                        <td>{{ ipInfo.mostSpecificSubdivision.name }}</td>
+                    </tr>
+                    <tr>
+                        <td class="light">Country</td>
+                        <td>{{ ipInfo.country.name }}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
     {% endif %}
 
     {% if logsInSession and logsInSession | length > 1 %}

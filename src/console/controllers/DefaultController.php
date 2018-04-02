@@ -35,9 +35,9 @@ class DefaultController extends Controller
      *
      * @return mixed
      */
-    public function actionUpdate()
+    public function actionUpdateDatabase()
     {
-        ConsoleHelper::output('Updating geolocation database');
+        ConsoleHelper::output('Updating Geolocation database');
 
         ConsoleHelper::startProgress(1, 6);
 
