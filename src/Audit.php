@@ -19,6 +19,7 @@ use superbig\audit\services\AuditService;
 use superbig\audit\models\Settings;
 
 use Craft;
+use craft\console\Application as ConsoleApplication;
 use craft\base\Plugin;
 use craft\services\Plugins;
 use craft\events\PluginEvent;
@@ -39,8 +40,8 @@ use yii\web\UserEvent;
  * @package   Audit
  * @since     1.0.0
  *
- * @property  AuditService $auditService
- * @property  Audit_GeoService    $geo
+ * @property  AuditService     $auditService
+ * @property  Audit_GeoService $geo
  * @method  Settings getSettings()
  */
 class Audit extends Plugin
@@ -68,6 +69,10 @@ class Audit extends Plugin
     {
         parent::init();
         self::$plugin = $this;
+
+        if (Craft::$app instanceof ConsoleApplication) {
+            $this->controllerNamespace = 'superbig\audit\console\controllers';
+        }
 
         /**
          * Install our event listeners. We do it only after we receive the event
