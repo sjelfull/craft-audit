@@ -23,6 +23,7 @@
 
 :root .audit-column--element {
     width: 80px;
+    white-space: nowrap;
 }
 
 /**
