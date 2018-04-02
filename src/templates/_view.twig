@@ -88,8 +88,7 @@
     </div>
 
     {% if settings.enabledGeolocation %}
-        {% set ipInfo = craft.audit.getLocationInfoForIp(log.ip) %}
-        {% set ipInfo = craft.audit.getLocationInfoForIp('84.215.212.44') %}
+        {% set ipInfo = log.getGeolocation() %}
 
         {% if ipInfo %}
             <div class="pane">

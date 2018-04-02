@@ -245,6 +245,18 @@ class AuditModel extends Model
         return $parser;
     }
 
+    /**
+     * @return mixed|null
+     */
+    public function getGeolocation()
+    {
+        if (empty($this->ip) || $this->ip === '127.0.0.1') {
+            return null;
+        }
+
+        return Audit::$plugin->geo->getLocationInfoForIp($this->ip);
+    }
+
     public function getSnapshotTable()
     {
         return Audit::$plugin->auditService->outputObjectAsTable($this->snapshot);
