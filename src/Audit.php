@@ -116,31 +116,6 @@ class Audit extends Plugin
             }
         );
 
-        /*
-        Event::on(
-            UrlManager::class,
-            UrlManager::EVENT_REGISTER_CP_URL_RULES,
-            function (RegisterUrlRulesEvent $event) {
-                $event->rules['cpActionTrigger1'] = 'audit/default/do-something';
-            }
-        );
-
-        Event::on(
-            Elements::class,
-            Elements::EVENT_REGISTER_ELEMENT_TYPES,
-            function (RegisterComponentTypesEvent $event) {
-            }
-        );
-
-        Event::on(
-            Plugins::class,
-            Plugins::EVENT_AFTER_INSTALL_PLUGIN,
-            function (PluginEvent $event) {
-                if ( $event->plugin === $this ) {
-                }
-            }
-        );*/
-
         Event::on(
             CraftVariable::class,
             CraftVariable::EVENT_INIT,
