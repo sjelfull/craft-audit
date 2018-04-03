@@ -120,6 +120,13 @@ class AuditService extends Component
         return $models;
     }
 
+    public function getEventCountByParentId($parentId = null)
+    {
+        return AuditRecord::find()
+                          ->where(['parentId' => $parentId])
+                          ->count();
+    }
+
     /**
      * @param ElementInterface $element
      * @param bool             $isNew
@@ -328,12 +335,13 @@ class AuditService extends Component
     public function _saveRecord(AuditModel &$model, $unique = true)
     {
         try {
-            /*if ( $model->id ) {
+            if ($model->id) {
                 $record = AuditRecord::findOne($model->id);
             }
             else {
-            } */
-            $record              = new AuditRecord();
+                $record = new AuditRecord();
+            }
+
             $record->event       = $model->event;
             $record->title       = $model->title;
             $record->parentId    = $model->parentId;
@@ -457,9 +465,23 @@ class AuditService extends Component
      */
     public function onResaveEnd(ResaveElements $job)
     {
-
         try {
-            Craft::$app->getCache()->delete($this->getParentIdKey($job->elementType));
+            $cache     = Craft::$app->getCache();
+            $parentKey = $this->getParentIdKey($job->elementType);
+            $parentId  = $cache->get($parentKey);
+
+            if ($parentId) {
+                $parentEvent   = $this->getEventById($parentId);
+                $subeventCount = $this->getEventCountByParentId($parentId);
+
+                if ($parentEvent) {
+                    $parentEvent->title = $subeventCount . ' elements was resaved';
+
+                    $this->_saveRecord($parentEvent);
+                }
+
+                $cache->delete($parentKey);
+            }
         } catch (\Exception $e) {
             Craft::error('Failed to remove resave id: ' . $e->getMessage(), __METHOD__);
         }
