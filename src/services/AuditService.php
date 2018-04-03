@@ -15,6 +15,7 @@ use craft\base\ElementInterface;
 use craft\base\Plugin;
 use craft\base\PluginInterface;
 use craft\helpers\Template;
+use craft\queue\jobs\ResaveElements;
 use DateTime;
 use superbig\audit\Audit;
 
@@ -97,7 +98,7 @@ class AuditService extends Component
             return null;
         }
 
-        return $this->getEventsByAttributes(['sessionId' => $id]);
+        return $this->getEventsByAttributes(['sessionId' => $id, 'parentId' => null]);
     }
 
     /**
@@ -148,6 +149,12 @@ class AuditService extends Component
             }
 
             $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
+
+            $parentId = $this->getParentId($model->elementType);
+
+            if (!empty($parentId)) {
+                $model->parentId = $parentId;
+            }
 
             return $this->_saveRecord($model);
         } catch (\Exception $e) {
@@ -315,7 +322,7 @@ class AuditService extends Component
      *
      * @return bool
      */
-    public function _saveRecord(AuditModel $model, $unique = true)
+    public function _saveRecord(AuditModel &$model, $unique = true)
     {
         try {
             /*if ( $model->id ) {
@@ -326,6 +333,7 @@ class AuditService extends Component
             $record              = new AuditRecord();
             $record->event       = $model->event;
             $record->title       = $model->title;
+            $record->parentId    = $model->parentId;
             $record->userId      = $model->userId;
             $record->elementId   = $model->elementId;
             $record->elementType = $model->elementType;
@@ -343,6 +351,8 @@ class AuditService extends Component
                         ]),
                     'audit');
             }
+
+            $model->id = $record->id;
 
             return true;
         } catch (Exception $e) {
@@ -397,5 +407,65 @@ class AuditService extends Component
         AuditRecord::deleteAll('dateCreated <= :pruneDate', [':pruneDate' => $date]);
 
         return $count;
+    }
+
+    public function onBeforeResave(ResaveElements $job)
+    {
+        try {
+            $model              = $this->_getStandardModel();
+            $model->event       = AuditModel::EVENT_RESAVED_ELEMENTS;
+            $model->elementType = $job->elementType;
+            $model->appendSnapshot('resaveCriteria', $job->criteria);
+
+            $this->_saveRecord($model);
+
+            if ($model->id) {
+                $parentIdKey = $this->getParentIdKey($job->elementType);
+
+                Craft::$app->getCache()->set($parentIdKey, $model->id);
+            }
+        } catch (\Exception $e) {
+            Craft::error(
+                Craft::t('audit', 'Error when logging: {error}', ['error' => $e->getMessage()]),
+                __METHOD__
+            );
+        }
+
+        return true;
+    }
+
+    /**
+     * @param string $elementType
+     *
+     * @return mixed
+     */
+    public function getParentId($elementType = '')
+    {
+        $cache    = Craft::$app->getCache();
+        $parentId = $cache->get($this->getParentIdKey($elementType));
+
+        return $parentId;
+    }
+
+    /**
+     * @param ResaveElements $job
+     *
+     * @return mixed
+     */
+    public function onResaveEnd(ResaveElements $job)
+    {
+
+        try {
+            Craft::$app->getCache()->delete($this->getParentIdKey($job->elementType));
+        } catch (\Exception $e) {
+            Craft::error('Failed to remove resave id: ' . $e->getMessage(), __METHOD__);
+        }
+
+        return true;
+    }
+
+    public function getParentIdKey($elementType = '')
+    {
+        return AuditModel::FLASH_RESAVE_ID . ':' . $elementType;
     }
 }

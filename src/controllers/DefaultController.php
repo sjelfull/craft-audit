@@ -54,7 +54,8 @@ class DefaultController extends Controller
         $urlPattern   = '/admin/audit?page=(:num)';
         $query        = AuditRecord::find()
                                    ->orderBy('dateCreated desc')
-                                   ->with('user');
+                                   ->with('user')
+                                   ->where(['parentId' => null]);
         $countQuery   = clone $query;
         $totalItems   = $countQuery->count();
         $paginator    = new Paginator($totalItems, $itemsPerPage, $currentPage, $urlPattern);

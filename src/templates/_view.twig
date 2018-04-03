@@ -127,6 +127,40 @@
         {% endif %}
     {% endif %}
 
+    {% if log.getChildren() and log.getChildren() | length > 1 %}
+        <div class="pane">
+            <h2>Subevents</h2>
+            <table class="data fullwidth">
+                <thead>
+                <tr>
+                    <th>Event</th>
+                    <th>Type</th>
+                    <th>Title</th>
+                    <th>User</th>
+                    <th>IP</th>
+                    <th>Date</th>
+                    <th class="thin"></th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for logEntry in log.getChildren() %}
+                    <tr{{ logEntry.id == log.id ? ' class="audit-table-current-entry"' }}>
+                        <td>{{ logEntry.getEventLabel() }}</td>
+                        <td>{{ logEntry.getElementLabel() }}</td>
+                        <td>{{ logEntry.getElementLink() }}</td>
+                        <td>{{ logEntry.getUserLink() }}</td>
+                        <td>{{ logEntry.ip }}</td>
+                        <td>{{ logEntry.dateCreated }}</td>
+                        <td>
+                            <a href="{{ logEntry.getCpEditUrl() }}">&rarr;</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
     {% if logsInSession and logsInSession | length > 1 %}
         <div class="pane">
             <h2>Events in session</h2>

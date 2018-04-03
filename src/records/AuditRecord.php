@@ -26,6 +26,7 @@ use yii\db\ActiveQueryInterface;
  * @property integer      $id
  * @property integer      $siteId
  * @property integer|null $userId
+ * @property integer|null $parentId
  * @property integer|null $elementId
  * @property string|null  $elementType
  * @property string|null  $title
@@ -45,28 +46,46 @@ class AuditRecord extends ActiveRecord
     /**
      * @inheritdoc
      */
-    public static function tableName ()
+    public static function tableName()
     {
         return '{{%audit_log}}';
     }
 
     /**
-     * Returns the entry’s author.
+     * Returns the log entry’s user.
      *
      * @return ActiveQueryInterface The relational query object.
      */
-    public function getUser (): ActiveQueryInterface
+    public function getUser(): ActiveQueryInterface
     {
-        return $this->hasOne(User::class, [ 'id' => 'userId' ]);
+        return $this->hasOne(User::class, ['id' => 'userId']);
     }
 
     /**
-     * Returns the entry’s element.
+     * Returns the log entry's element.
      *
      * @return ActiveQueryInterface The relational query object.
      */
-    public function getElement (): ActiveQueryInterface
+    public function getElement(): ActiveQueryInterface
     {
-        return $this->hasOne(Element::class, [ 'id' => 'elementId' ]);
+        return $this->hasOne(Element::class, ['id' => 'elementId']);
+    }
+
+    /**
+     * Returns the log entry's parent.
+     *
+     * @return ActiveQueryInterface The relational query object.
+     */
+    public function getParent(): ActiveQueryInterface
+    {
+        return $this->hasOne(AuditRecord::class, ['id' => 'parentId']);
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getChildren()
+    {
+        return $this->hasMany(AuditRecord::class, ['parentId' => 'id']);
     }
 }

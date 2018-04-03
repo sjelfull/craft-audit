@@ -29,6 +29,7 @@ use superbig\audit\records\AuditRecord;
 class AuditModel extends Model
 {
     const EVENT_SAVED_ELEMENT      = 'saved-element';
+    const EVENT_RESAVED_ELEMENTS   = 'resaved-elements';
     const EVENT_CREATED_ELEMENT    = 'created-element';
     const EVENT_DELETED_ELEMENT    = 'deleted-element';
     const USER_LOGGED_OUT          = 'user-logged-out';
@@ -41,8 +42,11 @@ class AuditModel extends Model
     const EVENT_PLUGIN_DISABLED    = 'disabled-plugin';
     const EVENT_PLUGIN_ENABLED     = 'enabled-plugin';
 
+    const FLASH_RESAVE_ID = 'auditResaveId';
+
     const EVENT_LABELS = [
         self::EVENT_SAVED_ELEMENT      => 'Saved element',
+        self::EVENT_RESAVED_ELEMENTS   => 'Resaved elements',
         self::EVENT_CREATED_ELEMENT    => 'Created element',
         self::EVENT_DELETED_ELEMENT    => 'Deleted element',
         self::EVENT_SAVED_DRAFT        => 'Saved draft',
@@ -70,6 +74,11 @@ class AuditModel extends Model
      * @var integer|null
      */
     public $elementId = null;
+
+    /**
+     * @var integer|null
+     */
+    public $parentId = null;
 
     /**
      * @var string|null
@@ -126,9 +135,9 @@ class AuditModel extends Model
      */
     public $sessionId = null;
 
-    protected $_user = null;
-
-    protected $_element = null;
+    protected $_user     = null;
+    protected $_element  = null;
+    protected $_children = null;
 
     /**
      * @param AuditRecord $record
@@ -143,6 +152,7 @@ class AuditModel extends Model
         $model->title       = $record->title;
         $model->userId      = $record->userId;
         $model->elementId   = $record->elementId;
+        $model->parentId    = $record->parentId;
         $model->elementType = $record->elementType;
         $model->ip          = $record->ip;
         $model->userAgent   = $record->userAgent;
@@ -187,6 +197,18 @@ class AuditModel extends Model
         }
 
         return $this->_element;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getChildren()
+    {
+        if (!$this->_children) {
+            $this->_children = Audit::$plugin->auditService->getEventsByAttributes(['parentId' => $this->id]);
+        }
+
+        return $this->_children;
     }
 
     /**
@@ -276,6 +298,15 @@ class AuditModel extends Model
         }
 
         return Audit::$plugin->geo->getLocationInfoForIp($this->ip);
+    }
+
+    public function appendSnapshot($key = null, $data = null)
+    {
+        if (!is_array($this->snapshot)) {
+            $this->snapshot = [];
+        }
+
+        $this->snapshot[ $key ] = $data;
     }
 
     /**

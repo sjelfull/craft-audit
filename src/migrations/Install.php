@@ -86,6 +86,7 @@ class Install extends Migration
                     'uid'         => $this->uid(),
                     'siteId'      => $this->integer()->notNull(),
                     'sessionId'   => $this->string()->null()->defaultValue(null),
+                    'parentId'    => $this->integer()->null()->defaultValue(null),
                     'elementId'   => $this->integer()->null()->defaultValue(null),
                     'elementType' => $this->string()->null()->defaultValue(null),
                     'userId'      => $this->integer()->null()->defaultValue(null),
@@ -140,6 +141,17 @@ class Install extends Migration
             false
         );
 
+        $this->createIndex(
+            $this->db->getIndexName(
+                $this->tableName,
+                'parentId',
+                false
+            ),
+            $this->tableName,
+            'parentId',
+            false
+        );
+
         // Additional commands depending on the db driver
         switch ($this->driver) {
             case DbConfig::DRIVER_MYSQL:
@@ -182,6 +194,16 @@ class Install extends Migration
             'id',
             'SET NULL',
             'SET NULL'
+        );
+
+        $this->addForeignKey(
+            $this->db->getForeignKeyName($this->tableName, 'parentId'),
+            $this->tableName,
+            'parentId',
+            $this->tableName,
+            'id',
+            'CASCADE',
+            'CASCADE'
         );
     }
 

@@ -13,6 +13,8 @@ namespace superbig\audit;
 use craft\events\ElementEvent;
 
 use craft\helpers\StringHelper;
+use craft\queue\jobs\ResaveElements;
+use craft\queue\Queue;
 use craft\web\twig\variables\CraftVariable;
 use superbig\audit\models\AuditModel;
 use superbig\audit\services\Audit_GeoService;
@@ -31,6 +33,7 @@ use craft\events\RegisterUrlRulesEvent;
 
 use superbig\audit\variables\AuditVariable;
 use yii\base\Event;
+use yii\queue\ExecEvent;
 use yii\web\User;
 use yii\web\UserEvent;
 
@@ -55,13 +58,28 @@ class Audit extends Plugin
      */
     public static $plugin;
 
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * Determine whether our table schema exists or not; this is needed because
+     * migrations such as the install migration and base_install migration may
+     * not have been run by the time our init() method has been called
+     *
+     * @return bool
+     */
+    protected function tableSchemaExists(): bool
+    {
+        return (Craft::$app->db->schema->getTableSchema('{{%audit_log}}') !== null);
+    }
+
     // Public Methods
     // =========================================================================
 
     /**
      * @var string
      */
-    public $schemaVersion = '1.0.1';
+    public $schemaVersion = '1.0.2';
 
     /**
      * @inheritdoc
@@ -241,5 +259,37 @@ class Audit extends Plugin
                 $this->auditService->onPluginEvent(AuditModel::EVENT_PLUGIN_ENABLED, $event->plugin);
             }
         );
+
+
+        Event::on(
+            Queue::class,
+            Queue::EVENT_BEFORE_EXEC,
+            function(ExecEvent $event) {
+                if ($event->job instanceof ResaveElements) {
+                    $this->auditService->onBeforeResave($event->job);
+                }
+            }
+        );
+
+        Event::on(
+            Queue::class,
+            Queue::EVENT_AFTER_EXEC,
+            function(ExecEvent $event) {
+                if ($event->job instanceof ResaveElements) {
+                    $this->auditService->onResaveEnd($event->job);
+                }
+            }
+        );
+
+        Event::on(
+            Queue::class,
+            Queue::EVENT_AFTER_ERROR,
+            function(ExecEvent $event) {
+                if ($event->job instanceof ResaveElements) {
+                    $this->auditService->onResaveEnd($event->job);
+                }
+            }
+        );
+
     }
 }
