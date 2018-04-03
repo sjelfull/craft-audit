@@ -14,5 +14,6 @@
  * @since     1.0.0
  */
 return [
-    'Audit plugin loaded' => 'Audit plugin loaded',
+    'Audit plugin loaded'         => 'Audit plugin loaded',
+    'Error when logging: {error}' => 'Error when logging: {error}',
 ];
