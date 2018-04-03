@@ -306,12 +306,15 @@ class AuditService extends Component
             $model->sessionId = $session->getId();
             $model->ip        = $request->getUserIP();
             $model->userAgent = $request->getUserAgent();
-            $model->userId    = $app->getUser()->getIdentity()->id;
-        }
 
-        $model->snapshot = [
-            'userId' => $model->userId,
-        ];
+            if ($identity = $app->getUser()->getIdentity()) {
+                $model->userId = $identity->id;
+
+                $model->snapshot = [
+                    'userId' => $model->userId,
+                ];
+            }
+        }
 
         return $model;
     }
