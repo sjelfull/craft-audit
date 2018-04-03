@@ -14,6 +14,7 @@ use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\base\Plugin;
 use craft\base\PluginInterface;
+use craft\events\RouteEvent;
 use craft\helpers\Template;
 use craft\queue\jobs\ResaveElements;
 use DateTime;
@@ -22,6 +23,7 @@ use superbig\audit\Audit;
 use Craft;
 use craft\base\Component;
 use superbig\audit\events\SnapshotEvent;
+use superbig\audit\helpers\Route;
 use superbig\audit\models\AuditModel;
 use superbig\audit\records\AuditRecord;
 use yii\base\Exception;
@@ -492,5 +494,61 @@ class AuditService extends Component
     public function getParentIdKey($elementType = '')
     {
         return AuditModel::FLASH_RESAVE_ID . ':' . $elementType;
+    }
+
+    public function onSaveRoute(RouteEvent $event)
+    {
+        $this->catchSaveError(function() use ($event) {
+            $uriDisplay      = Route::getUriDisplayHtml($event->uriParts);
+            $isNew           = $event->routeId === null;
+            $model           = $this->_getStandardModel();
+            $model->event    = $isNew ? AuditModel::EVENT_CREATED_ROUTE : AuditModel::EVENT_SAVED_ROUTE;
+            $model->title    = $uriDisplay . ' -> ' . $event->template;
+            $snapshot        = [
+                'uriParts' => $event->uriParts,
+                'routeId'  => $event->routeId,
+                'template' => $event->template,
+            ];
+            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
+
+            return $this->_saveRecord($model);
+        });
+    }
+
+    public function onDeleteRoute(RouteEvent $event)
+    {
+        $this->catchSaveError(function() use ($event) {
+            $uriDisplay      = Route::getUriDisplayHtml($event->uriParts);
+            $model           = $this->_getStandardModel();
+            $model->event    = AuditModel::EVENT_DELETED_ROUTE;
+            $model->title    = $uriDisplay . ' -> ' . $event->template;
+            $snapshot        = [
+                'uriParts' => $event->uriParts,
+                'routeId'  => $event->routeId,
+                'template' => $event->template,
+            ];
+            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
+
+            return $this->_saveRecord($model);
+        });
+    }
+
+    private function catchSaveError(callable $callable)
+    {
+        try {
+            return $callable();
+        } catch (\Exception $e) {
+            $this->logSaveError($e);
+
+            return false;
+        }
+    }
+
+    private function logSaveError(\Exception $e)
+    {
+        Craft::error(
+            Craft::t('audit', 'Error when logging: {error}', ['error' => $e->getMessage()]),
+            __METHOD__
+        );
     }
 }

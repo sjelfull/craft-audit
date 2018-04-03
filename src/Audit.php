@@ -12,9 +12,11 @@ namespace superbig\audit;
 
 use craft\events\ElementEvent;
 
+use craft\events\RouteEvent;
 use craft\helpers\StringHelper;
 use craft\queue\jobs\ResaveElements;
 use craft\queue\Queue;
+use craft\services\Routes;
 use craft\web\twig\variables\CraftVariable;
 use superbig\audit\models\AuditModel;
 use superbig\audit\services\Audit_GeoService;
@@ -224,6 +226,23 @@ class Audit extends Plugin
             Elements::EVENT_AFTER_DELETE_ELEMENT,
             function(ElementEvent $event) {
                 $this->auditService->onDeleteElement($event->element);
+            }
+        );
+
+        // Routes
+        Event::on(
+            Routes::class,
+            Routes::EVENT_AFTER_SAVE_ROUTE,
+            function(RouteEvent $event) {
+                $this->auditService->onSaveRoute($event);
+            }
+        );
+
+        Event::on(
+            Routes::class,
+            Routes::EVENT_BEFORE_DELETE_ROUTE,
+            function(RouteEvent $event) {
+                $this->auditService->onDeleteRoute($event);
             }
         );
 

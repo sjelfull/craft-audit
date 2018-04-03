@@ -32,6 +32,9 @@ class AuditModel extends Model
     const EVENT_RESAVED_ELEMENTS   = 'resaved-elements';
     const EVENT_CREATED_ELEMENT    = 'created-element';
     const EVENT_DELETED_ELEMENT    = 'deleted-element';
+    const EVENT_CREATED_ROUTE      = 'created-route';
+    const EVENT_SAVED_ROUTE        = 'saved-route';
+    const EVENT_DELETED_ROUTE      = 'deleted-route';
     const USER_LOGGED_OUT          = 'user-logged-out';
     const USER_LOGGED_IN           = 'user-logged-in';
     const EVENT_SAVED_DRAFT        = 'saved-draft';
@@ -54,6 +57,11 @@ class AuditModel extends Model
         self::EVENT_DELETED_DRAFT      => 'Created draft',
         self::USER_LOGGED_IN           => 'Logged in',
         self::USER_LOGGED_OUT          => 'Logged out',
+
+        // Routes
+        self::EVENT_SAVED_ROUTE      => 'Saved route',
+        self::EVENT_CREATED_ROUTE    => 'Created route',
+        self::EVENT_DELETED_ROUTE    => 'Deleted route',
 
         // Plugins
         self::EVENT_PLUGIN_INSTALLED   => 'Plugin installed',
@@ -233,7 +241,7 @@ class AuditModel extends Model
         $element = $this->getElement();
 
         if (!$element && $this->title) {
-            return $this->title;
+            return Template::raw($this->title);
         }
 
         if (!$element) {
