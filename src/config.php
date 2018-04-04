@@ -26,9 +26,9 @@ return [
     // How many days to keep log entries around
     'pruneDays'          => 30,
 
-    // Enabled status
+    // Enable logging
     'enabled'            => true,
 
-    // Enabled status
+    // Enable geolocation status
     'enabledGeolocation' => true,
 ];

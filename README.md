@@ -2,8 +2,6 @@
 
 Audit log for Craft 3.
 
-_Note: This plugin is WIP, and not ready for production use._
-
 ![Plugin icon](resources/img/icon.png)
 
 ## Screenshots
@@ -32,15 +30,34 @@ To install the plugin, follow these instructions.
 
 ## Audit Overview
 
--Insert text here-
+Audit automatically keeps a audit log for actions done by logged in users.
 
 ## Configuring Audit
 
--Insert text here-
+```php
+<?php
+return [
+    // How many days to keep log entries around
+    'pruneDays'          => 30,
+
+    // Enable logging
+    'enabled'            => true,
+
+    // Enable geolocation status
+    'enabledGeolocation' => true,
+];
+```
 
 ## Using Audit
 
--Insert text here-
+As long as the plugin is installed, it will log the following events automatically:
+
+- Creating/saving/deleting elements (including users, Commerce product/variants etc.)
+- Creating/saving/deleting routes
+- Installing/uninstalling and enabling/disabling plugins
+- Login/logout
+
+More events like Commerce-specific event handling is planned.
 
 ## Credits
 
