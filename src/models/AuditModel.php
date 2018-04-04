@@ -59,9 +59,9 @@ class AuditModel extends Model
         self::USER_LOGGED_OUT          => 'Logged out',
 
         // Routes
-        self::EVENT_SAVED_ROUTE      => 'Saved route',
-        self::EVENT_CREATED_ROUTE    => 'Created route',
-        self::EVENT_DELETED_ROUTE    => 'Deleted route',
+        self::EVENT_SAVED_ROUTE        => 'Saved route',
+        self::EVENT_CREATED_ROUTE      => 'Created route',
+        self::EVENT_DELETED_ROUTE      => 'Deleted route',
 
         // Plugins
         self::EVENT_PLUGIN_INSTALLED   => 'Plugin installed',
