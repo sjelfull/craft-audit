@@ -14,6 +14,7 @@ use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\base\Plugin;
 use craft\base\PluginInterface;
+use craft\elements\User;
 use craft\events\RouteEvent;
 use craft\helpers\Template;
 use craft\queue\jobs\ResaveElements;
@@ -137,6 +138,8 @@ class AuditService extends Component
      */
     public function onSaveElement(ElementInterface $element, $isNew = false)
     {
+        $title = null;
+
         try {
             /** @var Element $element */
             $model              = $this->_getStandardModel();
@@ -149,17 +152,25 @@ class AuditService extends Component
             ];
 
             if ($element->hasTitles()) {
-                $model->title      = $element->title;
-                $snapshot['title'] = $element->title;
+                $title = $element->title;
+            }
+
+            if ($element instanceof User) {
+                /** @var User $element */
+                $title = $element->username;
             }
 
             if ($element->hasContent()) {
                 $snapshot['content'] = $element->getSerializedFieldValues();
             }
 
-            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
+            if ($title) {
+                $model->title      = $title;
+                $snapshot['title'] = $title;
+            }
 
-            $parentId = $this->getParentId($model->elementType);
+            $model->snapshot   = $this->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
+            $parentId          = $this->getParentId($model->elementType);
 
             if (!empty($parentId)) {
                 $model->parentId = $parentId;

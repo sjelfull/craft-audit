@@ -248,7 +248,7 @@ class AuditModel extends Model
             return null;
         }
 
-        $text = $element->hasTitles() ? $this->title : 'Edit';
+        $text = $this->title ?? 'Edit';
         $url  = $element->getCpEditUrl();
 
         if ($this->elementType === Asset::class) {
