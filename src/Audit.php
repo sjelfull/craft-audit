@@ -95,6 +95,22 @@ class Audit extends Plugin
             $this->controllerNamespace = 'superbig\audit\console\controllers';
         }
 
+        Event::on(
+            Plugins::class,
+            Plugins::EVENT_AFTER_INSTALL_PLUGIN,
+            function(PluginEvent $event) {
+                if ($event->plugin === $this) {
+                    $settings = $this->getSettings();
+
+                    if (empty($settings->updateAuthKey)) {
+                        $settings->updateAuthKey = StringHelper::randomString(16);
+
+                        Craft::$app->getPlugins()->savePluginSettings($this, $settings->toArray());
+                    }
+                }
+            }
+        );
+
         /**
          * Install our event listeners. We do it only after we receive the event
          * EVENT_AFTER_LOAD_PLUGINS so that any pending db migrations can be run
@@ -110,22 +126,6 @@ class Audit extends Plugin
                         $this->initLogEvents();
                     });
             }
-
-            Event::on(
-                Plugins::class,
-                Plugins::EVENT_AFTER_INSTALL_PLUGIN,
-                function(PluginEvent $event) {
-                    if ($event->plugin === $this) {
-                        $settings = $this->getSettings();
-
-                        if (empty($settings->updateAuthKey)) {
-                            $settings->updateAuthKey = StringHelper::randomString(16);
-
-                            Craft::$app->getPlugins()->savePluginSettings($this, $settings->toArray());
-                        }
-                    }
-                }
-            );
         }
 
         Event::on(
