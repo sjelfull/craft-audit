@@ -23,8 +23,12 @@
  */
 
 return [
+    // How many days to keep log entries around
+    'pruneDays'          => 30,
 
-    // This controls blah blah blah
-    "someAttribute" => true,
+    // Enabled status
+    'enabled'            => true,
 
+    // Enabled status
+    'enabledGeolocation' => true,
 ];
