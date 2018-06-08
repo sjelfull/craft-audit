@@ -11,6 +11,7 @@
 namespace superbig\audit\controllers;
 
 use craft\helpers\Template;
+use craft\helpers\UrlHelper;
 use craft\web\UrlManager;
 use superbig\audit\Audit;
 
@@ -51,7 +52,7 @@ class DefaultController extends Controller
     {
         $itemsPerPage = 20;
         $currentPage  = Craft::$app->getRequest()->getParam('page', 1);
-        $urlPattern   = '/admin/audit?page=(:num)';
+        $urlPattern   = UrlHelper::cpUrl('audit?page=(:num)');
         $query        = AuditRecord::find()
                                    ->orderBy('dateCreated desc')
                                    ->with('user')
