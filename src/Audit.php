@@ -121,7 +121,7 @@ class Audit extends Plugin
          * before our event listeners kick in
          */
         // Handler: EVENT_AFTER_LOAD_PLUGINS
-        if (!Craft::$app->getRequest()->isConsoleRequest && $this->tableSchemaExists()) {
+        if (!Craft::$app->getRequest()->getIsConsoleRequest() && $this->tableSchemaExists()) {
             if ($this->getSettings()->enabled) {
                 Event::on(
                     Plugins::class,
