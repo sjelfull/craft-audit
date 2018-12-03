@@ -61,6 +61,10 @@ As long as the plugin is installed, it will log the following events automatical
 
 More events like Commerce-specific event handling is planned.
 
+## Clearing old records
+
+You can prune records older than `n` days (configured by the `pruneDays` setting) either by using the console command `./craft audit/default/prune-logs` or by a button on the Audit index screen. 
+
 ## Credits
 
 - [Auditing icon by Ralf Schmitzer](https://thenounproject.com/term/auditing/960985)
