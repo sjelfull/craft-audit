@@ -50,6 +50,8 @@ class DefaultController extends Controller
      */
     public function actionIndex()
     {
+        $this->requirePermission(Audit::PERMISSION_VIEW_LOGS);
+
         $itemsPerPage = 20;
         $currentPage  = Craft::$app->getRequest()->getParam('page', 1);
         $urlPattern   = UrlHelper::cpUrl('audit?page=(:num)');
@@ -88,6 +90,8 @@ class DefaultController extends Controller
      */
     public function actionDetails(int $id = null)
     {
+        $this->requirePermission(Audit::PERMISSION_VIEW_LOGS);
+
         $service       = Audit::$plugin->auditService;
         $log           = $service->getEventById($id);
         $logsInSession = $service->getEventsBySessionId($log->sessionId);

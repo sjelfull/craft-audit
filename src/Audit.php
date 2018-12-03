@@ -12,11 +12,13 @@ namespace superbig\audit;
 
 use craft\events\ElementEvent;
 
+use craft\events\RegisterUserPermissionsEvent;
 use craft\events\RouteEvent;
 use craft\helpers\StringHelper;
 use craft\queue\jobs\ResaveElements;
 use craft\queue\Queue;
 use craft\services\Routes;
+use craft\services\UserPermissions;
 use craft\web\twig\variables\CraftVariable;
 use superbig\audit\models\AuditModel;
 use superbig\audit\services\Audit_GeoService;
@@ -54,6 +56,8 @@ class Audit extends Plugin
 {
     // Static Properties
     // =========================================================================
+    public const PERMISSION_VIEW_LOGS  = 'audit-view-logs';
+    public const PERMISSION_CLEAR_LOGS = 'audit-clear-logs';
 
     /**
      * @var Audit
@@ -163,6 +167,8 @@ class Audit extends Plugin
             ),
             __METHOD__
         );
+
+        $this->registerPermissions();
     }
 
     // Protected Methods
@@ -309,6 +315,26 @@ class Audit extends Plugin
                 }
             }
         );
+    }
 
+    public function registerPermissions()
+    {
+        $permissions = [
+            'Audit' => [
+                self::PERMISSION_VIEW_LOGS  => [
+                    'label' => 'View audit logs',
+                ],
+                self::PERMISSION_CLEAR_LOGS => [
+                    'label' => 'Clear old logs',
+                ],
+            ],
+        ];
+        Event::on(
+            UserPermissions::class,
+            UserPermissions::EVENT_REGISTER_PERMISSIONS,
+            function(RegisterUserPermissionsEvent $event) use ($permissions) {
+                $event->permissions = array_merge($event->permissions, $permissions);
+            }
+        );
     }
 }
