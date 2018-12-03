@@ -102,4 +102,15 @@ class DefaultController extends Controller
             'logsInSession' => $logsInSession,
         ]);
     }
+
+    public function actionPruneLogs()
+    {
+        $this->requirePermission(Audit::PERMISSION_CLEAR_LOGS);
+
+        $count = Audit::$plugin->auditService->pruneLogs();
+
+        Craft::$app->getSession()->setNotice('Deleted ' . $count . ' records');
+
+        return $this->goBack(UrlHelper::cpUrl('audit'));
+    }
 }

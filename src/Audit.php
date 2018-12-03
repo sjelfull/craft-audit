@@ -156,6 +156,7 @@ class Audit extends Plugin
             function(RegisterUrlRulesEvent $event) {
                 $event->rules['audit']              = 'audit/default/index';
                 $event->rules['audit/log/<id:\d+>'] = 'audit/default/details';
+                $event->rules['audit/prune-logs']   = 'audit/default/prune-logs';
             }
         );
 
