@@ -26,13 +26,15 @@
 
 {% set iconUrl = view.getAssetManager().getPublishedUrl('@superbig/audit/assetbundles/indexcpsection/dist', true) ~ '/img/Index-icon.svg' %}
 
-{% set extraPageHeaderHtml %}
-    <div class="buttons">
-        <a href="{{ pluginCpUrl }}" class="btn submit add icon">{{ "Click Me!"|t('audit') }}</a>
-    </div>
-{% endset %}
+{% block actionButton %}
+    {% if currentUser.can('audit-clear-logs') %}
+        <div class="buttons">
+            <a href="{{ url('audit/prune-logs') }}" class="btn submit icon">{{ "Prune old records"|t('audit') }}</a>
+        </div>
+    {% endif %}
+{% endblock %}
 
-{% set content %}
+{% block content %}
     {% if logs %}
         <table class="data fullwidth">
             <thead>
@@ -69,4 +71,4 @@
     {% else %}
         <p>No log entries.</p>
     {% endif %}
-{% endset %}
+{% endblock %}
