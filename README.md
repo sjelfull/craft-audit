@@ -44,6 +44,9 @@ return [
 
     // Enable logging
     'enabled'            => true,
+    
+    // Prune old records when a admin is logged in
+    'pruneRecordsOnAdminRequests'          => false,
 
     // Enable geolocation status
     'enabledGeolocation' => true,

@@ -121,7 +121,8 @@ class Audit extends Plugin
          * before our event listeners kick in
          */
         // Handler: EVENT_AFTER_LOAD_PLUGINS
-        if (!Craft::$app->getRequest()->getIsConsoleRequest() && $this->tableSchemaExists()) {
+        $request = Craft::$app->getRequest();
+        if (!$request->getIsConsoleRequest() && $this->tableSchemaExists()) {
             if ($this->getSettings()->enabled) {
                 Event::on(
                     Plugins::class,
@@ -129,6 +130,10 @@ class Audit extends Plugin
                     function() {
                         $this->initLogEvents();
                     });
+            }
+
+            if ($this->getSettings()->pruneRecordsOnAdminRequests && ($request->getIsCpRequest() && !$request->getIsActionRequest() && Craft::$app->getUser()->getIsAdmin())) {
+                self::$plugin->auditService->pruneLogs();
             }
         }
 

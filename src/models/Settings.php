@@ -36,6 +36,11 @@ class Settings extends Model
     public $enabled = true;
 
     /**
+     * Prune old records when a admin is logged in
+     */
+    public $pruneRecordsOnAdminRequests = false;
+
+    /**
      * Enabled status
      */
     public $enabledGeolocation = true;
