@@ -2,7 +2,7 @@
     "name": "superbig/craft-audit",
     "description": "Log adding/updating/deleting of elements",
     "type": "craft-plugin",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "keywords": [
         "craft",
         "cms",

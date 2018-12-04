@@ -56,7 +56,7 @@
                     <td>{{ log.getElementLink() }}</td>
                     <td>{{ log.getUserLink() }}</td>
                     <td>{{ log.ip }}</td>
-                    <td>{{ log.dateCreated }}</td>
+                    <td>{{ "#{log.dateCreated|date('short')} #{log.dateCreated|time('short')}" }}</td>
                     <td>
                         <a href="{{ log.getCpEditUrl() }}">&rarr;</a>
                     </td>
