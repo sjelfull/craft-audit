@@ -32,7 +32,7 @@ To install the plugin, follow these instructions.
 
 ## Audit Overview
 
-Audit automatically keeps a audit log for actions done by logged in users.
+Audit automatically keeps an audit log for actions done by logged in users.
 
 ## Configuring Audit
 
