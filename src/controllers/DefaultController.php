@@ -54,7 +54,7 @@ class DefaultController extends Controller
 
         $itemsPerPage = 20;
         $currentPage  = Craft::$app->getRequest()->getParam('page', 1);
-        $urlPattern   = UrlHelper::cpUrl('audit?page=(:num)');
+        $urlPattern   = UrlHelper::cpUrl('audit') . '?page=(:num)';
         $query        = AuditRecord::find()
                                    ->orderBy('dateCreated desc')
                                    ->with('user')
