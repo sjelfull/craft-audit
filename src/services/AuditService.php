@@ -131,14 +131,20 @@ class AuditService extends Component
     }
 
     /**
-     * @param ElementInterface $element
-     * @param bool             $isNew
+     * @param Element $element
+     * @param bool    $isNew
      *
      * @return bool
      */
     public function onSaveElement(ElementInterface $element, $isNew = false)
     {
-        $title = null;
+        $title    = null;
+        $isParent = false;
+
+        // Skip drafts
+        if (ElementHelper::isDraftOrRevision($element) || $element->propagating || $element->resaving) {
+            return false;
+        }
 
         try {
             /** @var Element $element */
@@ -194,6 +200,11 @@ class AuditService extends Component
      */
     public function onDeleteElement(ElementInterface $element)
     {
+        // Skip drafts
+        if (ElementHelper::isDraftOrRevision($element)) {
+            return false;
+        }
+
         try {
             /** @var Element $element */
             $model              = $this->_getStandardModel();
