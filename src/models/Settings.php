@@ -50,8 +50,22 @@ class Settings extends Model
      */
     public $updateAuthKey = '';
 
+    /**
+     * Where to save Maxmind DB files
+     */
+    public $dbPath = '';
+
     // Public Methods
     // =========================================================================
+
+    public function init()
+    {
+        parent::init();
+
+        if (empty($this->dbPath)) {
+            $this->dbPath = Craft::$app->getPath()->getStoragePath() . DIRECTORY_SEPARATOR . 'audit' . DIRECTORY_SEPARATOR;
+        }
+    }
 
     /**
      * @inheritdoc

@@ -39,33 +39,34 @@ class Audit_GeoService extends Component
 
     protected $databases;
 
-    public function init ()
+    public function init()
     {
         parent::init();
 
-        $path            = rtrim(
-            dirname(__FILE__, 2)
-            . DIRECTORY_SEPARATOR
-            . 'database'
-            . DIRECTORY_SEPARATOR,
-            DIRECTORY_SEPARATOR
-        );
+        $path = Craft::parseEnv(Audit::$plugin->getSettings()->dbPath);
+        $path = rtrim($path,
+                \DIRECTORY_SEPARATOR
+            ) . \DIRECTORY_SEPARATOR;
+
+        // Ensure path is writeable
+        FileHelper::createDirectory($path);
+
         $this->databases = [
             'city'    => [
                 'url'                 => 'http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz',
                 'checksum'            => 'http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.md5',
                 'filename'            => 'GeoLite2-City.mmdb.gz',
-                'path'                => $path . DIRECTORY_SEPARATOR . 'GeoLite2-City.mmdb.gz',
+                'path'                => $path . 'GeoLite2-City.mmdb.gz',
                 'pathWithoutFilename' => $path,
-                'unpackedPath'        => $path . DIRECTORY_SEPARATOR . 'GeoLite2-City.mmdb'
+                'unpackedPath'        => $path . 'GeoLite2-City.mmdb',
             ],
             'country' => [
                 'url'                 => 'http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country.mmdb.gz',
                 'checksum'            => 'http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country.md5',
                 'filename'            => 'GeoLite2-Country.mmdb.gz',
-                'path'                => $path . DIRECTORY_SEPARATOR . 'GeoLite2-Country.mmdb.gz',
+                'path'                => $path . 'GeoLite2-Country.mmdb.gz',
                 'pathWithoutFilename' => $path,
-                'unpackedPath'        => $path . DIRECTORY_SEPARATOR . 'GeoLite2-Country.mmdb'
+                'unpackedPath'        => $path . DIRECTORY_SEPARATOR . 'GeoLite2-Country.mmdb',
             ],
         ];
     }
@@ -75,11 +76,11 @@ class Audit_GeoService extends Component
      *
      * @return mixed|null
      */
-    public function getLocationInfoForIp ($ip = '84.215.212.44')
+    public function getLocationInfoForIp($ip = '84.215.212.44')
     {
         $cache = Craft::$app->getCache();
 
-        if ( $ip ) {
+        if ($ip) {
             /*if ( $ip == '::1' || $ip == '127.0.0.1' ) {
                 return null;
             }*/
@@ -87,7 +88,7 @@ class Audit_GeoService extends Component
             $cacheKey = 'audit-ip-' . $ip;
 
             // Check cache first
-            if ( $cacheRecord = $cache->get($cacheKey) ) {
+            if ($cacheRecord = $cache->get($cacheKey)) {
                 return $cacheRecord;
             }
 
@@ -99,13 +100,12 @@ class Audit_GeoService extends Component
                 $cache->set($cacheKey, $record);
 
                 return $record;
-            }
-            catch (\Exception $e) {
+            } catch (\Exception $e) {
                 Craft::error(
                     Craft::t(
                         'audit',
                         'There was an error getting the ip info: {error}',
-                        [ 'error' => $e->getMessage() ]
+                        ['error' => $e->getMessage()]
                     ),
                     __METHOD__
                 );
@@ -118,13 +118,13 @@ class Audit_GeoService extends Component
     /**
      * @return array
      */
-    public function downloadDatabase ()
+    public function downloadDatabase()
     {
         foreach ($this->databases as $key => $database) {
             $pathWithoutFilename = $database['pathWithoutFilename'];
             $databasePath        = $database['path'];
 
-            if ( !FileHelper::isWritable($pathWithoutFilename) ) {
+            if (!FileHelper::isWritable($pathWithoutFilename)) {
                 Craft::error('Database folder is not writeable: ' . $pathWithoutFilename, __METHOD__);
 
                 return [
@@ -150,8 +150,7 @@ class Audit_GeoService extends Component
                 FileHelper::createDirectory($pathWithoutFilename);
                 copy($tempFile, $databasePath);
                 @unlink($tempFile);
-            }
-            catch (\Exception $e) {
+            } catch (\Exception $e) {
                 Craft::error('Failed to write downloaded database to: ' . $databasePath . ' ' . $e->getMessage(), __METHOD__);
 
                 return [
@@ -168,7 +167,7 @@ class Audit_GeoService extends Component
     /**
      * @return array
      */
-    public function unpackDatabase ()
+    public function unpackDatabase()
     {
         foreach ($this->databases as $key => $database) {
             $databasePath         = $database['path'];
@@ -180,8 +179,7 @@ class Audit_GeoService extends Component
                     ->get($database['checksum']);
 
                 $remoteChecksum = (string)$response->getBody();
-            }
-            catch (\Exception $e) {
+            } catch (\Exception $e) {
                 Craft::error('Was not able to get checksum from GeoLite url: ' . $database['checksum'], __METHOD__);
 
                 return [
@@ -189,16 +187,16 @@ class Audit_GeoService extends Component
                 ];
             }
             $result = gzdecode(file_get_contents($databasePath));
-            if ( md5($result) !== $remoteChecksum ) {
+            if (md5($result) !== $remoteChecksum) {
                 Craft::error('Remote checksum for Country database doesn\'t match downloaded database. Please try again or contact support.', __METHOD__);
 
                 return [
-                    'error' => 'Remote checksum for Country database doesn\'t match downloaded database. Please try again or contact support.'
+                    'error' => 'Remote checksum for Country database doesn\'t match downloaded database. Please try again or contact support.',
                 ];
             }
             Craft::debug('Unpacking database to: ' . $databaseUnpackedPath, __METHOD__);
             $write = file_put_contents($databaseUnpackedPath, $result);
-            if ( !$write ) {
+            if (!$write) {
                 Craft::error('Was not able to write unpacked database to: ' . $databaseUnpackedPath, __METHOD__);
 
                 return [
@@ -216,7 +214,7 @@ class Audit_GeoService extends Component
     /**
      * @return bool
      */
-    public function checkValidDb ()
+    public function checkValidDb()
     {
         return @file_exists($this->databases['city']['unpackedPath']);
     }

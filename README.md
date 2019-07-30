@@ -50,6 +50,9 @@ return [
 
     // Enable geolocation status
     'enabledGeolocation' => true,
+    
+    // Where to save Maxmind DB files
+    'dbPath' => '',
 ];
 ```
 
