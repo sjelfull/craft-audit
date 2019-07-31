@@ -12,17 +12,12 @@ namespace superbig\audit\controllers;
 
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
-use craft\web\UrlManager;
 use superbig\audit\Audit;
 
 use Craft;
 use craft\web\Controller;
 use superbig\audit\models\AuditModel;
 use superbig\audit\records\AuditRecord;
-use yii\data\Pagination;
-use yii\widgets\LinkPager;
-
-use JasonGrimes\Paginator;
 
 /**
  * @author    Superbig
@@ -52,22 +47,15 @@ class DefaultController extends Controller
     {
         $this->requirePermission(Audit::PERMISSION_VIEW_LOGS);
 
-        $itemsPerPage = 20;
-        $currentPage  = Craft::$app->getRequest()->getParam('page', 1);
-        $urlPattern   = UrlHelper::cpUrl('audit') . '?page=(:num)';
-        $query        = AuditRecord::find()
-                                   ->orderBy('dateCreated desc')
-                                   ->with('user')
-                                   ->where(['parentId' => null]);
-        $countQuery   = clone $query;
-        $totalItems   = $countQuery->count();
-        $paginator    = new Paginator($totalItems, $itemsPerPage, $currentPage, $urlPattern);
-
-        $records = $query
-            ->offset(($currentPage - 1) * $itemsPerPage)
-            ->limit($itemsPerPage)
-            ->all();
-        $models  = [];
+        $itemsPerPage = 100;
+        $query    = AuditRecord::find()
+                               ->orderBy('dateCreated desc')
+                               ->with('user')
+                               ->limit($itemsPerPage)
+                               ->where(['parentId' => null]);
+        $models   = [];
+        $paginate = Template::paginateCriteria($query);
+        list($pageInfo, $records) = $paginate;
 
         if ($records) {
             foreach ($records as $record) {
@@ -76,8 +64,8 @@ class DefaultController extends Controller
         }
 
         return $this->renderTemplate('audit/index', [
-            'logs'      => $models,
-            'paginator' => $paginator,
+            'logs'     => $models,
+            'pageInfo' => $pageInfo,
         ]);
     }
 

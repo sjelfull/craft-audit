@@ -64,11 +64,13 @@
             {% endfor %}
             </tbody>
         </table>
-
-        <div class="pagination-wrapper">
-            {% include 'audit/_pagination' with { paginator: paginator } %}
-        </div>
     {% else %}
         <p>No log entries.</p>
+    {% endif %}
+{% endblock %}
+
+{% block footer %}
+    {% if logs %}
+            {% include '_includes/pagination' with { pageInfo: pageInfo } %}
     {% endif %}
 {% endblock %}

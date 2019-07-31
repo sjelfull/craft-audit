@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## Changed
 - Now requires Craft 3.2
+- Now uses Craft's built in pagination
 - Maxmind DB files is now saved to a folder in the `storage` directory by default
 
 ## Added
