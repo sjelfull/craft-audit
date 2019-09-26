@@ -56,8 +56,9 @@ class Audit extends Plugin
 {
     // Static Properties
     // =========================================================================
-    public const PERMISSION_VIEW_LOGS  = 'audit-view-logs';
-    public const PERMISSION_CLEAR_LOGS = 'audit-clear-logs';
+
+    const PERMISSION_VIEW_LOGS  = 'audit-view-logs';
+    const PERMISSION_CLEAR_LOGS = 'audit-clear-logs';
 
     /**
      * @var Audit
