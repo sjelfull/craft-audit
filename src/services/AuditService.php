@@ -16,6 +16,7 @@ use craft\base\Plugin;
 use craft\base\PluginInterface;
 use craft\elements\User;
 use craft\events\RouteEvent;
+use craft\helpers\ElementHelper;
 use craft\helpers\Template;
 use craft\queue\jobs\ResaveElements;
 use DateTime;
@@ -141,7 +142,7 @@ class AuditService extends Component
         $title    = null;
         $isParent = false;
 
-        // Skip drafts
+        // Skip drafts and propagating elements
         if (ElementHelper::isDraftOrRevision($element) || $element->propagating || $element->resaving) {
             return false;
         }
