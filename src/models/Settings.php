@@ -59,6 +59,7 @@ class Settings extends Model
     public $logDraftEvents   = false;
     public $logElementEvents = true;
     public $logUserEvents    = true;
+    public $logRouteEvents   = true;
 
     // Public Methods
     // =========================================================================

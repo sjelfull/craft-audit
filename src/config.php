@@ -24,17 +24,24 @@
 
 return [
     // How many days to keep log entries around
-    'pruneDays'          => 30,
+    'pruneDays'                   => 30,
 
     // Enable logging
-    'enabled'            => true,
+    'enabled'                     => true,
+
+    // Toggle specific event types
+    'logElementEvents'            => true,
+    'logDraftEvents'              => false,
+    'logPluginEvents'             => true,
+    'logUserEvents'               => true,
+    'logRouteEvents'              => true,
 
     // Prune old records when a admin is logged in
-    'pruneRecordsOnAdminRequests'          => false,
+    'pruneRecordsOnAdminRequests' => false,
 
     // Enable geolocation status
-    'enabledGeolocation' => true,
+    'enabledGeolocation'          => true,
 
     // Where to save Maxmind DB files
-    'dbPath' => '',
+    'dbPath'                      => '',
 ];

@@ -141,6 +141,11 @@ class AuditService extends Component
         $isDraft    = false;
         $isRevision = false;
 
+        // Skip if this event type is disabled
+        if (!$settings->logElementEvents) {
+            return false;
+        }
+
         // Skip if this is a element that has a parent
         if ($hasParent) {
             return false;
@@ -240,6 +245,10 @@ class AuditService extends Component
      */
     public function onDeleteElement(ElementInterface $element)
     {
+        if (!Audit::$plugin->getSettings()->logElementEvents) {
+            return false;
+        }
+
         // Skip drafts
         if (ElementHelper::isDraftOrRevision($element)) {
             return false;
@@ -278,6 +287,10 @@ class AuditService extends Component
      */
     public function onLogin()
     {
+        if (!Audit::$plugin->getSettings()->logUserEvents) {
+            return false;
+        }
+
         try {
             $model        = $this->_getStandardModel();
             $model->event = AuditModel::USER_LOGGED_IN;
@@ -298,6 +311,10 @@ class AuditService extends Component
      */
     public function onBeforeLogout()
     {
+        if (!Audit::$plugin->getSettings()->logUserEvents) {
+            return false;
+        }
+
         try {
             $model        = $this->_getStandardModel();
             $model->event = AuditModel::USER_LOGGED_OUT;
@@ -321,6 +338,10 @@ class AuditService extends Component
      */
     public function onPluginEvent(string $event, PluginInterface $plugin): bool
     {
+        if (!Audit::$plugin->getSettings()->logPluginEvents) {
+            return false;
+        }
+
         /** @var Plugin $plugin */
         try {
             $model           = $this->_getStandardModel();
@@ -560,6 +581,10 @@ class AuditService extends Component
 
     public function onSaveRoute(RouteEvent $event)
     {
+        if (!Audit::$plugin->getSettings()->logRouteEvents) {
+            return false;
+        }
+
         $this->catchSaveError(function() use ($event) {
             $uriDisplay      = Route::getUriDisplayHtml($event->uriParts);
             $isNew           = $event->routeId === null;
@@ -579,6 +604,10 @@ class AuditService extends Component
 
     public function onDeleteRoute(RouteEvent $event)
     {
+        if (!Audit::$plugin->getSettings()->logRouteEvents) {
+            return false;
+        }
+
         $this->catchSaveError(function() use ($event) {
             $uriDisplay      = Route::getUriDisplayHtml($event->uriParts);
             $model           = $this->_getStandardModel();

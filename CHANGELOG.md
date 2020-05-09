@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ### Added
 - Added list of snapshot values to event view
+- Added settings for disabling event types
 
 ### Changed
 - Improved performance when listing user details in tables

@@ -44,6 +44,14 @@ return [
 
     // Enable logging
     'enabled'            => true,
+
+    // Toggle specific event types
+    'logElementEvents'            => true,
+    'logDraftEvents'              => false,
+    'logPluginEvents'             => true,
+    'logUserEvents'               => true,
+    'logRouteEvents'              => true,
+
     
     // Prune old records when a admin is logged in
     'pruneRecordsOnAdminRequests'          => false,
@@ -61,6 +69,7 @@ return [
 As long as the plugin is installed, it will log the following events automatically:
 
 - Creating/saving/deleting elements (including users, Commerce product/variants etc.)
+- Saving global sets
 - Creating/saving/deleting routes
 - Installing/uninstalling and enabling/disabling plugins
 - Login/logout
