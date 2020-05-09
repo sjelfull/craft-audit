@@ -4,9 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## Unreleased
+## 1.1.1 - 2020-05-09
 
 ### Added
+- Added global set tracking ([#50](https://github.com/sjelfull/craft-audit/issues/50))
+- Added draft tracking (disabled by default) ([#50](https://github.com/sjelfull/craft-audit/issues/50))
 - Added list of snapshot values to event view
 - Added settings for disabling event types
 
