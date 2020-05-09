@@ -25,6 +25,7 @@ return [
     \superbig\audit\models\AuditModel::EVENT_SAVED_DRAFT        => 'Saved draft',
     \superbig\audit\models\AuditModel::EVENT_CREATED_DRAFT      => 'Created draft',
     \superbig\audit\models\AuditModel::EVENT_DELETED_DRAFT      => 'Created draft',
+    \superbig\audit\models\AuditModel::EVENT_SAVED_GLOBAL        => 'Saved global',
     \superbig\audit\models\AuditModel::USER_LOGGED_IN           => 'Logged in',
     \superbig\audit\models\AuditModel::USER_LOGGED_OUT          => 'Logged out',
 
