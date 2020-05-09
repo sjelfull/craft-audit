@@ -15,6 +15,7 @@ use craft\base\ElementInterface;
 use craft\elements\Asset;
 use craft\elements\User;
 use craft\helpers\ArrayHelper;
+use craft\helpers\StringHelper;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
 use craft\models\Site;
@@ -154,8 +155,16 @@ class AuditModel extends Model
         $model->userAgent   = $record->userAgent;
         $model->siteId      = $record->siteId;
         $model->dateCreated = $record->dateCreated;
-        $model->snapshot    = unserialize($record->snapshot);
         $model->sessionId   = $record->sessionId;
+
+        $snapshot = $record->snapshot;
+
+        if (StringHelper::isBase64($snapshot)) {
+            $model->snapshot = unserialize(base64_decode($snapshot));
+        }
+        else {
+            $model->snapshot = unserialize($snapshot);
+        }
 
         return $model;
     }

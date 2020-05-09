@@ -415,7 +415,7 @@ class AuditService extends Component
             $record->ip          = $model->ip;
             $record->userAgent   = $model->userAgent;
             $record->siteId      = $model->siteId;
-            $record->snapshot    = serialize($model->snapshot);
+            $record->snapshot    = base64_encode(serialize($model->snapshot));
             $record->sessionId   = $model->sessionId;
 
             if (!$record->save()) {
