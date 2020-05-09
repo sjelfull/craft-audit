@@ -32,43 +32,21 @@ class AuditModel extends Model
     const EVENT_RESAVED_ELEMENTS   = 'resaved-elements';
     const EVENT_CREATED_ELEMENT    = 'created-element';
     const EVENT_DELETED_ELEMENT    = 'deleted-element';
+    const EVENT_SAVED_GLOBAL       = 'saved-global';
+    const EVENT_SAVED_DRAFT        = 'saved-draft';
+    const EVENT_CREATED_DRAFT      = 'created-draft';
+    const EVENT_DELETED_DRAFT      = 'deleted-draft';
     const EVENT_CREATED_ROUTE      = 'created-route';
     const EVENT_SAVED_ROUTE        = 'saved-route';
     const EVENT_DELETED_ROUTE      = 'deleted-route';
     const USER_LOGGED_OUT          = 'user-logged-out';
     const USER_LOGGED_IN           = 'user-logged-in';
-    const EVENT_SAVED_DRAFT        = 'saved-draft';
-    const EVENT_CREATED_DRAFT      = 'created-draft';
-    const EVENT_DELETED_DRAFT      = 'deleted-draft';
     const EVENT_PLUGIN_INSTALLED   = 'installed-plugin';
     const EVENT_PLUGIN_UNINSTALLED = 'uninstalled-plugin';
     const EVENT_PLUGIN_DISABLED    = 'disabled-plugin';
     const EVENT_PLUGIN_ENABLED     = 'enabled-plugin';
 
     const FLASH_RESAVE_ID = 'auditResaveId';
-
-    const EVENT_LABELS = [
-        self::EVENT_SAVED_ELEMENT      => 'Saved element',
-        self::EVENT_RESAVED_ELEMENTS   => 'Resaved elements',
-        self::EVENT_CREATED_ELEMENT    => 'Created element',
-        self::EVENT_DELETED_ELEMENT    => 'Deleted element',
-        self::EVENT_SAVED_DRAFT        => 'Saved draft',
-        self::EVENT_CREATED_DRAFT      => 'Created draft',
-        self::EVENT_DELETED_DRAFT      => 'Created draft',
-        self::USER_LOGGED_IN           => 'Logged in',
-        self::USER_LOGGED_OUT          => 'Logged out',
-
-        // Routes
-        self::EVENT_SAVED_ROUTE        => 'Saved route',
-        self::EVENT_CREATED_ROUTE      => 'Created route',
-        self::EVENT_DELETED_ROUTE      => 'Deleted route',
-
-        // Plugins
-        self::EVENT_PLUGIN_INSTALLED   => 'Plugin installed',
-        self::EVENT_PLUGIN_UNINSTALLED => 'Plugin uninstalled',
-        self::EVENT_PLUGIN_DISABLED    => 'Plugin disabled',
-        self::EVENT_PLUGIN_ENABLED     => 'Plugin enabled',
-    ];
 
     // Public Properties
     // =========================================================================
@@ -188,7 +166,7 @@ class AuditModel extends Model
      */
     public function getEventLabel()
     {
-        return self::EVENT_LABELS[ $this->event ] ?? '';
+        return Craft::t('audit', $this->event);
     }
 
     /**
