@@ -9,6 +9,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ### Added
 - Added list of snapshot values to event view
 
+### Changed
+- Improved performance when listing user details in tables
+
 ## 1.1.0 - 2020-05-09
 
 ### Changed

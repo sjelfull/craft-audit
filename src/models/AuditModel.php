@@ -49,11 +49,9 @@ class AuditModel extends Model
     const EVENT_PLUGIN_UNINSTALLED = 'uninstalled-plugin';
     const EVENT_PLUGIN_DISABLED    = 'disabled-plugin';
     const EVENT_PLUGIN_ENABLED     = 'enabled-plugin';
+    const FLASH_RESAVE_ID          = 'auditResaveId';
 
-    const FLASH_RESAVE_ID = 'auditResaveId';
-
-    // Public Properties
-    // =========================================================================
+    private static $_users;
 
     /**
      * @var integer|null
@@ -277,11 +275,11 @@ class AuditModel extends Model
      */
     public function getUser()
     {
-        if ($this->userId && !$this->_user) {
-            $this->_user = Craft::$app->getUsers()->getUserById($this->userId);
+        if ($this->userId && !isset(static::$_users[ $this->userId ])) {
+            static::$_users[ $this->userId ] = Craft::$app->getUsers()->getUserById($this->userId);
         }
 
-        return $this->_user;
+        return static::$_users[ $this->userId ];
     }
 
     /**
