@@ -84,6 +84,18 @@
                     </tr>
                 </tbody>
             </table>
+
+            {% set content = log.getSnapshotValue('content') %}
+            {% if content %}
+                <table class="fullwidth data borderless">
+                    <tbody>
+                    {% for handle,fieldContent in content %}
+                        {% set fieldName = fieldMap[handle]['name'] ?? handle %}
+                        {% set fieldConfig = fieldMap[handle] ?? null %}
+                    {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
         </div>
     </div>
 

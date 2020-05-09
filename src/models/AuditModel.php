@@ -323,6 +323,11 @@ class AuditModel extends Model
         return Audit::$plugin->auditService->outputObjectAsTable($this->snapshot);
     }
 
+    public function getSnapshotValue($key)
+    {
+        return ArrayHelper::getValue($this->snapshot, $key);
+    }
+
     /**
      * @return string
      */
