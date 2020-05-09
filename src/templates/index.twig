@@ -41,6 +41,7 @@
             <tr>
                 <th class="audit-column--event">Event</th>
                 <th class="audit-column--element">Type</th>
+                <th>Site</th>
                 <th>Title</th>
                 <th>User</th>
                 <th>IP</th>
@@ -53,6 +54,7 @@
                 <tr>
                     <td><span class="audit-index__event-label">{{ log.getEventLabel() }}</span></td>
                     <td class="audit-column--element">{{ log.getElementLabel() }}</td>
+                    <td class="thin">{{ log.getSite().name }}</td>
                     <td>{{ log.getElementLink() }}</td>
                     <td>{{ log.getUserLink() }}</td>
                     <td>{{ log.ip }}</td>

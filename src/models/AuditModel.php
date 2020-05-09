@@ -208,6 +208,14 @@ class AuditModel extends Model
     }
 
     /**
+     * @return Site|null
+     */
+    public function getSite()
+    {
+        return Craft::$app->getSites()->getSiteById($this->siteId);
+    }
+
+    /**
      * @return array|null
      */
     public function getChildren()
