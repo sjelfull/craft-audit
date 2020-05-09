@@ -10,10 +10,14 @@
 
 namespace superbig\audit\models;
 
+use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\elements\Asset;
+use craft\elements\User;
+use craft\helpers\ArrayHelper;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
+use craft\models\Site;
 use DateTime;
 use superbig\audit\Audit;
 
@@ -121,8 +125,16 @@ class AuditModel extends Model
      */
     public $sessionId = null;
 
-    protected $_user     = null;
-    protected $_element  = null;
+    /**
+     * @var User|null
+     */
+    protected $_user = null;
+
+    /**
+     * @var Element|null
+     */
+    protected $_element = null;
+
     protected $_children = null;
 
     /**
