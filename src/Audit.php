@@ -207,91 +207,80 @@ class Audit extends Plugin
 
     protected function initLogEvents()
     {
-        // Users
-        Event::on(
-            User::class,
-            User::EVENT_AFTER_LOGIN,
-            function(UserEvent $event) {
-                $this->auditService->onLogin();
-            }
-        );
+        $events = [
+            [
+                'class'   => User::class,
+                'event'   => User::EVENT_AFTER_LOGIN,
+                'handler' => function(UserEvent $event) {
+                    $this->auditService->onLogin();
+                },
+            ],
+            [
+                'class'   => User::class,
+                'event'   => User::EVENT_BEFORE_LOGOUT,
+                'handler' => function(UserEvent $event) {
+                    $this->auditService->onBeforeLogout();
+                },
+            ],
+            [
+                'class'   => Elements::class,
+                'event'   => Elements::EVENT_AFTER_SAVE_ELEMENT,
+                'handler' => function(ElementEvent $event) {
+                    $this->auditService->onSaveElement($event->element, $event->isNew);
+                },
+            ],
+            [
+                'class'   => Elements::class,
+                'event'   => Elements::EVENT_AFTER_DELETE_ELEMENT,
+                'handler' => function(ElementEvent $event) {
+                    $this->auditService->onDeleteElement($event->element);
+                },
+            ],
+            // Routes
+            [
+                'class'   => Routes::class,
+                'event'   => Routes::EVENT_AFTER_SAVE_ROUTE,
+                'handler' => function(RouteEvent $event) {
+                    $this->auditService->onSaveRoute($event);
+                },
+            ],
+            [
+                'class'   => Routes::class,
+                'event'   => Routes::EVENT_BEFORE_DELETE_ROUTE,
+                'handler' => function(RouteEvent $event) {
+                    $this->auditService->onDeleteRoute($event);
+                },
+            ],
+            [
+                'class'   => Plugins::class,
+                'event'   => Plugins::EVENT_AFTER_UNINSTALL_PLUGIN,
+                'handler' => function(PluginEvent $event) {
+                    $this->auditService->onPluginEvent(AuditModel::EVENT_PLUGIN_UNINSTALLED, $event->plugin);
+                },
+            ],
+            [
+                'class'   => Plugins::class,
+                'event'   => Plugins::EVENT_AFTER_DISABLE_PLUGIN,
+                'handler' => function(PluginEvent $event) {
+                    $this->auditService->onPluginEvent(AuditModel::EVENT_PLUGIN_DISABLED, $event->plugin);
+                },
+            ],
+            [
+                'class'   => Plugins::class,
+                'event'   => Plugins::EVENT_AFTER_ENABLE_PLUGIN,
+                'handler' => function(PluginEvent $event) {
+                    $this->auditService->onPluginEvent(AuditModel::EVENT_PLUGIN_ENABLED, $event->plugin);
+                },
+            ],
+        ];
 
-
-        Event::on(
-            User::class,
-            User::EVENT_BEFORE_LOGOUT,
-            function(UserEvent $event) {
-                $this->auditService->onBeforeLogout();
-            }
-        );
-
-        // Elements
-        Event::on(
-            Elements::class,
-            Elements::EVENT_AFTER_SAVE_ELEMENT,
-            function(ElementEvent $event) {
-                $this->auditService->onSaveElement($event->element, $event->isNew);
-            }
-        );
-
-        Event::on(
-            Elements::class,
-            Elements::EVENT_AFTER_DELETE_ELEMENT,
-            function(ElementEvent $event) {
-                $this->auditService->onDeleteElement($event->element);
-            }
-        );
-
-        // Routes
-        Event::on(
-            Routes::class,
-            Routes::EVENT_AFTER_SAVE_ROUTE,
-            function(RouteEvent $event) {
-                $this->auditService->onSaveRoute($event);
-            }
-        );
-
-        Event::on(
-            Routes::class,
-            Routes::EVENT_BEFORE_DELETE_ROUTE,
-            function(RouteEvent $event) {
-                $this->auditService->onDeleteRoute($event);
-            }
-        );
-
-        // Plugins
-        Event::on(
-            Plugins::class,
-            Plugins::EVENT_AFTER_INSTALL_PLUGIN,
-            function(PluginEvent $event) {
-                $this->auditService->onPluginEvent(AuditModel::EVENT_PLUGIN_INSTALLED, $event->plugin);
-            }
-        );
-
-        Event::on(
-            Plugins::class,
-            Plugins::EVENT_AFTER_UNINSTALL_PLUGIN,
-            function(PluginEvent $event) {
-                $this->auditService->onPluginEvent(AuditModel::EVENT_PLUGIN_UNINSTALLED, $event->plugin);
-            }
-        );
-
-        Event::on(
-            Plugins::class,
-            Plugins::EVENT_AFTER_DISABLE_PLUGIN,
-            function(PluginEvent $event) {
-                $this->auditService->onPluginEvent(AuditModel::EVENT_PLUGIN_DISABLED, $event->plugin);
-            }
-        );
-
-        Event::on(
-            Plugins::class,
-            Plugins::EVENT_AFTER_ENABLE_PLUGIN,
-            function(PluginEvent $event) {
-                $this->auditService->onPluginEvent(AuditModel::EVENT_PLUGIN_ENABLED, $event->plugin);
-            }
-        );
-
+        foreach ($events as $event) {
+            Event::on(
+                $event['class'],
+                $event['event'],
+                $event['handler']
+            );
+        }
 
         Event::on(
             Queue::class,
