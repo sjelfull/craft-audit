@@ -54,9 +54,6 @@ use yii\web\UserEvent;
  */
 class Audit extends Plugin
 {
-    // Static Properties
-    // =========================================================================
-
     const PERMISSION_VIEW_LOGS  = 'audit-view-logs';
     const PERMISSION_CLEAR_LOGS = 'audit-clear-logs';
 
@@ -65,8 +62,10 @@ class Audit extends Plugin
      */
     public static $plugin;
 
-    // Protected Methods
-    // =========================================================================
+    public static $craft31 = false;
+    public static $craft32 = false;
+    public static $craft33 = false;
+    public static $craft34 = false;
 
     /**
      * Determine whether our table schema exists or not; this is needed because
@@ -99,6 +98,13 @@ class Audit extends Plugin
         if (Craft::$app instanceof ConsoleApplication) {
             $this->controllerNamespace = 'superbig\audit\console\controllers';
         }
+
+        // Versions
+        $currentVersion = Craft::$app->getVersion();
+        self::$craft31  = version_compare($currentVersion, '3.1', '>=');
+        self::$craft32  = version_compare($currentVersion, '3.2', '>=');
+        self::$craft33  = version_compare($currentVersion, '3.3', '>=');
+        self::$craft34  = version_compare($currentVersion, '3.4', '>=');
 
         Event::on(
             Plugins::class,
