@@ -55,6 +55,11 @@ class Settings extends Model
      */
     public $dbPath = '';
 
+    public $logPluginEvents  = true;
+    public $logDraftEvents   = false;
+    public $logElementEvents = true;
+    public $logUserEvents    = true;
+
     // Public Methods
     // =========================================================================
 

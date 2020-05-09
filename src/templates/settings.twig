@@ -31,6 +31,35 @@
 
 <hr>
 
+<h2>Event Types</h2>
+
+{{ forms.lightswitchField({
+    name: 'logElementEvents',
+    label: 'Log Element Events',
+    on: settings.logElementEvents,
+}) }}
+
+{{ forms.lightswitchField({
+    name: 'logDraftEvents',
+    label: 'Log Draft Events',
+    description: 'This will enable logging changes to drafts',
+    on: settings.logDraftEvents,
+}) }}
+
+{{ forms.lightswitchField({
+    name: 'logPluginEvents',
+    label: 'Log Plugin Events',
+    on: settings.logPluginEvents,
+}) }}
+
+{{ forms.lightswitchField({
+    name: 'logUserEvents',
+    label: 'Log User Events',
+    on: settings.logUserEvents,
+}) }}
+
+<hr>
+
 <h2>Geolocation</h2>
 
 {{ forms.lightswitchField({

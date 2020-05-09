@@ -14,6 +14,7 @@ use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\base\Plugin;
 use craft\base\PluginInterface;
+use craft\elements\GlobalSet;
 use craft\elements\User;
 use craft\events\RouteEvent;
 use craft\helpers\ElementHelper;
@@ -37,14 +38,8 @@ use yii\base\Exception;
  */
 class AuditService extends Component
 {
-    // Public Methods
-    // =========================================================================
-
     const EVENT_TRIGGER  = 'eventTrigger';
     const EVENT_SNAPSHOT = 'snapshot';
-
-    // Public Methods
-    // =========================================================================
 
     public function init()
     {
@@ -139,11 +134,44 @@ class AuditService extends Component
      */
     public function onSaveElement(ElementInterface $element, $isNew = false)
     {
-        $title    = null;
-        $isParent = false;
+        $settings   = Audit::$plugin->getSettings();
+        $title      = null;
+        $hasParent  = method_exists($element, 'getOwner') && $element->getOwner();
+        $isGlobal   = $element instanceof GlobalSet;
+        $isDraft    = false;
+        $isRevision = false;
+
+        // Skip if this is a element that has a parent
+        if ($hasParent) {
+            return false;
+        }
+
+        // Return early if no fields have changed?
+        $hasNoDirtyAttributes = Audit::$craft34 ? empty($element->getDirtyAttributes()) : false;
+        $hasNoDirtyFields     = Audit::$craft34 ? empty($element->getDirtyFields()) : false;
+
+        // Skip save if all of these is true
+        if (!$settings->logDraftEvents && $hasNoDirtyAttributes && $hasNoDirtyFields && !$isGlobal) {
+            return false;
+        }
+
+        if (Audit::$craft32) {
+            // Skip draft events unless enabled
+            $rootElement = ElementHelper::rootElement($element);
+            $isDraft     = $rootElement->getIsDraft();
+            $isRevision  = $rootElement->getIsRevision();
+
+            if (!$settings->logDraftEvents && $rootElement->getIsDraft()) {
+                return false;
+            }
+
+            if ($rootElement->getIsRevision()) {
+                return false;
+            }
+        }
 
         // Skip drafts and propagating elements
-        if (ElementHelper::isDraftOrRevision($element) || $element->propagating || $element->resaving) {
+        if ($element->propagating || $element->resaving) {
             return false;
         }
 
@@ -152,14 +180,25 @@ class AuditService extends Component
             $model              = $this->_getStandardModel();
             $model->event       = $isNew ? AuditModel::EVENT_CREATED_ELEMENT : AuditModel::EVENT_SAVED_ELEMENT;
             $model->elementId   = $element->getId();
+            $model->siteId      = $element->siteId;
             $model->elementType = get_class($element);
             $snapshot           = [
                 'elementId'   => $element->getId(),
                 'elementType' => get_class($element),
             ];
 
+            if (Audit::$craft32 && ($isDraft || $isRevision)) {
+                $model->event = AuditModel::EVENT_SAVED_DRAFT;
+            }
+
             if ($element->hasTitles()) {
                 $title = $element->title;
+            }
+
+            if ($isGlobal) {
+                /** @var GlobalSet $element */
+                $title        = $element->name;
+                $model->event = AuditModel::EVENT_SAVED_GLOBAL;
             }
 
             if ($element instanceof User) {
@@ -176,8 +215,8 @@ class AuditService extends Component
                 $snapshot['title'] = $title;
             }
 
-            $model->snapshot   = $this->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
-            $parentId          = $this->getParentId($model->elementType);
+            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
+            $parentId        = $this->getParentId($model->elementType);
 
             if (!empty($parentId)) {
                 $model->parentId = $parentId;
