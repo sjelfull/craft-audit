@@ -43,10 +43,6 @@
         "hasCpSettings": true,
         "hasCpSection": true,
         "changelogUrl": "https://raw.githubusercontent.com/sjelfull/craft-audit/v1/CHANGELOG.md",
-        "components": {
-            "auditService": "superbig\\audit\\services\\AuditService",
-            "geo": "superbig\\audit\\services\\Audit_GeoService"
-        },
         "class": "superbig\\audit\\Audit"
     }
 }

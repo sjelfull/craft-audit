@@ -106,6 +106,11 @@ class Audit extends Plugin
         self::$craft33  = version_compare($currentVersion, '3.3', '>=');
         self::$craft34  = version_compare($currentVersion, '3.4', '>=');
 
+        $this->setComponents([
+            'auditService' => AuditService::class,
+            'geo'          => Audit_GeoService::class,
+        ]);
+
         Event::on(
             Plugins::class,
             Plugins::EVENT_AFTER_INSTALL_PLUGIN,
