@@ -12,6 +12,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ### Changed
 - Improved performance when listing user details in tables
 
+### Fixed
+- Fixed unserialize error ([#48](https://github.com/sjelfull/craft-audit/issues/48))
+
 ## 1.1.0 - 2020-05-09
 
 ### Changed
