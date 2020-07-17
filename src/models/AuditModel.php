@@ -288,7 +288,7 @@ class AuditModel extends Model
             static::$_users[ $this->userId ] = Craft::$app->getUsers()->getUserById($this->userId);
         }
 
-        return static::$_users[ $this->userId ];
+        return static::$_users[ $this->userId ] ?? null;
     }
 
     /**
