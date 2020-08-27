@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2017 Superbig
  */
 
-namespace superbig\audit\assetbundles\Audit;
+namespace superbig\audit\assetbundles\audit;
 
 use Craft;
 use craft\web\AssetBundle;

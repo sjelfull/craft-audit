@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ### Fixed
 - Fixed error when snapshot serialized data became corrupt due to being too large for the database column
+- Fixed deprecation in Composer
 
 ### Changed
 - Changed snapshot column to `mediumtext`
