@@ -95,7 +95,7 @@ class Install extends Migration
                     'ip'          => $this->string()->null()->defaultValue(null),
                     'userAgent'   => $this->string(255)->null()->defaultValue(null),
                     'location'    => $this->text()->null()->defaultValue(null),
-                    'snapshot'    => $this->text()->null()->defaultValue(null),
+                    'snapshot'    => $this->mediumText()->null()->defaultValue(null),
                 ]
             );
         }

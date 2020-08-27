@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 1.1.3 - 2020-08-27
+
+### Fixed
+- Fixed error when snapshot serialized data became corrupt due to being too large for the database column
+
+### Changed
+- Changed snapshot column to `mediumtext`
+
 ## 1.1.2 - 2020-07-17
 
 ### Fixed

@@ -159,11 +159,19 @@ class AuditModel extends Model
 
         $snapshot = $record->snapshot;
 
-        if (StringHelper::isBase64($snapshot)) {
-            $model->snapshot = unserialize(base64_decode($snapshot));
-        }
-        else {
-            $model->snapshot = unserialize($snapshot);
+        try {
+            if (StringHelper::isBase64($snapshot)) {
+                $model->snapshot = unserialize(base64_decode($snapshot));
+            }
+            else {
+                $model->snapshot = unserialize($snapshot);
+            }
+        } catch (\Exception $e) {
+            $error = Craft::t('audit', 'Failed to unserialize snapshot of log entry #{id}: {message}', [
+                'id' => $model->id,
+                'message' => $e->getMessage(),
+            ]);
+            Craft::warning($error, 'audit');
         }
 
         return $model;
