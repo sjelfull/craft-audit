@@ -4,7 +4,7 @@ Audit log for Craft 3.
 
 ![Plugin icon](resources/img/icon.png)
 
-_Note: This plugin will cost $99.00 once Craft 3 GA is released._
+_Note: This plugin costs $99.00 through the [Craft Plugin Store](https://plugins.craftcms.com/audit) when used in production._
 
 ## Screenshots
 
