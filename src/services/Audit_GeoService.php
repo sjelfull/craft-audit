@@ -14,13 +14,17 @@ use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\helpers\FileHelper;
 use craft\models\EntryDraft;
+use ErrorException;
 use GeoIp2\Database\Reader;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\ConnectException;
 use superbig\audit\Audit;
 
 use Craft;
 use craft\base\Component;
 use superbig\audit\models\AuditModel;
+use superbig\audit\models\Settings;
 use superbig\audit\records\AuditRecord;
 use yii\base\Exception;
 
@@ -34,41 +38,14 @@ class Audit_GeoService extends Component
     protected $unpackedCountryDatabasePath;
     protected $unpackedCityDatabasePath;
 
-    // Public Methods
-    // =========================================================================
-
-    protected $databases;
+    /** @var Settings */
+    private $settings;
 
     public function init()
     {
         parent::init();
 
-        $path = Craft::parseEnv(Audit::$plugin->getSettings()->dbPath);
-        $path = rtrim($path,
-                \DIRECTORY_SEPARATOR
-            ) . \DIRECTORY_SEPARATOR;
-
-        // Ensure path is writeable
-        FileHelper::createDirectory($path);
-
-        $this->databases = [
-            'city'    => [
-                'url'                 => 'http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz',
-                'checksum'            => 'http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.md5',
-                'filename'            => 'GeoLite2-City.mmdb.gz',
-                'path'                => $path . 'GeoLite2-City.mmdb.gz',
-                'pathWithoutFilename' => $path,
-                'unpackedPath'        => $path . 'GeoLite2-City.mmdb',
-            ],
-            'country' => [
-                'url'                 => 'http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country.mmdb.gz',
-                'checksum'            => 'http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country.md5',
-                'filename'            => 'GeoLite2-Country.mmdb.gz',
-                'path'                => $path . 'GeoLite2-Country.mmdb.gz',
-                'pathWithoutFilename' => $path,
-                'unpackedPath'        => $path . DIRECTORY_SEPARATOR . 'GeoLite2-Country.mmdb',
-            ],
-        ];
+        $this->settings = Audit::$plugin->getSettings();
     }
 
     /**
@@ -94,7 +71,7 @@ class Audit_GeoService extends Component
 
             try {
                 // This creates the Reader object, which should be reused across lookups.
-                $reader = new Reader($this->databases['city']['unpackedPath']);
+                $reader = new Reader($this->settings->getCityDbPath());
                 $record = $reader->city($ip);
 
                 $cache->set($cacheKey, $record);
@@ -115,52 +92,93 @@ class Audit_GeoService extends Component
         }
     }
 
+    public function checkLicenseKey()
+    {
+        if (!$this->settings->hasValidLicenseKey()) {
+            $error = $this->formatErrorMessage('Invalid MaxMind license key. Generate one at {url}', [
+                'url' => $this->settings->accountAreaUrl,
+            ]);
+
+            $this->logError($error);
+
+            return [
+                'error' => $error,
+            ];
+        }
+    }
+
     /**
      * @return array
+     * @throws \yii\base\ErrorException
      */
     public function downloadDatabase()
     {
-        foreach ($this->databases as $key => $database) {
-            $pathWithoutFilename = $database['pathWithoutFilename'];
-            $databasePath        = $database['path'];
+        $settings = $this->settings;
+        $dbPath = $settings->getDbPath(null, true);
+        $tempPath = $settings->getTempPath();
+        $countryDbPath = $settings->getCountryDbPath();
 
-            if (!FileHelper::isWritable($pathWithoutFilename)) {
-                Craft::error('Database folder is not writeable: ' . $pathWithoutFilename, __METHOD__);
+        if (!FileHelper::isWritable($dbPath)) {
+            $error = $this
+                ->formatErrorMessage('Database folder is not writeable: {path}', [
+                    'path' => $dbPath,
+                ]);
 
-                return [
-                    'error' => 'Database folder is not writeable: ' . $pathWithoutFilename,
-                ];
-            }
-            $tempPath = Craft::$app->path->getTempPath() . DIRECTORY_SEPARATOR . 'audit' . DIRECTORY_SEPARATOR;
+            return $this->logError($error, __METHOD__);
+        }
 
-            FileHelper::createDirectory($tempPath);
+        $types = [
+            'Country' => [
+                'url' => $settings->getCountryDownloadUrl(),
+                'tempPath' => $settings->getCountryDbPath($isTemp = true),
+                'path' => $settings->getCountryDbPath(),
+            ],
+            'City' => [
+                'url' => $settings->getCityDownloadUrl(),
+                'tempPath' => $settings->getCityDbPath($isTemp = true),
+                'path' => $settings->getCityDbPath(),
+            ],
+        ];
+        $success = true;
 
-            $tempFile = $tempPath . $database['filename'];
-            Craft::info('Downloading database to: ' . $database['path'], __METHOD__);
-
+        foreach ($types as $key => $type) {
             try {
-                $guzzle = new Client();
-
-                $response = $guzzle
-                    ->get($database['url'], [
-                        'sink' => $tempFile,
+                $this->logInfo("Downloading {$key} database to: {$type['tempPath']}", __METHOD__);
+                $client = (new Client())
+                    ->get($type['url'], [
+                        'sink' => $type['tempPath'],
                     ]);
+            } catch (ConnectException $e) {
+                $error = $this->formatErrorMessage('Failed to connect to {url}: {error}', [
+                    'url' => $type['url'],
+                    'error' => $e->getMessage(),
+                ]);
+                $this->logError($error);
+                $success = false;
+                continue;
+            } catch (ClientException $e) {
+                $error = $this->formatErrorMessage('Failed to download {url}: {error}', [
+                    'url' => $type['url'],
+                    'error' => $e->getMessage(),
+                ]);
 
-                @unlink($databasePath);
-                FileHelper::createDirectory($pathWithoutFilename);
-                copy($tempFile, $databasePath);
-                @unlink($tempFile);
+                $this->logError($error);
+                $success = false;
+                continue;
             } catch (\Exception $e) {
-                Craft::error('Failed to write downloaded database to: ' . $databasePath . ' ' . $e->getMessage(), __METHOD__);
+                $error = $this->formatErrorMessage('Failed to get database {url}: {error}', [
+                    'url' => $type['url'],
+                    'error' => $e->getMessage(),
+                ]);
 
-                return [
-                    'error' => 'Failed to write downloaded database to file',
-                ];
+                $this->logError($error);
+                $success = false;
+                continue;
             }
         }
 
         return [
-            'success' => true,
+            'success' => $success,
         ];
     }
 
@@ -169,41 +187,56 @@ class Audit_GeoService extends Component
      */
     public function unpackDatabase()
     {
-        foreach ($this->databases as $key => $database) {
-            $databasePath         = $database['path'];
-            $databaseUnpackedPath = $database['unpackedPath'];
+        $settings = $this->settings;
 
+        $countryChecksumUrl = $settings->getCountryChecksumDownloadUrl();
+        $countryDbPath = $settings->getCountryDbPath($temp = true);
+        $cityDbPath = $settings->getCityDbPath($temp = true);
+        $cityChecksumUrl = $settings->getCityChecksumDownloadUrl();
+        $remoteChecksum = null;
+
+        $urls = [
+            'Country' => [
+                'url' => $countryChecksumUrl,
+                'path' => $countryDbPath,
+            ],
+            'City' => [
+                'url' => $cityChecksumUrl,
+                'path' => $cityDbPath,
+            ],
+        ];
+
+        foreach ($urls as $key => $info) {
             try {
-                $guzzle   = new Client();
+                $guzzle = new Client();
+                $url = $info['url'];
+                $path = $info['path'];
                 $response = $guzzle
-                    ->get($database['checksum']);
+                    ->get($url);
 
                 $remoteChecksum = (string)$response->getBody();
+
+                // Verify checksum
+                if (md5(file_get_contents($path)) !== $remoteChecksum) {
+                    $error = $this->formatErrorMessage('Remote checksum for {type} database doesn\'t match downloaded database. Please try again or contact support.', ['type' => $key]);
+
+                    return $this->logError($error, __METHOD__);
+                }
             } catch (\Exception $e) {
-                Craft::error('Was not able to get checksum from GeoLite url: ' . $database['checksum'], __METHOD__);
+                $error = $this
+                    ->formatErrorMessage('Was not able to get checksum from GeoLite {url}: {error}', [
+                        'url' => $url,
+                        'error' => $e->getMessage(),
+                    ]);
 
-                return [
-                    'error' => 'Failed to get remote checksum for Country database',
-                ];
+                return $this->logError($error, __METHOD__);
             }
-            $result = gzdecode(file_get_contents($databasePath));
-            if (md5($result) !== $remoteChecksum) {
-                Craft::error('Remote checksum for Country database doesn\'t match downloaded database. Please try again or contact support.', __METHOD__);
 
-                return [
-                    'error' => 'Remote checksum for Country database doesn\'t match downloaded database. Please try again or contact support.',
-                ];
+            try {
+                $this->findAndWriteDatabase(strtolower($key));
+            } catch (\Exception $e) {
+                return $this->logError($e->getMessage(), __METHOD__);
             }
-            Craft::debug('Unpacking database to: ' . $databaseUnpackedPath, __METHOD__);
-            $write = file_put_contents($databaseUnpackedPath, $result);
-            if (!$write) {
-                Craft::error('Was not able to write unpacked database to: ' . $databaseUnpackedPath, __METHOD__);
-
-                return [
-                    'error' => 'Was not able to write unpacked database to: ' . $databaseUnpackedPath,
-                ];
-            }
-            @unlink($databasePath);
         }
 
         return [
@@ -216,6 +249,73 @@ class Audit_GeoService extends Component
      */
     public function checkValidDb()
     {
-        return @file_exists($this->databases['city']['unpackedPath']);
+        return @file_exists(Audit::$plugin->getSettings()->getCountryDbPath());
+    }
+
+    public function getLastUpdateTime()
+    {
+        if (!$this->checkValidDb()) {
+            return null;
+        }
+
+        $time = FileHelper::lastModifiedTime(Audit::$plugin->getSettings()->getCountryDbPath());
+
+        return new \DateTime("@{$time}");
+    }
+
+    private function logError(string $error, $category = 'audit')
+    {
+        Craft::error($error, $category);
+
+        return [
+            'error' => $error,
+        ];
+    }
+
+    private function logInfo(string $message, $category = 'audit')
+    {
+        Craft::info($message, $category);
+    }
+
+    private function formatErrorMessage($error, $vars = [])
+    {
+        return Craft::t('audit', $error, $vars);
+    }
+
+    private function findAndWriteDatabase($type = 'country')
+    {
+        $settings = $this->settings;
+        $outputPath = $type === 'country' ? $settings->getCountryDbPath() : $settings->getCityDbPath();
+        $tempFile = $type === 'country' ? $settings->getCountryDbPath($isTemp = true) : $settings->getCityDbPath($isTemp = true);
+        $found = false;
+        $archive = new \PharData($tempFile);
+
+        foreach (new \RecursiveIteratorIterator($archive) as $file) {
+            $fileInfo = pathinfo($file);
+
+            if (!empty($fileInfo['extension']) && 'mmdb' === $fileInfo['extension']) {
+                $found = true;
+                $result = $file->getContent();
+
+                try {
+                    FileHelper::writeToFile($outputPath, $result);
+                    @unlink($tempFile);
+                } catch (ErrorException $e) {
+                    $error = $this->formatErrorMessage('Failed to write {type} database to {path}', [
+                        'path' => $outputPath,
+                        'type' => $type,
+                    ]);
+
+                    throw new \Exception($error);
+                }
+            }
+        }
+
+        if (!$found) {
+            $error = $this->formatErrorMessage('Did not find database in archive', [
+            ]);
+
+            throw new \Exception($error);
+        }
     }
 }

@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+# 2.0.0 - 2021-03-13
+
+> {warning} You now have to register for a MaxMind account and obtain a license key in order to download the GeoLite2 databases. This is due to a change that was introduced December 30th 2019, [to comply with GDPR and CCPA](https://blog.maxmind.com/2019/12/18/significant-changes-to-accessing-and-using-geolite2-databases/). You need to add a MaxMind license key in the plugin settings after upgrading to 2.0.0 to continue downloading the databases. Check the readme for detailed instructions on this.
+
+### Added
+- Added new authentication method for downloading MaxMind geolocation databases
+
 ## 1.1.3 - 2020-08-27
 
 ### Fixed

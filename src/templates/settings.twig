@@ -75,6 +75,13 @@
     toggle: 'audit-geolocation-section'
 }) }}
 
+{{ forms.textField({
+    label: 'MaxMind License Key',
+    instructions: 'Get or generate a license key from the [MaxMind account area](https://www.maxmind.com/en/account/login) -> Services -> My License Key',
+    id: 'maxmindLicenseKey',
+    name: 'maxmindLicenseKey',
+    value: settings['maxmindLicenseKey']}) }}
+
 <div class="{{ not settings.enabledGeolocation ? 'hidden' }}" id="audit-geolocation-section">
     <h3>Updating database</h3>
 

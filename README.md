@@ -58,6 +58,7 @@ return [
 
     // Enable geolocation status
     'enabledGeolocation' => true,
+    'maxmindLicenseKey' => '',
     
     // Where to save Maxmind DB files
     'dbPath' => '',
@@ -75,6 +76,12 @@ As long as the plugin is installed, it will log the following events automatical
 - Login/logout
 
 More events like Commerce-specific event handling is planned.
+
+### Geolocation
+
+To enable geolocation lookup with the help of the MaxMind GeoLite2 databases, you first have to generate a license key. 
+
+Add your [MaxMind.com License Key](https://support.maxmind.com/account-faq/license-keys/can-generate-new-license-key/) obtained from the [MaxMind.com account area](https://www.maxmind.com/en/accounts/current/people/current).  
 
 ## Clearing old records
 

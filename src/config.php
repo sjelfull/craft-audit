@@ -41,6 +41,7 @@ return [
 
     // Enable geolocation status
     'enabledGeolocation'          => true,
+    'maxmindLicenseKey'           => '',
 
     // Where to save Maxmind DB files
     'dbPath'                      => '',

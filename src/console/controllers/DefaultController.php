@@ -38,16 +38,15 @@ class DefaultController extends Controller
     public function actionUpdateDatabase()
     {
         ConsoleHelper::output('Updating Geolocation database');
-
         ConsoleHelper::startProgress(1, 6);
 
+        $response = Audit::$plugin->geo->checkLicenseKey();
         $response = Audit::$plugin->geo->downloadDatabase();
 
         ConsoleHelper::startProgress(2, 6);
 
         if (isset($response['error'])) {
             ConsoleHelper::error($response['error']);
-
             ConsoleHelper::endProgress();
 
             return ExitCode::DATAERR;
@@ -61,16 +60,13 @@ class DefaultController extends Controller
 
         if (isset($response['error'])) {
             Console::error($response['error']);
-
             ConsoleHelper::endProgress();
 
             return ExitCode::DATAERR;
         }
 
         ConsoleHelper::startProgress(6, 6);
-
         ConsoleHelper::endProgress();
-
         ConsoleHelper::output('Finished updating database');
 
         return ExitCode::OK;
