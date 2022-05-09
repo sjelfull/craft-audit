@@ -15,6 +15,7 @@ use craft\base\ElementInterface;
 use craft\elements\Asset;
 use craft\elements\User;
 use craft\helpers\ArrayHelper;
+use craft\helpers\DateTimeHelper;
 use craft\helpers\StringHelper;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
@@ -154,7 +155,7 @@ class AuditModel extends Model
         $model->ip          = $record->ip;
         $model->userAgent   = $record->userAgent;
         $model->siteId      = $record->siteId;
-        $model->dateCreated = $record->dateCreated;
+        $model->dateCreated = DateTimeHelper::toDateTime($record->dateCreated);
         $model->sessionId   = $record->sessionId;
 
         $snapshot = $record->snapshot;
