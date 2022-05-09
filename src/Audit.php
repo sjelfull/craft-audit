@@ -62,6 +62,7 @@ class Audit extends Plugin
     public static $craft32 = false;
     public static $craft33 = false;
     public static $craft34 = false;
+    public static $craft37 = false;
     public string $schemaVersion = '1.0.3';
 
     /**
@@ -94,6 +95,7 @@ class Audit extends Plugin
         self::$craft32 = version_compare($currentVersion, '3.2', '>=');
         self::$craft33 = version_compare($currentVersion, '3.3', '>=');
         self::$craft34 = version_compare($currentVersion, '3.4', '>=');
+        self::$craft37 = version_compare($currentVersion, '3.7', '>=');
 
         $this->setComponents([
             'auditService' => AuditService::class,
@@ -248,7 +250,8 @@ class Audit extends Plugin
                 'class' => Elements::class,
                 'event' => Elements::EVENT_AFTER_SAVE_ELEMENT,
                 'handler' => function(ElementEvent $event) {
-                    $this->auditService->onSaveElement($event->element, $event->isNew);
+                    $isNew = $event->sender->firstSave ?? $event->isNew;
+                    $this->auditService->onSaveElement($event->element, $isNew);
                 },
             ],
             [
