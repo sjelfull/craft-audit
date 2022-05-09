@@ -312,21 +312,21 @@ class Audit extends Plugin
 
     public function setupPermissions()
     {
-        $permissions = [
-            'Audit' => [
-                self::PERMISSION_VIEW_LOGS => [
-                    'label' => 'View audit logs',
-                ],
-                self::PERMISSION_CLEAR_LOGS => [
-                    'label' => 'Clear old logs',
-                ],
-            ],
-        ];
         Event::on(
             UserPermissions::class,
             UserPermissions::EVENT_REGISTER_PERMISSIONS,
-            function(RegisterUserPermissionsEvent $event) use ($permissions) {
-                $event->permissions = array_merge($event->permissions, $permissions);
+            function(RegisterUserPermissionsEvent $event) {
+                $event->permissions[] = [
+                    'heading' => Craft::t('audit', 'Audit'),
+                    'permissions' => [
+                        self::PERMISSION_VIEW_LOGS => [
+                            'label' => 'View audit logs',
+                        ],
+                        self::PERMISSION_CLEAR_LOGS => [
+                            'label' => 'Clear old logs',
+                        ],
+                    ],
+                ];
             }
         );
     }
