@@ -32,7 +32,7 @@ use JasonGrimes\Paginator;
 class GeoController extends Controller
 {
 
-    protected $allowAnonymous = ['update-database'];
+    protected array|int|bool $allowAnonymous = ['update-database'];
 
     // Protected Properties
     // =========================================================================

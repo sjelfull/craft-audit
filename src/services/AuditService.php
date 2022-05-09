@@ -41,7 +41,7 @@ class AuditService extends Component
     const EVENT_TRIGGER  = 'eventTrigger';
     const EVENT_SNAPSHOT = 'snapshot';
 
-    public function init()
+    public function init(): void
     {
         parent::init();
     }

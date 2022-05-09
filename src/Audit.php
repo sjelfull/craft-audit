@@ -54,18 +54,15 @@ use yii\web\UserEvent;
  */
 class Audit extends Plugin
 {
-    const PERMISSION_VIEW_LOGS  = 'audit-view-logs';
+    const PERMISSION_VIEW_LOGS = 'audit-view-logs';
     const PERMISSION_CLEAR_LOGS = 'audit-clear-logs';
 
-    /**
-     * @var Audit
-     */
-    public static $plugin;
-
+    public static Audit $plugin;
     public static $craft31 = false;
     public static $craft32 = false;
     public static $craft33 = false;
     public static $craft34 = false;
+    public string $schemaVersion = '1.0.3';
 
     /**
      * Determine whether our table schema exists or not; this is needed because
@@ -79,18 +76,10 @@ class Audit extends Plugin
         return (Craft::$app->db->schema->getTableSchema('{{%audit_log}}') !== null);
     }
 
-    // Public Methods
-    // =========================================================================
-
-    /**
-     * @var string
-     */
-    public $schemaVersion = '1.0.3';
-
     /**
      * @inheritdoc
      */
-    public function init()
+    public function init(): void
     {
         parent::init();
         self::$plugin = $this;
@@ -101,14 +90,14 @@ class Audit extends Plugin
 
         // Versions
         $currentVersion = Craft::$app->getVersion();
-        self::$craft31  = version_compare($currentVersion, '3.1', '>=');
-        self::$craft32  = version_compare($currentVersion, '3.2', '>=');
-        self::$craft33  = version_compare($currentVersion, '3.3', '>=');
-        self::$craft34  = version_compare($currentVersion, '3.4', '>=');
+        self::$craft31 = version_compare($currentVersion, '3.1', '>=');
+        self::$craft32 = version_compare($currentVersion, '3.2', '>=');
+        self::$craft33 = version_compare($currentVersion, '3.3', '>=');
+        self::$craft34 = version_compare($currentVersion, '3.4', '>=');
 
         $this->setComponents([
             'auditService' => AuditService::class,
-            'geo'          => Audit_GeoService::class,
+            'geo' => Audit_GeoService::class,
         ]);
 
         Event::on(
@@ -150,14 +139,6 @@ class Audit extends Plugin
         }
 
         Event::on(
-            UrlManager::class,
-            UrlManager::EVENT_REGISTER_SITE_URL_RULES,
-            function(RegisterUrlRulesEvent $event) {
-                $event->rules['audit/update-database'] = 'audit/geo/update-database';
-            }
-        );
-
-        Event::on(
             CraftVariable::class,
             CraftVariable::EVENT_INIT,
             function(Event $event) {
@@ -167,132 +148,15 @@ class Audit extends Plugin
             }
         );
 
-        Event::on(
-            UrlManager::class,
-            UrlManager::EVENT_REGISTER_CP_URL_RULES,
-            function(RegisterUrlRulesEvent $event) {
-                $event->rules['audit']              = 'audit/default/index';
-                $event->rules['audit/log/<id:\d+>'] = 'audit/default/details';
-                $event->rules['audit/prune-logs']   = 'audit/default/prune-logs';
-            }
-        );
-
-        Craft::info(
-            Craft::t(
-                'audit',
-                '{name} plugin loaded',
-                ['name' => $this->name]
-            ),
-            __METHOD__
-        );
-
-        $this->registerPermissions();
-    }
-
-    // Protected Methods
-    // =========================================================================
-
-    /**
-     * @inheritdoc
-     */
-    protected function createSettingsModel()
-    {
-        return new Settings();
+        $this->setupRouteEvents();
+        $this->setupPermissions();
     }
 
     /**
-     * @inheritdoc
+     * @return void
      */
-    protected function settingsHtml(): string
+    public function setupQueueEvents(): void
     {
-        $validDb = $this->geo->checkValidDb();
-
-        return Craft::$app->view->renderTemplate(
-            'audit/settings',
-            [
-                'settings' => $this->getSettings(),
-                'validDb'  => $validDb,
-            ]
-        );
-    }
-
-    protected function initLogEvents()
-    {
-        $events = [
-            [
-                'class'   => User::class,
-                'event'   => User::EVENT_AFTER_LOGIN,
-                'handler' => function(UserEvent $event) {
-                    $this->auditService->onLogin();
-                },
-            ],
-            [
-                'class'   => User::class,
-                'event'   => User::EVENT_BEFORE_LOGOUT,
-                'handler' => function(UserEvent $event) {
-                    $this->auditService->onBeforeLogout();
-                },
-            ],
-            [
-                'class'   => Elements::class,
-                'event'   => Elements::EVENT_AFTER_SAVE_ELEMENT,
-                'handler' => function(ElementEvent $event) {
-                    $this->auditService->onSaveElement($event->element, $event->isNew);
-                },
-            ],
-            [
-                'class'   => Elements::class,
-                'event'   => Elements::EVENT_AFTER_DELETE_ELEMENT,
-                'handler' => function(ElementEvent $event) {
-                    $this->auditService->onDeleteElement($event->element);
-                },
-            ],
-            // Routes
-            [
-                'class'   => Routes::class,
-                'event'   => Routes::EVENT_AFTER_SAVE_ROUTE,
-                'handler' => function(RouteEvent $event) {
-                    $this->auditService->onSaveRoute($event);
-                },
-            ],
-            [
-                'class'   => Routes::class,
-                'event'   => Routes::EVENT_BEFORE_DELETE_ROUTE,
-                'handler' => function(RouteEvent $event) {
-                    $this->auditService->onDeleteRoute($event);
-                },
-            ],
-            [
-                'class'   => Plugins::class,
-                'event'   => Plugins::EVENT_AFTER_UNINSTALL_PLUGIN,
-                'handler' => function(PluginEvent $event) {
-                    $this->auditService->onPluginEvent(AuditModel::EVENT_PLUGIN_UNINSTALLED, $event->plugin);
-                },
-            ],
-            [
-                'class'   => Plugins::class,
-                'event'   => Plugins::EVENT_AFTER_DISABLE_PLUGIN,
-                'handler' => function(PluginEvent $event) {
-                    $this->auditService->onPluginEvent(AuditModel::EVENT_PLUGIN_DISABLED, $event->plugin);
-                },
-            ],
-            [
-                'class'   => Plugins::class,
-                'event'   => Plugins::EVENT_AFTER_ENABLE_PLUGIN,
-                'handler' => function(PluginEvent $event) {
-                    $this->auditService->onPluginEvent(AuditModel::EVENT_PLUGIN_ENABLED, $event->plugin);
-                },
-            ],
-        ];
-
-        foreach ($events as $event) {
-            Event::on(
-                $event['class'],
-                $event['event'],
-                $event['handler']
-            );
-        }
-
         Event::on(
             Queue::class,
             Queue::EVENT_BEFORE_EXEC,
@@ -324,11 +188,130 @@ class Audit extends Plugin
         );
     }
 
-    public function registerPermissions()
+    public function setupRouteEvents(): void
+    {
+        Event::on(
+            UrlManager::class,
+            UrlManager::EVENT_REGISTER_SITE_URL_RULES,
+            function(RegisterUrlRulesEvent $event) {
+                $event->rules['audit/update-database'] = 'audit/geo/update-database';
+            }
+        );
+
+        Event::on(
+            UrlManager::class,
+            UrlManager::EVENT_REGISTER_CP_URL_RULES,
+            function(RegisterUrlRulesEvent $event) {
+                $event->rules['audit'] = 'audit/default/index';
+                $event->rules['audit/log/<id:\d+>'] = 'audit/default/details';
+                $event->rules['audit/prune-logs'] = 'audit/default/prune-logs';
+            }
+        );
+    }
+
+    protected function createSettingsModel(): ?\craft\base\Model
+    {
+        return new Settings();
+    }
+
+    protected function settingsHtml(): ?string
+    {
+        $validDb = $this->geo->checkValidDb();
+
+        return Craft::$app->view->renderTemplate(
+            'audit/settings',
+            [
+                'settings' => $this->getSettings(),
+                'validDb' => $validDb,
+            ]
+        );
+    }
+
+    protected function initLogEvents()
+    {
+        $events = [
+            [
+                'class' => User::class,
+                'event' => User::EVENT_AFTER_LOGIN,
+                'handler' => function(UserEvent $event) {
+                    $this->auditService->onLogin();
+                },
+            ],
+            [
+                'class' => User::class,
+                'event' => User::EVENT_BEFORE_LOGOUT,
+                'handler' => function(UserEvent $event) {
+                    $this->auditService->onBeforeLogout();
+                },
+            ],
+            [
+                'class' => Elements::class,
+                'event' => Elements::EVENT_AFTER_SAVE_ELEMENT,
+                'handler' => function(ElementEvent $event) {
+                    $this->auditService->onSaveElement($event->element, $event->isNew);
+                },
+            ],
+            [
+                'class' => Elements::class,
+                'event' => Elements::EVENT_AFTER_DELETE_ELEMENT,
+                'handler' => function(ElementEvent $event) {
+                    $this->auditService->onDeleteElement($event->element);
+                },
+            ],
+            // Routes
+            [
+                'class' => Routes::class,
+                'event' => Routes::EVENT_AFTER_SAVE_ROUTE,
+                'handler' => function(RouteEvent $event) {
+                    $this->auditService->onSaveRoute($event);
+                },
+            ],
+            [
+                'class' => Routes::class,
+                'event' => Routes::EVENT_BEFORE_DELETE_ROUTE,
+                'handler' => function(RouteEvent $event) {
+                    $this->auditService->onDeleteRoute($event);
+                },
+            ],
+            [
+                'class' => Plugins::class,
+                'event' => Plugins::EVENT_AFTER_UNINSTALL_PLUGIN,
+                'handler' => function(PluginEvent $event) {
+                    $this->auditService->onPluginEvent(AuditModel::EVENT_PLUGIN_UNINSTALLED, $event->plugin);
+                },
+            ],
+            [
+                'class' => Plugins::class,
+                'event' => Plugins::EVENT_AFTER_DISABLE_PLUGIN,
+                'handler' => function(PluginEvent $event) {
+                    $this->auditService->onPluginEvent(AuditModel::EVENT_PLUGIN_DISABLED, $event->plugin);
+                },
+            ],
+            [
+                'class' => Plugins::class,
+                'event' => Plugins::EVENT_AFTER_ENABLE_PLUGIN,
+                'handler' => function(PluginEvent $event) {
+                    $this->auditService->onPluginEvent(AuditModel::EVENT_PLUGIN_ENABLED, $event->plugin);
+                },
+            ],
+        ];
+
+        foreach ($events as $event) {
+            Event::on(
+                $event['class'],
+                $event['event'],
+                $event['handler']
+            );
+        }
+
+        $this->setupQueueEvents();
+    }
+
+    public function setupPermissions()
     {
         $permissions = [
             'Audit' => [
-                self::PERMISSION_VIEW_LOGS  => [
+                self::PERMISSION_VIEW_LOGS => [
                     'label' => 'View audit logs',
                 ],
                 self::PERMISSION_CLEAR_LOGS => [

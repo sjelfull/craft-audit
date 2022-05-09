@@ -183,7 +183,7 @@ class AuditModel extends Model
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function rules(): array
     {
         return [];
     }
@@ -247,7 +247,7 @@ class AuditModel extends Model
     }
 
     /**
-     * @return null|string|\Twig_Markup
+     * @return null|string|\Twig\Markup
      */
     public function getElementLink()
     {
@@ -272,7 +272,7 @@ class AuditModel extends Model
     }
 
     /**
-     * @return null|\Twig_Markup
+     * @return null|\Twig\Markup
      */
     public function getUserLink()
     {
@@ -331,7 +331,7 @@ class AuditModel extends Model
     }
 
     /**
-     * @return string|\Twig_Markup
+     * @return string|\Twig\Markup
      */
     public function getSnapshotTable()
     {

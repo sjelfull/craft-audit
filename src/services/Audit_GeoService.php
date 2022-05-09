@@ -41,7 +41,7 @@ class Audit_GeoService extends Component
     /** @var Settings */
     private $settings;
 
-    public function init()
+    public function init(): void
     {
         parent::init();
 
