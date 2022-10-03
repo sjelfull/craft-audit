@@ -47,7 +47,7 @@
                     <tr>
                         <td><strong>Date</strong></td>
                         <td>
-                            {{ log.dateCreated }}
+                            {{ "#{log.dateCreated|date('short')} #{log.dateCreated|time('short')}" }}
                         </td>
                     </tr>
                     <tr>
@@ -162,7 +162,7 @@
                         <td>{{ logEntry.getElementLink() }}</td>
                         <td>{{ logEntry.getUserLink() }}</td>
                         <td>{{ logEntry.ip }}</td>
-                        <td>{{ logEntry.dateCreated }}</td>
+                        <td>{{ "#{logEntry.dateCreated|date('short')} #{logEntry.dateCreated|time('short')}" }}</td>
                         <td>
                             <a href="{{ logEntry.getCpEditUrl() }}">&rarr;</a>
                         </td>
@@ -197,7 +197,7 @@
                         <td>{{ logEntry.getElementLink() }}</td>
                         <td>{{ logEntry.getUserLink() }}</td>
                         <td>{{ logEntry.ip }}</td>
-                        <td>{{ logEntry.dateCreated }}</td>
+                        <td>{{ "#{logEntry.dateCreated|date('short')} #{logEntry.dateCreated|time('short')}" }}</td>
                         <td>
                             <a href="{{ logEntry.getCpEditUrl() }}">&rarr;</a>
                         </td>
