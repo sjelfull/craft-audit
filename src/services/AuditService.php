@@ -10,6 +10,7 @@
 
 namespace superbig\audit\services;
 
+use craft\base\BlockElementInterface;
 use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\base\Plugin;
@@ -136,7 +137,8 @@ class AuditService extends Component
     {
         $settings   = Audit::$plugin->getSettings();
         $title      = null;
-        $hasParent  = method_exists($element, 'getOwner') && $element->getOwner();
+        $isBlock    = $element instanceof BlockElementInterface;
+        $hasParent  = $isBlock || method_exists($element, 'getOwner') && $element->getOwner();
         $isGlobal   = $element instanceof GlobalSet;
         $isDraft    = false;
         $isRevision = false;
@@ -147,7 +149,7 @@ class AuditService extends Component
         }
 
         // Skip if this is a element that has a parent
-        if ($hasParent) {
+        if ($hasParent && !Audit::$plugin->getSettings()->logChildElementEvents) {
             return false;
         }
 
@@ -190,6 +192,7 @@ class AuditService extends Component
             $snapshot           = [
                 'elementId'   => $element->getId(),
                 'elementType' => get_class($element),
+                'elementTypeLabel' => $element::displayName(),
             ];
 
             if (Audit::$craft32 && ($isDraft || $isRevision)) {
@@ -245,6 +248,9 @@ class AuditService extends Component
      */
     public function onDeleteElement(ElementInterface $element)
     {
+        $isBlock    = $element instanceof BlockElementInterface;
+        $hasParent  = $isBlock || method_exists($element, 'getOwner') && $element->getOwner();
+
         if (!Audit::$plugin->getSettings()->logElementEvents) {
             return false;
         }
@@ -254,14 +260,20 @@ class AuditService extends Component
             return false;
         }
 
+        if ($hasParent && !Audit::$plugin->getSettings()->logChildElementEvents) {
+            return false;
+        }
+
         try {
             /** @var Element $element */
             $model              = $this->_getStandardModel();
             $model->event       = AuditModel::EVENT_DELETED_ELEMENT;
             $model->elementType = get_class($element);
+            $model->siteId      = $element->siteId;
             $snapshot           = [
                 'elementId'   => $element->getId(),
                 'elementType' => get_class($element),
+                'elementTypeLabel' => $element::displayName(),
             ];
 
             if ($element->hasTitles()) {

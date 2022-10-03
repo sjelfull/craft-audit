@@ -31,6 +31,7 @@ return [
 
     // Toggle specific event types
     'logElementEvents'            => true,
+    'logChildElementEvents'       => false,
     'logDraftEvents'              => false,
     'logPluginEvents'             => true,
     'logUserEvents'               => true,

@@ -238,6 +238,10 @@ class AuditModel extends Model
      */
     public function getElementLabel()
     {
+        if ($label = $this->getSnapshotValue('elementTypeLabel')) {
+            return $label;
+        }
+
         $element = $this->getElement();
 
         if (!$element) {
