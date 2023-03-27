@@ -220,7 +220,7 @@ class AuditService extends Component
             }
 
             if ($title) {
-                $model->title      = $title;
+                $model->title      = Html::encode($title);
                 $snapshot['title'] = Html::encode($title);
             }
 
