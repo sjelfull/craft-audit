@@ -19,6 +19,7 @@ use craft\elements\GlobalSet;
 use craft\elements\User;
 use craft\events\RouteEvent;
 use craft\helpers\ElementHelper;
+use craft\helpers\Html;
 use craft\helpers\Template;
 use craft\queue\jobs\ResaveElements;
 use DateTime;
@@ -219,8 +220,8 @@ class AuditService extends Component
             }
 
             if ($title) {
-                $model->title      = $title;
-                $snapshot['title'] = $title;
+                $model->title      = Html::encode($title);
+                $snapshot['title'] = Html::encode($title);
             }
 
             $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
