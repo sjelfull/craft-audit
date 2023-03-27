@@ -23,9 +23,6 @@ use craft\base\Model;
  */
 class Settings extends Model
 {
-    // Public Properties
-    // =========================================================================
-
     /**
      * How many days to keep log entries around
      */
@@ -49,28 +46,26 @@ class Settings extends Model
     /**
      * Update authentication key
      */
-    public $updateAuthKey = '';
+    public string $updateAuthKey = '';
 
     /**
      * Where to save Maxmind DB files
      */
-    public $dbPath;
-    public $tempPath;
+    public string $dbPath;
+    public string $tempPath;
 
-    public $logPluginEvents = true;
-    public $logDraftEvents = false;
-    public $logElementEvents = true;
-    public $logChildElementEvents = false;
-    public $logUserEvents = true;
-    public $logRouteEvents = true;
+    public bool $logPluginEvents = true;
+    public bool $logDraftEvents = false;
+    public bool $logElementEvents = true;
+    public bool $logChildElementEvents = false;
+    public bool $logUserEvents = true;
+    public bool $logRouteEvents = true;
 
     public $accountAreaUrl = 'https://www.maxmind.com/en/account';
     public $cityDbFilename = 'GeoLite2-City.mmdb';
     public $countryDbFilename = 'GeoLite2-Country.mmdb';
     public $maxmindLicenseKey = '';
-
-    // Public Methods
-    // =========================================================================
+    public $ignoredSections = [];
 
     public function init(): void
     {
