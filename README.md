@@ -1,6 +1,6 @@
 # Audit plugin for Craft CMS 3.x
 
-Audit log for Craft 3.
+Audit log for Craft 4.
 
 ![Plugin icon](resources/img/icon.png)
 
@@ -14,7 +14,7 @@ _Note: This plugin costs $99.00 through the [Craft Plugin Store](https://plugins
 
 ## Requirements
 
-This plugin requires Craft CMS 3.0.0-beta.23 or later.
+This plugin requires Craft CMS 4.0.0 or later.
 
 ## Installation
 
