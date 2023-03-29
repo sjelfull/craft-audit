@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 3.0.2 - 2023-03-29
+
+### Fixed
+- Fixed potential XSS vulnerability ([#73](https://github.com/sjelfull/craft-audit/pull/73))
+
 ## 3.0.1 - 2022-10-03
 
 ### Added
