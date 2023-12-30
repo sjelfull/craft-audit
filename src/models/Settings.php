@@ -51,8 +51,8 @@ class Settings extends Model
     /**
      * Where to save Maxmind DB files
      */
-    public string $dbPath;
-    public string $tempPath;
+    public ?string $dbPath = null;
+    public ?string $tempPath = null;
 
     public bool $logPluginEvents = true;
     public bool $logDraftEvents = false;
