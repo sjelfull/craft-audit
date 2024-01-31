@@ -76,14 +76,11 @@
                             {{ log.getElementLink() }}
                         </td>
                     </tr>
-                    <tr>
-                        <td><strong>Snapshot</strong></td>
-                        <td>
-                            {{ log.getSnapshotTable() }}
-                        </td>
-                    </tr>
                 </tbody>
             </table>
+
+            <h2>Snapshot</h2>
+            {{ log.getSnapshotTable() }}
 
             {% set content = log.getSnapshotValue('content') %}
             {% if content %}
@@ -157,7 +154,7 @@
                 <tbody>
                 {% for logEntry in log.getChildren() %}
                     <tr{{ logEntry.id == log.id ? ' class="audit-table-current-entry"' }}>
-                        <td>{{ logEntry.getEventLabel() }}</td>
+                        <td>{{ logEntry.getEventLabel()|t('audit') }}</td>
                         <td>{{ logEntry.getElementLabel() }}</td>
                         <td>{{ logEntry.getElementLink() }}</td>
                         <td>{{ logEntry.getUserLink() }}</td>
