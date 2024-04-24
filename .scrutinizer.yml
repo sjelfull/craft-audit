@@ -1,9 +1,0 @@
-# .scrutinizer.yml
-build:
-  nodes:
-    php80:
-      environment:
-        php: 8.0
-    php81:
-      environment:
-        php: 8.1
