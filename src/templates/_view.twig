@@ -82,6 +82,11 @@
             <h2>Snapshot</h2>
             {{ log.getSnapshotTable() }}
 
+            {{ tag('pre', {
+                text: log.getSnapshotJson(),
+                id: 'js-snapshotJson'
+            }) }}
+
             {% set content = log.getSnapshotValue('content') %}
             {% if content %}
                 <table class="fullwidth data borderless">
@@ -232,5 +237,18 @@
 
     <script async defer
             src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCXtMOFNuC4XzpJcGQpL1wsAWTOgvOXNwk&callback=initMap">
+    </script>
+
+    <script type="module">
+        // be sure to specify the exact version
+        // import { codeToHtml } from 'https://esm.sh/shiki@0.8.0'
+        // or
+        import { codeToHtml } from 'https://cdn.jsdelivr.net/npm/shiki/+esm'
+
+        const snapshot = document.getElementById('js-snapshotJson')
+        snapshot.innerHTML = await codeToHtml(snapshot.innerText, {
+            lang: 'js',
+            theme: 'rose-pine'
+        })
     </script>
 {% endset %}

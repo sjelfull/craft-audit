@@ -16,6 +16,7 @@ use craft\elements\Asset;
 use craft\elements\User;
 use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
+use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
@@ -341,6 +342,11 @@ class AuditModel extends Model
     public function getSnapshotTable()
     {
         return Audit::$plugin->auditService->outputObjectAsTable($this->snapshot);
+    }
+
+    public function getSnapshotJson()
+    {
+        return Json::encode($this->snapshot, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
     }
 
     public function getSnapshotValue($key)
