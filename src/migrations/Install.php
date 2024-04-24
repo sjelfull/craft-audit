@@ -10,11 +10,11 @@
 
 namespace superbig\audit\migrations;
 
-use superbig\audit\Audit;
-
 use Craft;
+
 use craft\config\DbConfig;
 use craft\db\Migration;
+use superbig\audit\Audit;
 
 /**
  * @author    Superbig
@@ -80,22 +80,22 @@ class Install extends Migration
             $this->createTable(
                 $this->tableName,
                 [
-                    'id'          => $this->primaryKey(),
+                    'id' => $this->primaryKey(),
                     'dateCreated' => $this->dateTime()->notNull(),
                     'dateUpdated' => $this->dateTime()->notNull(),
-                    'uid'         => $this->uid(),
-                    'siteId'      => $this->integer()->notNull(),
-                    'sessionId'   => $this->string()->null()->defaultValue(null),
-                    'parentId'    => $this->integer()->null()->defaultValue(null),
-                    'elementId'   => $this->integer()->null()->defaultValue(null),
+                    'uid' => $this->uid(),
+                    'siteId' => $this->integer()->notNull(),
+                    'sessionId' => $this->string()->null()->defaultValue(null),
+                    'parentId' => $this->integer()->null()->defaultValue(null),
+                    'elementId' => $this->integer()->null()->defaultValue(null),
                     'elementType' => $this->string()->null()->defaultValue(null),
-                    'userId'      => $this->integer()->null()->defaultValue(null),
-                    'event'       => $this->string()->null()->defaultValue(null),
-                    'title'       => $this->string()->null()->defaultValue(null),
-                    'ip'          => $this->string()->null()->defaultValue(null),
-                    'userAgent'   => $this->string(255)->null()->defaultValue(null),
-                    'location'    => $this->text()->null()->defaultValue(null),
-                    'snapshot'    => $this->mediumText()->null()->defaultValue(null),
+                    'userId' => $this->integer()->null()->defaultValue(null),
+                    'event' => $this->string()->null()->defaultValue(null),
+                    'title' => $this->string()->null()->defaultValue(null),
+                    'ip' => $this->string()->null()->defaultValue(null),
+                    'userAgent' => $this->string(255)->null()->defaultValue(null),
+                    'location' => $this->text()->null()->defaultValue(null),
+                    'snapshot' => $this->mediumText()->null()->defaultValue(null),
                 ]
             );
         }

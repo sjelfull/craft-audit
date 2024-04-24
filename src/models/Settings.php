@@ -10,11 +10,11 @@
 
 namespace superbig\audit\models;
 
-use craft\helpers\FileHelper;
-use superbig\audit\Audit;
-
 use Craft;
 use craft\base\Model;
+
+use craft\helpers\FileHelper;
+use superbig\audit\Audit;
 
 /**
  * @author    Superbig

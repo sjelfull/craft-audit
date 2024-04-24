@@ -10,8 +10,10 @@
 
 namespace superbig\audit\models;
 
+use Craft;
 use craft\base\Element;
 use craft\base\ElementInterface;
+use craft\base\Model;
 use craft\elements\Asset;
 use craft\elements\User;
 use craft\helpers\ArrayHelper;
@@ -21,11 +23,9 @@ use craft\helpers\StringHelper;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
 use craft\models\Site;
+
 use DateTime;
 use superbig\audit\Audit;
-
-use Craft;
-use craft\base\Model;
 use superbig\audit\records\AuditRecord;
 
 /**
@@ -35,24 +35,24 @@ use superbig\audit\records\AuditRecord;
  */
 class AuditModel extends Model
 {
-    const EVENT_SAVED_ELEMENT      = 'saved-element';
-    const EVENT_RESAVED_ELEMENTS   = 'resaved-elements';
-    const EVENT_CREATED_ELEMENT    = 'created-element';
-    const EVENT_DELETED_ELEMENT    = 'deleted-element';
-    const EVENT_SAVED_GLOBAL       = 'saved-global';
-    const EVENT_SAVED_DRAFT        = 'saved-draft';
-    const EVENT_CREATED_DRAFT      = 'created-draft';
-    const EVENT_DELETED_DRAFT      = 'deleted-draft';
-    const EVENT_CREATED_ROUTE      = 'created-route';
-    const EVENT_SAVED_ROUTE        = 'saved-route';
-    const EVENT_DELETED_ROUTE      = 'deleted-route';
-    const USER_LOGGED_OUT          = 'user-logged-out';
-    const USER_LOGGED_IN           = 'user-logged-in';
-    const EVENT_PLUGIN_INSTALLED   = 'installed-plugin';
-    const EVENT_PLUGIN_UNINSTALLED = 'uninstalled-plugin';
-    const EVENT_PLUGIN_DISABLED    = 'disabled-plugin';
-    const EVENT_PLUGIN_ENABLED     = 'enabled-plugin';
-    const FLASH_RESAVE_ID          = 'auditResaveId';
+    public const EVENT_SAVED_ELEMENT = 'saved-element';
+    public const EVENT_RESAVED_ELEMENTS = 'resaved-elements';
+    public const EVENT_CREATED_ELEMENT = 'created-element';
+    public const EVENT_DELETED_ELEMENT = 'deleted-element';
+    public const EVENT_SAVED_GLOBAL = 'saved-global';
+    public const EVENT_SAVED_DRAFT = 'saved-draft';
+    public const EVENT_CREATED_DRAFT = 'created-draft';
+    public const EVENT_DELETED_DRAFT = 'deleted-draft';
+    public const EVENT_CREATED_ROUTE = 'created-route';
+    public const EVENT_SAVED_ROUTE = 'saved-route';
+    public const EVENT_DELETED_ROUTE = 'deleted-route';
+    public const USER_LOGGED_OUT = 'user-logged-out';
+    public const USER_LOGGED_IN = 'user-logged-in';
+    public const EVENT_PLUGIN_INSTALLED = 'installed-plugin';
+    public const EVENT_PLUGIN_UNINSTALLED = 'uninstalled-plugin';
+    public const EVENT_PLUGIN_DISABLED = 'disabled-plugin';
+    public const EVENT_PLUGIN_ENABLED = 'enabled-plugin';
+    public const FLASH_RESAVE_ID = 'auditResaveId';
 
     private static $_users;
 
@@ -145,27 +145,26 @@ class AuditModel extends Model
      */
     public static function createFromRecord(AuditRecord $record)
     {
-        $model              = new self();
-        $model->id          = $record->id;
-        $model->event       = $record->event;
-        $model->title       = $record->title;
-        $model->userId      = $record->userId;
-        $model->elementId   = $record->elementId;
-        $model->parentId    = $record->parentId;
+        $model = new self();
+        $model->id = $record->id;
+        $model->event = $record->event;
+        $model->title = $record->title;
+        $model->userId = $record->userId;
+        $model->elementId = $record->elementId;
+        $model->parentId = $record->parentId;
         $model->elementType = $record->elementType;
-        $model->ip          = $record->ip;
-        $model->userAgent   = $record->userAgent;
-        $model->siteId      = $record->siteId;
+        $model->ip = $record->ip;
+        $model->userAgent = $record->userAgent;
+        $model->siteId = $record->siteId;
         $model->dateCreated = DateTimeHelper::toDateTime($record->dateCreated);
-        $model->sessionId   = $record->sessionId;
+        $model->sessionId = $record->sessionId;
 
         $snapshot = $record->snapshot;
 
         try {
             if (StringHelper::isBase64($snapshot)) {
                 $model->snapshot = unserialize(base64_decode($snapshot));
-            }
-            else {
+            } else {
                 $model->snapshot = unserialize($snapshot);
             }
         } catch (\Exception $e) {
@@ -268,7 +267,7 @@ class AuditModel extends Model
         }
 
         $text = $this->title ?? 'Edit';
-        $url  = $element->getCpEditUrl();
+        $url = $element->getCpEditUrl();
 
         if ($this->elementType === Asset::class) {
             $url = $element->getUrl();

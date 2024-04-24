@@ -10,7 +10,9 @@
 
 namespace superbig\audit\services;
 
+use Craft;
 use craft\base\BlockElementInterface;
+use craft\base\Component;
 use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\base\Plugin;
@@ -22,11 +24,9 @@ use craft\helpers\ElementHelper;
 use craft\helpers\Html;
 use craft\helpers\Template;
 use craft\queue\jobs\ResaveElements;
+
 use DateTime;
 use superbig\audit\Audit;
-
-use Craft;
-use craft\base\Component;
 use superbig\audit\events\SnapshotEvent;
 use superbig\audit\helpers\Route;
 use superbig\audit\models\AuditModel;
@@ -40,8 +40,8 @@ use yii\base\Exception;
  */
 class AuditService extends Component
 {
-    const EVENT_TRIGGER  = 'eventTrigger';
-    const EVENT_SNAPSHOT = 'snapshot';
+    public const EVENT_TRIGGER = 'eventTrigger';
+    public const EVENT_SNAPSHOT = 'snapshot';
 
     public function init(): void
     {
@@ -55,7 +55,7 @@ class AuditService extends Component
      */
     public function getEventsForElement(ElementInterface $element)
     {
-        $elementId   = $element->getId();
+        $elementId = $element->getId();
         $elementType = get_class($element);
 
         return $this->getEventsByAttributes(['elementId' => $elementId, 'elementType' => $elementType]);
@@ -109,7 +109,7 @@ class AuditService extends Component
      */
     public function getEventsByAttributes($attributes = [])
     {
-        $models  = null;
+        $models = null;
         $records = AuditRecord::findAll($attributes);
 
         if ($records) {
@@ -136,12 +136,12 @@ class AuditService extends Component
      */
     public function onSaveElement(ElementInterface $element, $isNew = false)
     {
-        $settings   = Audit::$plugin->getSettings();
-        $title      = null;
-        $isBlock    = $element instanceof BlockElementInterface;
-        $hasParent  = $isBlock || method_exists($element, 'getOwner') && $element->getOwner();
-        $isGlobal   = $element instanceof GlobalSet;
-        $isDraft    = false;
+        $settings = Audit::$plugin->getSettings();
+        $title = null;
+        $isBlock = $element instanceof BlockElementInterface;
+        $hasParent = $isBlock || method_exists($element, 'getOwner') && $element->getOwner();
+        $isGlobal = $element instanceof GlobalSet;
+        $isDraft = false;
         $isRevision = false;
 
         // Skip if this event type is disabled
@@ -156,7 +156,7 @@ class AuditService extends Component
 
         // Return early if no fields have changed?
         $hasNoDirtyAttributes = Audit::$craft34 ? empty($element->getDirtyAttributes()) : false;
-        $hasNoDirtyFields     = Audit::$craft34 ? empty($element->getDirtyFields()) : false;
+        $hasNoDirtyFields = Audit::$craft34 ? empty($element->getDirtyFields()) : false;
 
         // Skip save if all of these is true
         if (!$settings->logDraftEvents && $hasNoDirtyAttributes && $hasNoDirtyFields && !$isGlobal) {
@@ -166,8 +166,8 @@ class AuditService extends Component
         if (Audit::$craft32) {
             // Skip draft events unless enabled
             $rootElement = ElementHelper::rootElement($element);
-            $isDraft     = $rootElement->getIsDraft();
-            $isRevision  = $rootElement->getIsRevision();
+            $isDraft = $rootElement->getIsDraft();
+            $isRevision = $rootElement->getIsRevision();
 
             if (!$settings->logDraftEvents && $rootElement->getIsDraft()) {
                 return false;
@@ -185,13 +185,13 @@ class AuditService extends Component
 
         try {
             /** @var Element $element */
-            $model              = $this->_getStandardModel();
-            $model->event       = $isNew ? AuditModel::EVENT_CREATED_ELEMENT : AuditModel::EVENT_SAVED_ELEMENT;
-            $model->elementId   = $element->getId();
-            $model->siteId      = $element->siteId;
+            $model = $this->_getStandardModel();
+            $model->event = $isNew ? AuditModel::EVENT_CREATED_ELEMENT : AuditModel::EVENT_SAVED_ELEMENT;
+            $model->elementId = $element->getId();
+            $model->siteId = $element->siteId;
             $model->elementType = get_class($element);
-            $snapshot           = [
-                'elementId'   => $element->getId(),
+            $snapshot = [
+                'elementId' => $element->getId(),
                 'elementType' => get_class($element),
                 'elementTypeLabel' => $element::displayName(),
             ];
@@ -206,7 +206,7 @@ class AuditService extends Component
 
             if ($isGlobal) {
                 /** @var GlobalSet $element */
-                $title        = $element->name;
+                $title = $element->name;
                 $model->event = AuditModel::EVENT_SAVED_GLOBAL;
             }
 
@@ -220,12 +220,12 @@ class AuditService extends Component
             }
 
             if ($title) {
-                $model->title      = Html::encode($title);
+                $model->title = Html::encode($title);
                 $snapshot['title'] = Html::encode($title);
             }
 
             $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
-            $parentId        = $this->getParentId($model->elementType);
+            $parentId = $this->getParentId($model->elementType);
 
             if (!empty($parentId)) {
                 $model->parentId = $parentId;
@@ -249,8 +249,8 @@ class AuditService extends Component
      */
     public function onDeleteElement(ElementInterface $element)
     {
-        $isBlock    = $element instanceof BlockElementInterface;
-        $hasParent  = $isBlock || method_exists($element, 'getOwner') && $element->getOwner();
+        $isBlock = $element instanceof BlockElementInterface;
+        $hasParent = $isBlock || method_exists($element, 'getOwner') && $element->getOwner();
 
         if (!Audit::$plugin->getSettings()->logElementEvents) {
             return false;
@@ -267,18 +267,18 @@ class AuditService extends Component
 
         try {
             /** @var Element $element */
-            $model              = $this->_getStandardModel();
-            $model->event       = AuditModel::EVENT_DELETED_ELEMENT;
+            $model = $this->_getStandardModel();
+            $model->event = AuditModel::EVENT_DELETED_ELEMENT;
             $model->elementType = get_class($element);
-            $model->siteId      = $element->siteId;
-            $snapshot           = [
-                'elementId'   => $element->getId(),
+            $model->siteId = $element->siteId;
+            $snapshot = [
+                'elementId' => $element->getId(),
                 'elementType' => get_class($element),
                 'elementTypeLabel' => $element::displayName(),
             ];
 
             if ($element->hasTitles()) {
-                $model->title      = $element->title;
+                $model->title = $element->title;
                 $snapshot['title'] = $element->title;
             }
 
@@ -305,7 +305,7 @@ class AuditService extends Component
         }
 
         try {
-            $model        = $this->_getStandardModel();
+            $model = $this->_getStandardModel();
             $model->event = AuditModel::USER_LOGGED_IN;
 
             return $this->_saveRecord($model);
@@ -329,7 +329,7 @@ class AuditService extends Component
         }
 
         try {
-            $model        = $this->_getStandardModel();
+            $model = $this->_getStandardModel();
             $model->event = AuditModel::USER_LOGGED_OUT;
 
             return $this->_saveRecord($model);
@@ -357,12 +357,12 @@ class AuditService extends Component
 
         /** @var Plugin $plugin */
         try {
-            $model           = $this->_getStandardModel();
-            $model->event    = $event;
-            $model->title    = $plugin->name;
-            $snapshot        = [
-                'title'   => $plugin->name,
-                'handle'  => $plugin->handle,
+            $model = $this->_getStandardModel();
+            $model->event = $event;
+            $model->title = $plugin->name;
+            $snapshot = [
+                'title' => $plugin->name,
+                'handle' => $plugin->handle,
                 'version' => $plugin->version,
             ];
             $model->snapshot = $snapshot;
@@ -387,7 +387,7 @@ class AuditService extends Component
     protected function afterSnapshot(AuditModel $auditModel, $snapshot)
     {
         $event = new SnapshotEvent([
-            'audit'    => $auditModel,
+            'audit' => $auditModel,
             'snapshot' => $snapshot,
         ]);
 
@@ -401,15 +401,15 @@ class AuditService extends Component
      */
     private function _getStandardModel()
     {
-        $app           = Craft::$app;
-        $request       = $app->getRequest();
-        $model         = new AuditModel();
+        $app = Craft::$app;
+        $request = $app->getRequest();
+        $model = new AuditModel();
         $model->siteId = $app->getSites()->currentSite->id;
 
         if (!$request->isConsoleRequest) {
-            $session          = $app->getSession();
+            $session = $app->getSession();
             $model->sessionId = $session->getId();
-            $model->ip        = $request->getUserIP();
+            $model->ip = $request->getUserIP();
             $model->userAgent = $request->getUserAgent();
 
             if ($identity = $app->getUser()->getIdentity()) {
@@ -435,22 +435,21 @@ class AuditService extends Component
         try {
             if ($model->id) {
                 $record = AuditRecord::findOne($model->id);
-            }
-            else {
+            } else {
                 $record = new AuditRecord();
             }
 
-            $record->event       = $model->event;
-            $record->title       = $model->title;
-            $record->parentId    = $model->parentId;
-            $record->userId      = $model->userId;
-            $record->elementId   = $model->elementId;
+            $record->event = $model->event;
+            $record->title = $model->title;
+            $record->parentId = $model->parentId;
+            $record->userId = $model->userId;
+            $record->elementId = $model->elementId;
             $record->elementType = $model->elementType;
-            $record->ip          = $model->ip;
-            $record->userAgent   = $model->userAgent;
-            $record->siteId      = $model->siteId;
-            $record->snapshot    = base64_encode(serialize($model->snapshot));
-            $record->sessionId   = $model->sessionId;
+            $record->ip = $model->ip;
+            $record->userAgent = $model->userAgent;
+            $record->siteId = $model->siteId;
+            $record->snapshot = base64_encode(serialize($model->snapshot));
+            $record->sessionId = $model->sessionId;
 
             if (!$record->save()) {
                 Craft::error(
@@ -486,10 +485,9 @@ class AuditService extends Component
             }
 
             if (is_array($value)) {
-                $sub    = $this->outputObjectAsTable($value, false);
+                $sub = $this->outputObjectAsTable($value, false);
                 $output .= "<tr><td><strong>$key</strong>:</td><td>$sub</td></tr>";
-            }
-            else {
+            } else {
                 $output .= "<tr><td><strong>$key</strong></td><td>$value</td></tr>";
             }
         }
@@ -508,9 +506,9 @@ class AuditService extends Component
     public function pruneLogs()
     {
         $pruneDays = Audit::$plugin->getSettings()->pruneDays ?? 30;
-        $date      = (new DateTime())->modify('-' . $pruneDays . ' days')->format('Y-m-d H:i:s');
-        $query     = AuditRecord::find()->where('dateCreated <= :pruneDate', [':pruneDate' => $date]);
-        $count     = $query->count();
+        $date = (new DateTime())->modify('-' . $pruneDays . ' days')->format('Y-m-d H:i:s');
+        $query = AuditRecord::find()->where('dateCreated <= :pruneDate', [':pruneDate' => $date]);
+        $count = $query->count();
 
         // Delete
         AuditRecord::deleteAll('dateCreated <= :pruneDate', [':pruneDate' => $date]);
@@ -521,8 +519,8 @@ class AuditService extends Component
     public function onBeforeResave(ResaveElements $job)
     {
         try {
-            $model              = $this->_getStandardModel();
-            $model->event       = AuditModel::EVENT_RESAVED_ELEMENTS;
+            $model = $this->_getStandardModel();
+            $model->event = AuditModel::EVENT_RESAVED_ELEMENTS;
             $model->elementType = $job->elementType;
             $model->appendSnapshot('resaveCriteria', $job->criteria);
 
@@ -550,7 +548,7 @@ class AuditService extends Component
      */
     public function getParentId($elementType = '')
     {
-        $cache    = Craft::$app->getCache();
+        $cache = Craft::$app->getCache();
         $parentId = $cache->get($this->getParentIdKey($elementType));
 
         return $parentId;
@@ -564,12 +562,12 @@ class AuditService extends Component
     public function onResaveEnd(ResaveElements $job)
     {
         try {
-            $cache     = Craft::$app->getCache();
+            $cache = Craft::$app->getCache();
             $parentKey = $this->getParentIdKey($job->elementType);
-            $parentId  = $cache->get($parentKey);
+            $parentId = $cache->get($parentKey);
 
             if ($parentId) {
-                $parentEvent   = $this->getEventById($parentId);
+                $parentEvent = $this->getEventById($parentId);
                 $subeventCount = $this->getEventCountByParentId($parentId);
 
                 if ($parentEvent) {
@@ -599,14 +597,14 @@ class AuditService extends Component
         }
 
         $this->catchSaveError(function() use ($event) {
-            $uriDisplay      = Route::getUriDisplayHtml($event->uriParts);
-            $isNew           = $event->routeId === null;
-            $model           = $this->_getStandardModel();
-            $model->event    = $isNew ? AuditModel::EVENT_CREATED_ROUTE : AuditModel::EVENT_SAVED_ROUTE;
-            $model->title    = $uriDisplay . ' -> ' . $event->template;
-            $snapshot        = [
+            $uriDisplay = Route::getUriDisplayHtml($event->uriParts);
+            $isNew = $event->routeId === null;
+            $model = $this->_getStandardModel();
+            $model->event = $isNew ? AuditModel::EVENT_CREATED_ROUTE : AuditModel::EVENT_SAVED_ROUTE;
+            $model->title = $uriDisplay . ' -> ' . $event->template;
+            $snapshot = [
                 'uriParts' => $event->uriParts,
-                'routeId'  => $event->routeId,
+                'routeId' => $event->routeId,
                 'template' => $event->template,
             ];
             $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
@@ -622,13 +620,13 @@ class AuditService extends Component
         }
 
         $this->catchSaveError(function() use ($event) {
-            $uriDisplay      = Route::getUriDisplayHtml($event->uriParts);
-            $model           = $this->_getStandardModel();
-            $model->event    = AuditModel::EVENT_DELETED_ROUTE;
-            $model->title    = $uriDisplay . ' -> ' . $event->template;
-            $snapshot        = [
+            $uriDisplay = Route::getUriDisplayHtml($event->uriParts);
+            $model = $this->_getStandardModel();
+            $model->event = AuditModel::EVENT_DELETED_ROUTE;
+            $model->title = $uriDisplay . ' -> ' . $event->template;
+            $snapshot = [
                 'uriParts' => $event->uriParts,
-                'routeId'  => $event->routeId,
+                'routeId' => $event->routeId,
                 'template' => $event->template,
             ];
             $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, $snapshot));

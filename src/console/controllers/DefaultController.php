@@ -23,7 +23,6 @@ use yii\console\ExitCode;
  */
 class DefaultController extends Controller
 {
-
     // Protected Properties
     // =========================================================================
 

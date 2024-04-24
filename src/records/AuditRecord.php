@@ -10,12 +10,11 @@
 
 namespace superbig\audit\records;
 
-use craft\records\User;
-use craft\records\Element;
-use superbig\audit\Audit;
-
-use Craft;
 use craft\db\ActiveRecord;
+use craft\records\Element;
+use craft\records\User;
+
+use superbig\audit\Audit;
 use yii\db\ActiveQueryInterface;
 
 /**

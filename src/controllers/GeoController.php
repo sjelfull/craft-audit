@@ -10,19 +10,11 @@
 
 namespace superbig\audit\controllers;
 
-use craft\helpers\Template;
-use craft\web\UrlManager;
-use superbig\audit\Audit;
-
 use Craft;
-use craft\web\Controller;
-use superbig\audit\models\AuditModel;
-use superbig\audit\records\AuditRecord;
-use yii\data\Pagination;
-use yii\web\HttpException;
-use yii\widgets\LinkPager;
 
-use JasonGrimes\Paginator;
+use craft\web\Controller;
+use superbig\audit\Audit;
+use yii\web\HttpException;
 
 /**
  * @author    Superbig
@@ -31,7 +23,6 @@ use JasonGrimes\Paginator;
  */
 class GeoController extends Controller
 {
-
     protected array|int|bool $allowAnonymous = ['update-database'];
 
     // Protected Properties
@@ -69,7 +60,7 @@ class GeoController extends Controller
     public function actionUpdateDatabase()
     {
         $validKey = Audit::$plugin->getSettings()->updateAuthKey;
-        $key      = Craft::$app->getRequest()->getParam('key');
+        $key = Craft::$app->getRequest()->getParam('key');
 
         if (!Craft::$app->getUser()->getIsAdmin() && $key !== $validKey) {
             throw new HttpException('Not authorized to run this action');

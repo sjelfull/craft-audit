@@ -10,23 +10,17 @@
 
 namespace superbig\audit\services;
 
-use craft\base\Element;
-use craft\base\ElementInterface;
+use Craft;
+use craft\base\Component;
 use craft\helpers\FileHelper;
-use craft\models\EntryDraft;
 use ErrorException;
 use GeoIp2\Database\Reader;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
+
 use GuzzleHttp\Exception\ConnectException;
 use superbig\audit\Audit;
-
-use Craft;
-use craft\base\Component;
-use superbig\audit\models\AuditModel;
 use superbig\audit\models\Settings;
-use superbig\audit\records\AuditRecord;
-use yii\base\Exception;
 
 /**
  * @author    Superbig

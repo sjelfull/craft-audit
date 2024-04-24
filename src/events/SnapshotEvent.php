@@ -29,5 +29,4 @@ class SnapshotEvent extends Event
      * @var array Snapshot
      */
     public $snapshot;
-
 }

@@ -10,30 +10,29 @@
 
 namespace superbig\audit;
 
-use craft\events\ElementEvent;
+use Craft;
 
+use craft\base\Plugin;
+use craft\console\Application as ConsoleApplication;
+use craft\events\ElementEvent;
+use craft\events\PluginEvent;
+use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
 use craft\events\RouteEvent;
 use craft\helpers\StringHelper;
 use craft\queue\jobs\ResaveElements;
 use craft\queue\Queue;
+use craft\services\Elements;
+use craft\services\Plugins;
+
 use craft\services\Routes;
 use craft\services\UserPermissions;
 use craft\web\twig\variables\CraftVariable;
+use craft\web\UrlManager;
 use superbig\audit\models\AuditModel;
+use superbig\audit\models\Settings;
 use superbig\audit\services\Audit_GeoService;
 use superbig\audit\services\AuditService;
-use superbig\audit\models\Settings;
-
-use Craft;
-use craft\console\Application as ConsoleApplication;
-use craft\base\Plugin;
-use craft\services\Plugins;
-use craft\events\PluginEvent;
-use craft\web\UrlManager;
-use craft\services\Elements;
-use craft\events\RegisterComponentTypesEvent;
-use craft\events\RegisterUrlRulesEvent;
 
 use superbig\audit\variables\AuditVariable;
 use yii\base\Event;
@@ -54,8 +53,8 @@ use yii\web\UserEvent;
  */
 class Audit extends Plugin
 {
-    const PERMISSION_VIEW_LOGS = 'audit-view-logs';
-    const PERMISSION_CLEAR_LOGS = 'audit-clear-logs';
+    public const PERMISSION_VIEW_LOGS = 'audit-view-logs';
+    public const PERMISSION_CLEAR_LOGS = 'audit-clear-logs';
 
     public static Audit $plugin;
     public static $craft31 = false;

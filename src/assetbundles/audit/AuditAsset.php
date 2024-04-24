@@ -10,7 +10,6 @@
 
 namespace superbig\audit\assetbundles\audit;
 
-use Craft;
 use craft\web\AssetBundle;
 use craft\web\assets\cp\CpAsset;
 
