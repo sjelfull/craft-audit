@@ -13,6 +13,7 @@ namespace superbig\audit\services;
 use Craft;
 use craft\base\Component;
 use craft\helpers\FileHelper;
+use craft\helpers\StringHelper;
 use ErrorException;
 use GeoIp2\Database\Reader;
 use GuzzleHttp\Client;
@@ -21,6 +22,7 @@ use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ConnectException;
 use superbig\audit\Audit;
 use superbig\audit\models\Settings;
+use yii\helpers\IpHelper;
 
 /**
  * @author    Superbig
@@ -42,47 +44,40 @@ class Audit_GeoService extends Component
         $this->settings = Audit::$plugin->getSettings();
     }
 
-    /**
-     * @param string $ip
-     *
-     * @return mixed|null
-     */
-    public function getLocationInfoForIp($ip = '84.215.212.44')
+    public function getLocationInfoForIp(string|null $ip = '84.215.212.44'): null|object
     {
         $cache = Craft::$app->getCache();
 
-        if ($ip) {
-            /*if ( $ip == '::1' || $ip == '127.0.0.1' ) {
-                return null;
-            }*/
+        if (!$ip) {
+            return null;
+        }
 
-            $cacheKey = 'audit-ip-' . $ip;
+        $cacheKey = 'audit-ip-' . $ip;
 
-            // Check cache first
-            if ($cacheRecord = $cache->get($cacheKey)) {
-                return $cacheRecord;
-            }
+        // Check cache first
+        if ($cacheRecord = $cache->get($cacheKey)) {
+            return $cacheRecord;
+        }
 
-            try {
-                // This creates the Reader object, which should be reused across lookups.
-                $reader = new Reader($this->settings->getCityDbPath());
-                $record = $reader->city($ip);
+        try {
+            // This creates the Reader object, which should be reused across lookups.
+            $reader = new Reader($this->settings->getCityDbPath());
+            $record = $reader->city($ip);
 
-                $cache->set($cacheKey, $record);
+            $cache->set($cacheKey, $record);
 
-                return $record;
-            } catch (\Exception $e) {
-                Craft::error(
-                    Craft::t(
-                        'audit',
-                        'There was an error getting the ip info: {error}',
-                        ['error' => $e->getMessage()]
-                    ),
-                    __METHOD__
-                );
+            return $record;
+        } catch (\Exception $e) {
+            Craft::error(
+                Craft::t(
+                    'audit',
+                    'There was an error getting the ip info: {error}',
+                    ['error' => $e->getMessage()]
+                ),
+                __METHOD__
+            );
 
-                return null;
-            }
+            return null;
         }
     }
 

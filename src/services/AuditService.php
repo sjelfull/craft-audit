@@ -11,7 +11,6 @@
 namespace superbig\audit\services;
 
 use Craft;
-use craft\base\BlockElementInterface;
 use craft\base\Component;
 use craft\base\Element;
 use craft\base\ElementInterface;
@@ -53,7 +52,7 @@ class AuditService extends Component
      *
      * @return array|null
      */
-    public function getEventsForElement(ElementInterface $element)
+    public function getEventsForElement(ElementInterface $element): ?array
     {
         $elementId = $element->getId();
         $elementType = get_class($element);
@@ -66,7 +65,7 @@ class AuditService extends Component
      *
      * @return null|AuditModel
      */
-    public function getEventById($id = null)
+    public function getEventById($id = null): ?AuditModel
     {
         $models = null;
         $record = AuditRecord::findOne($id);
@@ -83,17 +82,12 @@ class AuditService extends Component
      *
      * @return array|null
      */
-    public function getEventsByHandle($handle = null)
+    public function getEventsByHandle($handle = null): ?array
     {
         return $this->getEventsByAttributes(['eventHandle' => $handle]);
     }
 
-    /**
-     * @param null $id
-     *
-     * @return array|null
-     */
-    public function getEventsBySessionId($id = null)
+    public function getEventsBySessionId($id = null): ?array
     {
         if (!$id) {
             return null;
@@ -107,7 +101,7 @@ class AuditService extends Component
      *
      * @return array|null
      */
-    public function getEventsByAttributes($attributes = [])
+    public function getEventsByAttributes(array $attributes = []): ?array
     {
         $models = null;
         $records = AuditRecord::findAll($attributes);
@@ -121,7 +115,7 @@ class AuditService extends Component
         return $models;
     }
 
-    public function getEventCountByParentId($parentId = null)
+    public function getEventCountByParentId($parentId = null): bool|int|string|null
     {
         return AuditRecord::find()
                           ->where(['parentId' => $parentId])
@@ -129,17 +123,17 @@ class AuditService extends Component
     }
 
     /**
-     * @param Element $element
-     * @param bool    $isNew
+     * @param ElementInterface $element
+     * @param bool $isNew
      *
      * @return bool
      */
-    public function onSaveElement(ElementInterface $element, $isNew = false)
+    public function onSaveElement(ElementInterface $element, bool $isNew = false): bool
     {
         $settings = Audit::$plugin->getSettings();
         $title = null;
-        $isBlock = $element instanceof BlockElementInterface;
-        $hasParent = $isBlock || method_exists($element, 'getOwner') && $element->getOwner();
+        $rootElement = ElementHelper::rootElement($element);
+        $hasParent = $rootElement->id !== $element->id;
         $isGlobal = $element instanceof GlobalSet;
         $isDraft = false;
         $isRevision = false;
@@ -149,7 +143,7 @@ class AuditService extends Component
             return false;
         }
 
-        // Skip if this is a element that has a parent
+        // Skip if this is an element that has a parent
         if ($hasParent && !Audit::$plugin->getSettings()->logChildElementEvents) {
             return false;
         }
@@ -215,9 +209,7 @@ class AuditService extends Component
                 $title = $element->username;
             }
 
-            if ($element->hasContent()) {
-                $snapshot['content'] = $element->getSerializedFieldValues();
-            }
+            $snapshot['content'] = $element->getSerializedFieldValues();
 
             if ($title) {
                 $model->title = Html::encode($title);
@@ -247,10 +239,10 @@ class AuditService extends Component
      *
      * @return bool
      */
-    public function onDeleteElement(ElementInterface $element)
+    public function onDeleteElement(ElementInterface $element): bool
     {
-        $isBlock = $element instanceof BlockElementInterface;
-        $hasParent = $isBlock || method_exists($element, 'getOwner') && $element->getOwner();
+        $rootElement = ElementHelper::rootElement($element);
+        $hasParent = $rootElement->id !== $element->id;
 
         if (!Audit::$plugin->getSettings()->logElementEvents) {
             return false;
@@ -298,7 +290,7 @@ class AuditService extends Component
     /**
      * @return bool
      */
-    public function onLogin()
+    public function onLogin(): bool
     {
         if (!Audit::$plugin->getSettings()->logUserEvents) {
             return false;
@@ -322,7 +314,7 @@ class AuditService extends Component
     /**
      * @return bool
      */
-    public function onBeforeLogout()
+    public function onBeforeLogout(): bool
     {
         if (!Audit::$plugin->getSettings()->logUserEvents) {
             return false;
@@ -384,7 +376,7 @@ class AuditService extends Component
      *
      * @return array
      */
-    protected function afterSnapshot(AuditModel $auditModel, $snapshot)
+    protected function afterSnapshot(AuditModel $auditModel, $snapshot): array
     {
         $event = new SnapshotEvent([
             'audit' => $auditModel,
@@ -399,7 +391,7 @@ class AuditService extends Component
     /**
      * @return AuditModel
      */
-    private function _getStandardModel()
+    private function _getStandardModel(): AuditModel
     {
         $app = Craft::$app;
         $request = $app->getRequest();
@@ -426,11 +418,11 @@ class AuditService extends Component
 
     /**
      * @param AuditModel $model
-     * @param bool       $unique
+     * @param bool $unique
      *
      * @return bool
      */
-    public function _saveRecord(AuditModel &$model, $unique = true)
+    public function _saveRecord(AuditModel &$model, bool $unique = true): bool
     {
         try {
             if ($model->id) {
@@ -475,7 +467,7 @@ class AuditService extends Component
         }
     }
 
-    public function outputObjectAsTable($input, $end = true)
+    public function outputObjectAsTable($input, $end = true): string|\Twig\Markup
     {
         $output = '<table class="audit-snapshot-table">';
 
@@ -503,7 +495,7 @@ class AuditService extends Component
     /**
      * @return int|string
      */
-    public function pruneLogs()
+    public function pruneLogs(): int|string
     {
         $pruneDays = Audit::$plugin->getSettings()->pruneDays ?? 30;
         $date = (new DateTime())->modify('-' . $pruneDays . ' days')->format('Y-m-d H:i:s');
@@ -516,7 +508,7 @@ class AuditService extends Component
         return $count;
     }
 
-    public function onBeforeResave(ResaveElements $job)
+    public function onBeforeResave(ResaveElements $job): bool
     {
         try {
             $model = $this->_getStandardModel();
@@ -546,7 +538,7 @@ class AuditService extends Component
      *
      * @return mixed
      */
-    public function getParentId($elementType = '')
+    public function getParentId(string $elementType = ''): mixed
     {
         $cache = Craft::$app->getCache();
         $parentId = $cache->get($this->getParentIdKey($elementType));
@@ -559,7 +551,7 @@ class AuditService extends Component
      *
      * @return mixed
      */
-    public function onResaveEnd(ResaveElements $job)
+    public function onResaveEnd(ResaveElements $job): mixed
     {
         try {
             $cache = Craft::$app->getCache();
@@ -568,10 +560,10 @@ class AuditService extends Component
 
             if ($parentId) {
                 $parentEvent = $this->getEventById($parentId);
-                $subeventCount = $this->getEventCountByParentId($parentId);
+                $subEventCount = $this->getEventCountByParentId($parentId);
 
                 if ($parentEvent) {
-                    $parentEvent->title = $subeventCount . ' elements was resaved';
+                    $parentEvent->title = $subEventCount . ' elements was re-saved';
 
                     $this->_saveRecord($parentEvent);
                 }
@@ -585,7 +577,7 @@ class AuditService extends Component
         return true;
     }
 
-    public function getParentIdKey($elementType = '')
+    public function getParentIdKey($elementType = ''): string
     {
         return AuditModel::FLASH_RESAVE_ID . ':' . $elementType;
     }
@@ -646,7 +638,7 @@ class AuditService extends Component
         }
     }
 
-    private function logSaveError(\Exception $e)
+    private function logSaveError(\Exception $e): void
     {
         Craft::error(
             Craft::t('audit', 'Error when logging: {error}', ['error' => $e->getMessage()]),

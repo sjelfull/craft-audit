@@ -21,9 +21,6 @@ use superbig\audit\Audit;
  */
 class AuditVariable extends Component
 {
-    // Public Methods
-    // =========================================================================
-
     /**
      * @param null $ipAddress
      *
