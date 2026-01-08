@@ -1,4 +1,4 @@
-.PHONY: build up down test shell clean
+.PHONY: build up down test shell clean ecs ecs-fix phpstan
 
 build:
 	docker compose build
@@ -11,6 +11,15 @@ down:
 
 test: up
 	docker compose exec php bash run-tests.sh
+
+ecs: up
+	docker compose exec php composer check-cs
+
+ecs-fix: up
+	docker compose exec php composer fix-cs
+
+phpstan: up
+	docker compose exec php composer phpstan
 
 shell: up
 	docker compose exec php bash

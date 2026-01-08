@@ -13,7 +13,6 @@ namespace superbig\audit\services;
 use Craft;
 use craft\base\Component;
 use craft\helpers\FileHelper;
-use craft\helpers\StringHelper;
 use ErrorException;
 use GeoIp2\Database\Reader;
 use GuzzleHttp\Client;
@@ -22,7 +21,6 @@ use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ConnectException;
 use superbig\audit\Audit;
 use superbig\audit\models\Settings;
-use yii\helpers\IpHelper;
 
 /**
  * @author    Superbig
