@@ -560,8 +560,8 @@ class AuditService extends Component
             $parentId = $cache->get($parentKey);
 
             if ($parentId) {
-                $parentEvent = $this->getEventById($parentId);
-                $subEventCount = $this->getEventCountByParentId($parentId);
+                $parentEvent = $this->getEventById((int) $parentId);
+                $subEventCount = $this->getEventCountByParentId((int) $parentId);
 
                 if ($parentEvent) {
                     $parentEvent->title = $subEventCount . ' elements was re-saved';

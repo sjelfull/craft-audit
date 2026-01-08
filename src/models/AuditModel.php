@@ -11,7 +11,6 @@
 namespace superbig\audit\models;
 
 use Craft;
-use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\base\Model;
 use craft\elements\Asset;
@@ -132,9 +131,9 @@ class AuditModel extends Model
     protected $_user = null;
 
     /**
-     * @var Element|null
+     * @var ElementInterface|null
      */
-    protected $_element = null;
+    protected ?ElementInterface $_element = null;
 
     protected $_children = null;
 
@@ -266,7 +265,7 @@ class AuditModel extends Model
             return null;
         }
 
-        $text = $this->title ?? 'Edit';
+        $text = $this->title ?: 'Edit';
         $url = $element->getCpEditUrl();
 
         if ($this->elementType === Asset::class) {
@@ -297,11 +296,11 @@ class AuditModel extends Model
      */
     public function getUser()
     {
-        if ($this->userId && !isset(static::$_users[ $this->userId ])) {
-            static::$_users[ $this->userId ] = Craft::$app->getUsers()->getUserById($this->userId);
+        if ($this->userId && !isset(self::$_users[$this->userId])) {
+            self::$_users[$this->userId] = Craft::$app->getUsers()->getUserById($this->userId);
         }
 
-        return static::$_users[ $this->userId ] ?? null;
+        return self::$_users[$this->userId] ?? null;
     }
 
     /**

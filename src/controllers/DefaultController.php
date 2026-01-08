@@ -30,9 +30,8 @@ class DefaultController extends Controller
     // =========================================================================
 
     /**
-     * @var    bool|array Allows anonymous access to this controller's actions.
-     *         The actions must be in 'kebab-case'
-     * @access protected
+     * @var array<int|string>|bool|int Allows anonymous access to this controller's actions.
+     *                                  The actions must be in 'kebab-case'
      */
     protected array|int|bool $allowAnonymous = [];
 

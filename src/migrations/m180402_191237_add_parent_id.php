@@ -51,29 +51,12 @@ class m180402_191237_add_parent_id extends Migration
      */
     protected function createIndexes()
     {
-        $this->createIndex(
-            $this->db->getIndexName(
-                $this->tableName,
-                'parentId',
-                false
-            ),
-            $this->tableName,
-            'parentId',
-            false
-        );
+        $this->createIndex(null, $this->tableName, 'parentId', false);
     }
 
     public function addForeignKeys()
     {
-        $this->addForeignKey(
-            $this->db->getForeignKeyName($this->tableName, 'parentId'),
-            $this->tableName,
-            'parentId',
-            $this->tableName,
-            'id',
-            'CASCADE',
-            'CASCADE'
-        );
+        $this->addForeignKey(null, $this->tableName, 'parentId', $this->tableName, 'id', 'CASCADE', 'CASCADE');
     }
 
     /**

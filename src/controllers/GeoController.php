@@ -47,46 +47,47 @@ class GeoController extends Controller
     /**
      * Update Geolocation database
      *
-     * @return void
      * @throws HttpException
      * @throws \yii\base\ExitException
      */
-    public function actionUpdateDatabase()
+    public function actionUpdateDatabase(): void
     {
         $validKey = Audit::$plugin->getSettings()->updateAuthKey;
         $key = Craft::$app->getRequest()->getParam('key');
 
         if (!Craft::$app->getUser()->getIsAdmin() && $key !== $validKey) {
-            throw new HttpException('Not authorized to run this action');
+            throw new HttpException(403, 'Not authorized to run this action');
         }
 
         $response = Audit::$plugin->geo->downloadDatabase();
 
         if (isset($response['error'])) {
-            return $this->renderJSON($response['error']);
+            $this->renderJSON($response['error']);
+            return;
         }
 
         $response = Audit::$plugin->geo->unpackDatabase();
 
         if (isset($response['error'])) {
-            return $this->renderJSON($response['error']);
+            $this->renderJSON($response['error']);
+            return;
         }
 
-        return $this->renderJSON($response);
+        $this->renderJSON($response);
     }
 
     /**
      * Return data to browser as JSON and end application.
      *
-     * @param array $data
+     * @param mixed $data
      *
      * @throws \yii\base\ExitException
      */
-    protected function renderJSON($data)
+    protected function renderJSON(mixed $data): void
     {
         header('Content-type: application/json');
         echo json_encode($data);
 
-        return Craft::$app->end();
+        Craft::$app->end();
     }
 }

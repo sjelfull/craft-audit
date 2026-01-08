@@ -50,16 +50,7 @@ class m180205_103457_add_session_id extends Migration
      */
     protected function createIndexes()
     {
-        $this->createIndex(
-            $this->db->getIndexName(
-                $this->tableName,
-                'sessionId',
-                false
-            ),
-            $this->tableName,
-            'sessionId',
-            false
-        );
+        $this->createIndex(null, $this->tableName, 'sessionId', false);
     }
 
     /**

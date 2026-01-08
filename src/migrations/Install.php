@@ -11,8 +11,6 @@
 namespace superbig\audit\migrations;
 
 use Craft;
-
-use craft\config\DbConfig;
 use craft\db\Migration;
 use superbig\audit\Audit;
 
@@ -108,57 +106,10 @@ class Install extends Migration
      */
     protected function createIndexes()
     {
-        $this->createIndex(
-            $this->db->getIndexName(
-                $this->tableName,
-                'userId',
-                false
-            ),
-            $this->tableName,
-            'userId',
-            false
-        );
-
-        $this->createIndex(
-            $this->db->getIndexName(
-                $this->tableName,
-                'elementId',
-                false
-            ),
-            $this->tableName,
-            'elementId',
-            false
-        );
-
-        $this->createIndex(
-            $this->db->getIndexName(
-                $this->tableName,
-                'sessionId',
-                false
-            ),
-            $this->tableName,
-            'sessionId',
-            false
-        );
-
-        $this->createIndex(
-            $this->db->getIndexName(
-                $this->tableName,
-                'parentId',
-                false
-            ),
-            $this->tableName,
-            'parentId',
-            false
-        );
-
-        // Additional commands depending on the db driver
-        switch ($this->driver) {
-            case DbConfig::DRIVER_MYSQL:
-                break;
-            case DbConfig::DRIVER_PGSQL:
-                break;
-        }
+        $this->createIndex(null, $this->tableName, 'userId', false);
+        $this->createIndex(null, $this->tableName, 'elementId', false);
+        $this->createIndex(null, $this->tableName, 'sessionId', false);
+        $this->createIndex(null, $this->tableName, 'parentId', false);
     }
 
     /**
@@ -166,45 +117,10 @@ class Install extends Migration
      */
     protected function addForeignKeys()
     {
-        $this->addForeignKey(
-            $this->db->getForeignKeyName($this->tableName, 'siteId'),
-            $this->tableName,
-            'siteId',
-            '{{%sites}}',
-            'id',
-            'CASCADE',
-            'CASCADE'
-        );
-
-        $this->addForeignKey(
-            $this->db->getForeignKeyName($this->tableName, 'elementId'),
-            $this->tableName,
-            'elementId',
-            '{{%elements}}',
-            'id',
-            'SET NULL',
-            'SET NULL'
-        );
-
-        $this->addForeignKey(
-            $this->db->getForeignKeyName($this->tableName, 'userId'),
-            $this->tableName,
-            'userId',
-            '{{%users}}',
-            'id',
-            'SET NULL',
-            'SET NULL'
-        );
-
-        $this->addForeignKey(
-            $this->db->getForeignKeyName($this->tableName, 'parentId'),
-            $this->tableName,
-            'parentId',
-            $this->tableName,
-            'id',
-            'CASCADE',
-            'CASCADE'
-        );
+        $this->addForeignKey(null, $this->tableName, 'siteId', '{{%sites}}', 'id', 'CASCADE', 'CASCADE');
+        $this->addForeignKey(null, $this->tableName, 'elementId', '{{%elements}}', 'id', 'SET NULL', 'SET NULL');
+        $this->addForeignKey(null, $this->tableName, 'userId', '{{%users}}', 'id', 'SET NULL', 'SET NULL');
+        $this->addForeignKey(null, $this->tableName, 'parentId', $this->tableName, 'id', 'CASCADE', 'CASCADE');
     }
 
     /**
