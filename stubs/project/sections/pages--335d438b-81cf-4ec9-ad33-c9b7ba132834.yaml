@@ -1,0 +1,28 @@
+defaultPlacement: end
+enableVersioning: true
+entryTypes:
+  -
+    uid: 7790cda1-f85b-4b5c-89c0-f8e238766abf # Pages
+handle: pages
+maxAuthors: 1
+name: Pages
+previewTargets:
+  -
+    __assoc__:
+      -
+        - label
+        - 'Primary entry page'
+      -
+        - urlFormat
+        - '{url}'
+      -
+        - refresh
+        - '1'
+propagationMethod: all
+siteSettings:
+  08cf53bc-9c73-4602-aad2-ce7a0f84c80a: # Craft MCP
+    enabledByDefault: true
+    hasUrls: true
+    template: pages/_entry.twig
+    uriFormat: 'pages/{slug}'
+type: channel

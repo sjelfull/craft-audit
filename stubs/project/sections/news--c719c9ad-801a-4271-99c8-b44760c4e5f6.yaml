@@ -1,0 +1,28 @@
+defaultPlacement: end
+enableVersioning: true
+entryTypes:
+  -
+    uid: becc7b32-bddb-48a6-baa7-187821980912 # News
+handle: news
+maxAuthors: 1
+name: News
+previewTargets:
+  -
+    __assoc__:
+      -
+        - label
+        - 'Primary entry page'
+      -
+        - urlFormat
+        - '{url}'
+      -
+        - refresh
+        - '1'
+propagationMethod: all
+siteSettings:
+  08cf53bc-9c73-4602-aad2-ce7a0f84c80a: # Craft MCP
+    enabledByDefault: true
+    hasUrls: true
+    template: news/_entry.twig
+    uriFormat: 'news/{slug}'
+type: channel

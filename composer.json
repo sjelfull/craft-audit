@@ -25,7 +25,8 @@
         "php": "^8.2.0",
         "craftcms/cms": "^5.0.0",
         "donatj/phpuseragentparser": "^1.7.0",
-        "geoip2/geoip2": "^3.0"
+        "geoip2/geoip2": "^3.0",
+        "markhuot/craft-pest-core": "^3.0"
     },
     "require-dev": {
         "craftcms/ecs": "dev-main",
@@ -51,7 +52,8 @@
     "config": {
         "allow-plugins": {
             "craftcms/plugin-installer": true,
-            "yiisoft/yii2-composer": true
+            "yiisoft/yii2-composer": true,
+            "pestphp/pest-plugin": true
         },
         "optimize-autoloader": true,
         "sort-packages": true

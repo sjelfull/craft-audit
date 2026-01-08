@@ -1,0 +1,45 @@
+dateModified: 1755877515
+email:
+  fromEmail: hi@superbig.dev
+  fromName: 'Craft Audit'
+  transportType: craft\mail\transportadapters\Sendmail
+fs:
+  local:
+    hasUrls: true
+    name: Local
+    settings:
+      path: '@webroot/uploads'
+    type: craft\fs\Local
+    url: /uploads
+meta:
+  __names__:
+    1f9526e6-4d44-4be8-92cd-a0cfb70068d7: 'Call to Action' # Call to Action
+    7d37625f-d2aa-4360-b455-6d18c157e09b: 'Content Builder' # Content Builder
+    08cf53bc-9c73-4602-aad2-ce7a0f84c80a: 'Craft MCP' # Craft MCP
+    335d438b-81cf-4ec9-ad33-c9b7ba132834: Pages # Pages
+    382d8072-8308-439f-9afd-b875b7ee9ecd: Heading # Heading
+    892e4ee8-6251-45a9-9ad9-04d29a9373e2: 'Craft MCP' # Craft MCP
+    7790cda1-f85b-4b5c-89c0-f8e238766abf: Pages # Pages
+    13160d5b-88a8-44a7-b6d0-4c2c68ec8ca1: Uploads # Uploads
+    20570e66-f61c-404f-943f-84834172db54: 'Plain Text' # Plain Text
+    becc7b32-bddb-48a6-baa7-187821980912: News # News
+    c719c9ad-801a-4271-99c8-b44760c4e5f6: News # News
+    df0b8488-6354-4289-8d3d-ba10a9650e2e: Body # Body
+plugins:
+  audit:
+    edition: standard
+    enabled: true
+    schemaVersion: 1.0.3
+system:
+  edition: pro
+  live: true
+  name: 'Craft Audit'
+  schemaVersion: 5.8.0.3
+  timeZone: Europe/Amsterdam
+users:
+  allowPublicRegistration: false
+  defaultGroup: null
+  photoSubpath: null
+  photoVolumeUid: null
+  require2fa: false
+  requireEmailVerification: true

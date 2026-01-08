@@ -12,6 +12,13 @@
 /build/*
 /yarn-error.log
 
+# TEST/CI FILES
+/storage
+/config/app.php
+/config/general.php
+/config/project
+composer.lock
+
 # MISC FILES
 .cache
 .DS_Store
