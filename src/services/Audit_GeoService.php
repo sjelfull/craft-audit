@@ -84,7 +84,7 @@ class Audit_GeoService extends Component
     public function checkLicenseKey()
     {
         if (!$this->settings->hasValidLicenseKey()) {
-            $error = $this->formatErrorMessage('Invalid MaxMind license key. Generate one at {url}', [
+            $error = $this->formatErrorMessage('Missing MaxMind Account ID or License Key. Get them at {url}', [
                 'url' => $this->settings->accountAreaUrl,
             ]);
 
@@ -136,6 +136,8 @@ class Audit_GeoService extends Component
                 $client = (new Client())
                     ->get($type['url'], [
                         'sink' => $type['tempPath'],
+                        'auth' => $settings->getAuthCredentials(),
+                        'allow_redirects' => true,
                     ]);
             } catch (ConnectException $e) {
                 $error = $this->formatErrorMessage('Failed to connect to {url}: {error}', [
@@ -201,12 +203,17 @@ class Audit_GeoService extends Component
                 $url = $info['url'];
                 $path = $info['path'];
                 $response = $guzzle
-                    ->get($url);
+                    ->get($url, [
+                        'auth' => $settings->getAuthCredentials(),
+                        'allow_redirects' => true,
+                    ]);
 
-                $remoteChecksum = (string)$response->getBody();
+                $remoteChecksum = trim((string)$response->getBody());
+                // SHA256 response format: "hash  filename" - extract just the hash
+                $remoteChecksum = explode(' ', $remoteChecksum)[0];
 
                 // Verify checksum
-                if (md5(file_get_contents($path)) !== $remoteChecksum) {
+                if (hash_file('sha256', $path) !== $remoteChecksum) {
                     $error = $this->formatErrorMessage('Remote checksum for {type} database doesn\'t match downloaded database. Please try again or contact support.', ['type' => $key]);
 
                     return $this->logError($error, __METHOD__);

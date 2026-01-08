@@ -47,7 +47,7 @@
                     <tr>
                         <td><strong>Date</strong></td>
                         <td>
-                            {{ "#{log.dateCreated|date('short')} #{log.dateCreated|time('short')}" }}
+                            {{ log.formattedDate }}
                         </td>
                     </tr>
                     <tr>
@@ -84,7 +84,8 @@
 
             {{ tag('pre', {
                 text: log.getSnapshotJson(),
-                id: 'js-snapshotJson'
+                id: 'js-snapshotJson',
+                class: 'audit-snapshot-json'
             }) }}
 
             {% set content = log.getSnapshotValue('content') %}
@@ -164,7 +165,7 @@
                         <td>{{ logEntry.getElementLink() }}</td>
                         <td>{{ logEntry.getUserLink() }}</td>
                         <td>{{ logEntry.ip }}</td>
-                        <td>{{ "#{logEntry.dateCreated|date('short')} #{logEntry.dateCreated|time('short')}" }}</td>
+                        <td>{{ logEntry.formattedDate }}</td>
                         <td>
                             <a href="{{ logEntry.getCpEditUrl() }}">&rarr;</a>
                         </td>
@@ -199,7 +200,7 @@
                         <td>{{ logEntry.getElementLink() }}</td>
                         <td>{{ logEntry.getUserLink() }}</td>
                         <td>{{ logEntry.ip }}</td>
-                        <td>{{ "#{logEntry.dateCreated|date('short')} #{logEntry.dateCreated|time('short')}" }}</td>
+                        <td>{{ logEntry.formattedDate }}</td>
                         <td>
                             <a href="{{ logEntry.getCpEditUrl() }}">&rarr;</a>
                         </td>
@@ -240,9 +241,6 @@
     </script>
 
     <script type="module">
-        // be sure to specify the exact version
-        // import { codeToHtml } from 'https://esm.sh/shiki@0.8.0'
-        // or
         import { codeToHtml } from 'https://cdn.jsdelivr.net/npm/shiki/+esm'
 
         const snapshot = document.getElementById('js-snapshotJson')

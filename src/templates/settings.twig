@@ -16,71 +16,89 @@
 
 {% do view.registerAssetBundle("superbig\\audit\\assetbundles\\audit\\AuditAsset") %}
 
-{{ forms.lightswitchField({
+{{ forms.booleanMenuField({
     name: 'enabled',
     label: 'Enable',
-    on: settings.enabled,
+    value: settings.enabled,
+    includeEnvVars: true
 }) }}
 
-{{ forms.lightswitchField({
+{{ forms.booleanMenuField({
     name: 'pruneRecordsOnAdminRequests',
     label: 'Prune old records when a admin is logged in',
-    description: 'This will prune old records when a admin is logged in and browsing the control panel',
-    on: settings.pruneRecordsOnAdminRequests,
+    instructions: 'This will prune old records when a admin is logged in and browsing the control panel',
+    value: settings.pruneRecordsOnAdminRequests,
+    includeEnvVars: true
 }) }}
 
 <hr>
 
 <h2>Event Types</h2>
 
-{{ forms.lightswitchField({
+{{ forms.booleanMenuField({
     name: 'logElementEvents',
     label: 'Log Element Events',
-    on: settings.logElementEvents,
+    value: settings.logElementEvents,
+    includeEnvVars: true
 }) }}
 
-{{ forms.lightswitchField({
+{{ forms.booleanMenuField({
     name: 'logDraftEvents',
     label: 'Log Draft Events',
-    description: 'This will enable logging changes to drafts',
-    on: settings.logDraftEvents,
+    instructions: 'This will enable logging changes to drafts',
+    value: settings.logDraftEvents,
+    includeEnvVars: true
 }) }}
 
-{{ forms.lightswitchField({
+{{ forms.booleanMenuField({
     name: 'logPluginEvents',
     label: 'Log Plugin Events',
-    on: settings.logPluginEvents,
+    value: settings.logPluginEvents,
+    includeEnvVars: true
 }) }}
 
-{{ forms.lightswitchField({
+{{ forms.booleanMenuField({
     name: 'logUserEvents',
     label: 'Log User Events',
-    on: settings.logUserEvents,
+    value: settings.logUserEvents,
+    includeEnvVars: true
 }) }}
 
-{{ forms.lightswitchField({
+{{ forms.booleanMenuField({
     name: 'logRouteEvents',
     label: 'Log Route Events',
-    on: settings.logRouteEvents,
+    value: settings.logRouteEvents,
+    includeEnvVars: true
 }) }}
 
 <hr>
 
 <h2>Geolocation</h2>
 
-{{ forms.lightswitchField({
+{{ forms.booleanMenuField({
     name: 'enabledGeolocation',
     label: 'Enable geolocation',
-    on: settings.enabledGeolocation,
-    toggle: 'audit-geolocation-section'
+    value: settings.enabledGeolocation,
+    includeEnvVars: true
 }) }}
 
-{{ forms.textField({
+{{ forms.autosuggestField({
+    label: 'MaxMind Account ID',
+    instructions: 'Get your Account ID from the [MaxMind account area](https://www.maxmind.com/en/account)',
+    id: 'maxmindAccountId',
+    name: 'maxmindAccountId',
+    value: settings['maxmindAccountId'],
+    suggestEnvVars: true
+}) }}
+
+{{ forms.autosuggestField({
     label: 'MaxMind License Key',
-    instructions: 'Get or generate a license key from the [MaxMind account area](https://www.maxmind.com/en/account/login) -> Services -> My License Key',
+    instructions: 'Generate a license key from the [MaxMind account area](https://www.maxmind.com/en/account) -> Manage License Keys',
     id: 'maxmindLicenseKey',
     name: 'maxmindLicenseKey',
-    value: settings['maxmindLicenseKey']}) }}
+    value: settings['maxmindLicenseKey'],
+    suggestEnvVars: true
+}) }}
 
 <div class="{{ not settings.enabledGeolocation ? 'hidden' }}" id="audit-geolocation-section">
     <h3>Updating database</h3>
@@ -92,11 +110,7 @@
     <p>The Geolocation database provided by MaxMind should be updated from time to time. You can either do this manually, or setup a cron job that calls the controller on a regular basis. MaxMind databases are updated on the first Tuesday of each month.</p>
 
     <div class="audit-updater" data-audit-updater>
-        <button class="btn submit audit-updater__start js-start" type="button">{{ validDb ? 'Update database' : 'Download database' }}</button>
-        <div class="audit-updater__status js-status">
-            <div class="spinner audit-updater__spinner js-spinner"></div>
-            <span class="audit-updater__status-text js-statusText"></span>
-        </div>
+        <button class="btn submit js-start" type="button">{{ validDb ? 'Update database' : 'Download database' }}</button>
     </div>
 
     <hr>

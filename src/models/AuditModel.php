@@ -360,4 +360,16 @@ class AuditModel extends Model
     {
         return UrlHelper::cpUrl('audit/log/' . $this->id);
     }
+
+    /**
+     * Get the created date formatted for the current user's timezone
+     */
+    public function getFormattedDate(string $format = 'short'): string
+    {
+        if (!$this->dateCreated) {
+            return '';
+        }
+
+        return Craft::$app->getFormatter()->asDatetime($this->dateCreated, $format);
+    }
 }

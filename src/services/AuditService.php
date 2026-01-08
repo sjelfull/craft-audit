@@ -261,6 +261,7 @@ class AuditService extends Component
             /** @var Element $element */
             $model = $this->_getStandardModel();
             $model->event = AuditModel::EVENT_DELETED_ELEMENT;
+            $model->elementId = $element->getId();
             $model->elementType = get_class($element);
             $model->siteId = $element->siteId;
             $snapshot = [
@@ -590,14 +591,14 @@ class AuditService extends Component
 
         $this->catchSaveError(function() use ($event) {
             $uriDisplay = Route::getUriDisplayHtml($event->uriParts);
-            $isNew = $event->routeId === null;
             $model = $this->_getStandardModel();
-            $model->event = $isNew ? AuditModel::EVENT_CREATED_ROUTE : AuditModel::EVENT_SAVED_ROUTE;
+            // Craft 5's RouteEvent doesn't expose routeId, so we can't distinguish new vs. existing
+            $model->event = AuditModel::EVENT_SAVED_ROUTE;
             $model->title = $uriDisplay . ' -> ' . $event->template;
             $snapshot = [
                 'uriParts' => $event->uriParts,
-                'routeId' => $event->routeId,
                 'template' => $event->template,
+                'siteUid' => $event->siteUid,
             ];
             $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
 
@@ -618,8 +619,8 @@ class AuditService extends Component
             $model->title = $uriDisplay . ' -> ' . $event->template;
             $snapshot = [
                 'uriParts' => $event->uriParts,
-                'routeId' => $event->routeId,
                 'template' => $event->template,
+                'siteUid' => $event->siteUid,
             ];
             $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
 

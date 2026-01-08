@@ -14,7 +14,9 @@ use Craft;
 
 use craft\web\Controller;
 use superbig\audit\Audit;
+use superbig\audit\jobs\UpdateGeoDbJob;
 use yii\web\HttpException;
+use yii\web\Response;
 
 /**
  * @author    Superbig
@@ -28,26 +30,18 @@ class GeoController extends Controller
     // Protected Properties
     // =========================================================================
 
-    public function actionDownloadDatabase()
+    public function actionStartUpdate(): Response
     {
-        $response = Audit::$plugin->geo->downloadDatabase();
+        $this->requireAcceptsJson();
+        $this->requireAdmin();
 
-        if (isset($response['error'])) {
-            return $this->renderJSON($response['error']);
-        }
+        $job = new UpdateGeoDbJob();
+        $jobId = Craft::$app->getQueue()->push($job);
 
-        return $this->renderJSON($response);
-    }
-
-    public function actionUnpackDatabase()
-    {
-        $response = Audit::$plugin->geo->unpackDatabase();
-
-        if (isset($response['error'])) {
-            return $this->renderJSON($response['error']);
-        }
-
-        return $this->renderJSON($response);
+        return $this->asJson([
+            'success' => true,
+            'jobId' => $jobId,
+        ]);
     }
 
     /**
