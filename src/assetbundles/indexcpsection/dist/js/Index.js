@@ -9,3 +9,21 @@
  * @package   Audit
  * @since     1.0.0
  */
+
+(function() {
+    // Handle clear filters button
+    const clearButton = document.getElementById('clear-filters');
+    if (clearButton) {
+        clearButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Clear the form inputs
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            
+            // Navigate to the base URL without query parameters
+            window.location.href = window.location.pathname;
+        });
+    }
+})();
+
