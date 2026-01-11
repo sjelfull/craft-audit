@@ -13,14 +13,25 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        database: [mysql, postgres]
+        include:
+          - database: mysql
+            db_driver: mysql
+            db_port: 3306
+          - database: postgres
+            db_driver: pgsql
+            db_port: 5432
 
     env:
       CRAFT_APP_ID: audit-test
       CRAFT_ENVIRONMENT: dev
       CRAFT_SECURITY_KEY: asdy8f7tgaysdfas987gduyvfas87dfghui
-      CRAFT_DB_DRIVER: mysql
+      CRAFT_DB_DRIVER: ${{ matrix.db_driver }}
       CRAFT_DB_SERVER: 127.0.0.1
-      CRAFT_DB_PORT: 3306
+      CRAFT_DB_PORT: ${{ matrix.db_port }}
       CRAFT_DB_DATABASE: pest
       CRAFT_DB_USER: root
       CRAFT_DB_PASSWORD: root
@@ -35,13 +46,23 @@ jobs:
 
     services:
       mysql:
-        image: mysql:8
+        image: ${{ matrix.database == 'mysql' && 'mysql:8' || '' }}
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: pest
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping -h localhost -u root -proot" --health-interval=5s --health-timeout=5s --health-retries=10
+
+      postgres:
+        image: ${{ matrix.database == 'postgres' && 'postgres:16' || '' }}
+        env:
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: root
+          POSTGRES_DB: pest
+        ports:
+          - 5432:5432
+        options: --health-cmd="pg_isready -U root -d pest" --health-interval=5s --health-timeout=5s --health-retries=10
 
     steps:
       - uses: actions/checkout@v4

@@ -39,7 +39,7 @@ class Install extends Migration
      */
     public function safeUp()
     {
-        $this->driver = Craft::$app->getConfig()->getDb()->driver;
+        $this->driver = $this->getDb()->getDriverName();
         if ($this->createTables()) {
             $this->createIndexes();
             $this->addForeignKeys();
@@ -56,7 +56,7 @@ class Install extends Migration
      */
     public function safeDown()
     {
-        $this->driver = Craft::$app->getConfig()->getDb()->driver;
+        $this->driver = $this->getDb()->getDriverName();
         $this->removeTables();
 
         return true;
@@ -72,7 +72,7 @@ class Install extends Migration
     {
         $tablesCreated = false;
 
-        $tableSchema = Craft::$app->db->schema->getTableSchema('{{%audit_log}}');
+        $tableSchema = Craft::$app->db->schema->getTableSchema($this->tableName);
         if ($tableSchema === null) {
             $tablesCreated = true;
             $this->createTable(
@@ -91,7 +91,7 @@ class Install extends Migration
                     'event' => $this->string()->null()->defaultValue(null),
                     'title' => $this->string()->null()->defaultValue(null),
                     'ip' => $this->string()->null()->defaultValue(null),
-                    'userAgent' => $this->string(255)->null()->defaultValue(null),
+                    'userAgent' => $this->text()->null(),
                     'location' => $this->text()->null()->defaultValue(null),
                     'snapshot' => $this->mediumText()->null()->defaultValue(null),
                 ]
@@ -110,6 +110,9 @@ class Install extends Migration
         $this->createIndex(null, $this->tableName, 'elementId', false);
         $this->createIndex(null, $this->tableName, 'sessionId', false);
         $this->createIndex(null, $this->tableName, 'parentId', false);
+        $this->createIndex(null, $this->tableName, 'dateCreated', false);
+        $this->createIndex(null, $this->tableName, 'siteId', false);
+        $this->createIndex(null, $this->tableName, 'event', false);
     }
 
     /**

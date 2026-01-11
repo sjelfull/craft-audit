@@ -533,11 +533,11 @@ class AuditService extends Component
     {
         $pruneDays = Audit::$plugin->getSettings()->pruneDays ?? 30;
         $date = (new DateTime())->modify('-' . $pruneDays . ' days')->format('Y-m-d H:i:s');
-        $query = AuditRecord::find()->where('dateCreated <= :pruneDate', [':pruneDate' => $date]);
+        $query = AuditRecord::find()->where(['<=', 'dateCreated', $date]);
         $count = $query->count();
 
         // Delete
-        AuditRecord::deleteAll('dateCreated <= :pruneDate', [':pruneDate' => $date]);
+        AuditRecord::deleteAll(['<=', 'dateCreated', $date]);
 
         return $count;
     }
