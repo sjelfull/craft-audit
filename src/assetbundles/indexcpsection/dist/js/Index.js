@@ -17,9 +17,16 @@
         clearButton.addEventListener('click', function(e) {
             e.preventDefault();
             
-            // Clear the form inputs
-            document.getElementById('startDate').value = '';
-            document.getElementById('endDate').value = '';
+            // Clear the form inputs if they exist
+            const startDateField = document.getElementById('startDate');
+            const endDateField = document.getElementById('endDate');
+            
+            if (startDateField) {
+                startDateField.value = '';
+            }
+            if (endDateField) {
+                endDateField.value = '';
+            }
             
             // Navigate to the base URL without query parameters
             window.location.href = window.location.pathname;
