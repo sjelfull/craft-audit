@@ -71,6 +71,38 @@
     includeEnvVars: true
 }) }}
 
+{{ forms.booleanMenuField({
+    name: 'logUserSecurityEvents',
+    label: 'Log User Security Events',
+    instructions: 'Log user activation, suspension, locking, and group assignment changes',
+    value: settings.logUserSecurityEvents,
+    includeEnvVars: true
+}) }}
+
+{{ forms.booleanMenuField({
+    name: 'logPermissionEvents',
+    label: 'Log Permission Events',
+    instructions: 'Log user and group permission changes',
+    value: settings.logPermissionEvents,
+    includeEnvVars: true
+}) }}
+
+{{ forms.booleanMenuField({
+    name: 'logSchemaEvents',
+    label: 'Log Schema Events',
+    instructions: 'Log field, section, and entry type changes',
+    value: settings.logSchemaEvents,
+    includeEnvVars: true
+}) }}
+
+{{ forms.booleanMenuField({
+    name: 'logDatabaseEvents',
+    label: 'Log Database Events',
+    instructions: 'Log backup creation and restoration',
+    value: settings.logDatabaseEvents,
+    includeEnvVars: true
+}) }}
+
 <hr>
 
 <h2>Geolocation</h2>

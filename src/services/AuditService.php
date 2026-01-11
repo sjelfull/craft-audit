@@ -20,6 +20,7 @@ use craft\elements\Entry;
 use craft\elements\GlobalSet;
 use craft\elements\User;
 use craft\events\BackupEvent;
+use craft\events\ConfigEvent;
 use craft\events\EntryTypeEvent;
 use craft\events\FieldEvent;
 use craft\events\RestoreEvent;
@@ -920,13 +921,12 @@ class AuditService extends Component
             $isNew = $event->isNew;
 
             $model = $this->_getStandardModel();
-            $model->event = AuditModel::EVENT_USER_GROUP_SAVED;
-            $model->title = ($isNew ? 'Created: ' : 'Updated: ') . $group->name;
+            $model->event = $isNew ? AuditModel::EVENT_USER_GROUP_CREATED : AuditModel::EVENT_USER_GROUP_SAVED;
+            $model->title = $group->name;
             $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
                 'groupId' => $group->id,
                 'groupName' => $group->name,
                 'groupHandle' => $group->handle,
-                'isNew' => $isNew,
             ]));
 
             return $this->_saveRecord($model);
@@ -970,14 +970,13 @@ class AuditService extends Component
             $isNew = $event->isNew;
 
             $model = $this->_getStandardModel();
-            $model->event = AuditModel::EVENT_FIELD_SAVED;
-            $model->title = ($isNew ? 'Created: ' : 'Updated: ') . $field->name;
+            $model->event = $isNew ? AuditModel::EVENT_FIELD_CREATED : AuditModel::EVENT_FIELD_SAVED;
+            $model->title = $field->name;
             $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
                 'fieldId' => $field->id,
                 'fieldName' => $field->name,
                 'fieldHandle' => $field->handle,
                 'fieldType' => get_class($field),
-                'isNew' => $isNew,
             ]));
 
             return $this->_saveRecord($model);
@@ -1065,13 +1064,12 @@ class AuditService extends Component
             $isNew = $event->isNew;
 
             $model = $this->_getStandardModel();
-            $model->event = AuditModel::EVENT_ENTRY_TYPE_SAVED;
-            $model->title = ($isNew ? 'Created: ' : 'Updated: ') . $entryType->name;
+            $model->event = $isNew ? AuditModel::EVENT_ENTRY_TYPE_CREATED : AuditModel::EVENT_ENTRY_TYPE_SAVED;
+            $model->title = $entryType->name;
             $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
                 'entryTypeId' => $entryType->id,
                 'entryTypeName' => $entryType->name,
                 'entryTypeHandle' => $entryType->handle,
-                'isNew' => $isNew,
             ]));
 
             return $this->_saveRecord($model);
@@ -1135,6 +1133,25 @@ class AuditService extends Component
             $model->title = basename($event->file);
             $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
                 'file' => $event->file,
+            ]));
+
+            return $this->_saveRecord($model);
+        });
+    }
+
+    public function onSettingsChanged(ConfigEvent $event, string $settingsType): bool
+    {
+        return $this->catchSaveError(function() use ($event, $settingsType) {
+            $model = $this->_getStandardModel();
+            $model->event = $settingsType === 'system'
+                ? AuditModel::EVENT_SYSTEM_SETTINGS_CHANGED
+                : AuditModel::EVENT_EMAIL_SETTINGS_CHANGED;
+            $model->title = ucfirst($settingsType) . ' settings';
+            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
+                'settingsType' => $settingsType,
+                'path' => $event->path,
+                'oldValue' => $event->oldValue,
+                'newValue' => $event->newValue,
             ]));
 
             return $this->_saveRecord($model);

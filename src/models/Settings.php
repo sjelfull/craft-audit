@@ -61,6 +61,10 @@ class Settings extends Model
     public bool $logChildElementEvents = false;
     public bool $logUserEvents = true;
     public bool $logRouteEvents = true;
+    public bool $logUserSecurityEvents = true;
+    public bool $logPermissionEvents = true;
+    public bool $logSchemaEvents = true;
+    public bool $logDatabaseEvents = true;
 
     public $accountAreaUrl = 'https://www.maxmind.com/en/account';
     public $cityDbFilename = 'GeoLite2-City.mmdb';

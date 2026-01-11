@@ -38,6 +38,12 @@ class AuditModel extends Model
     public const EVENT_RESAVED_ELEMENTS = 'resaved-elements';
     public const EVENT_CREATED_ELEMENT = 'created-element';
     public const EVENT_DELETED_ELEMENT = 'deleted-element';
+
+    // Entry Events
+    public const EVENT_ENTRY_CREATED = 'entry-created';
+    public const EVENT_ENTRY_SAVED = 'entry-saved';
+    public const EVENT_ENTRY_DELETED = 'entry-deleted';
+
     public const EVENT_SAVED_GLOBAL = 'saved-global';
     public const EVENT_SAVED_DRAFT = 'saved-draft';
     public const EVENT_CREATED_DRAFT = 'created-draft';
@@ -51,6 +57,42 @@ class AuditModel extends Model
     public const EVENT_PLUGIN_UNINSTALLED = 'uninstalled-plugin';
     public const EVENT_PLUGIN_DISABLED = 'disabled-plugin';
     public const EVENT_PLUGIN_ENABLED = 'enabled-plugin';
+
+    // User Security Events
+    public const EVENT_USER_ACTIVATED = 'user-activated';
+    public const EVENT_USER_DEACTIVATED = 'user-deactivated';
+    public const EVENT_USER_SUSPENDED = 'user-suspended';
+    public const EVENT_USER_UNSUSPENDED = 'user-unsuspended';
+    public const EVENT_USER_LOCKED = 'user-locked';
+    public const EVENT_USER_UNLOCKED = 'user-unlocked';
+    public const EVENT_USER_GROUPS_ASSIGNED = 'user-groups-assigned';
+
+    // Permission Events
+    public const EVENT_USER_PERMISSIONS_SAVED = 'user-permissions-saved';
+    public const EVENT_GROUP_PERMISSIONS_SAVED = 'group-permissions-saved';
+    public const EVENT_USER_GROUP_CREATED = 'user-group-created';
+    public const EVENT_USER_GROUP_SAVED = 'user-group-saved';
+    public const EVENT_USER_GROUP_DELETED = 'user-group-deleted';
+
+    // Schema Events
+    public const EVENT_FIELD_CREATED = 'field-created';
+    public const EVENT_FIELD_SAVED = 'field-saved';
+    public const EVENT_FIELD_DELETED = 'field-deleted';
+    public const EVENT_SECTION_CREATED = 'section-created';
+    public const EVENT_SECTION_SAVED = 'section-saved';
+    public const EVENT_SECTION_DELETED = 'section-deleted';
+    public const EVENT_ENTRY_TYPE_CREATED = 'entry-type-created';
+    public const EVENT_ENTRY_TYPE_SAVED = 'entry-type-saved';
+    public const EVENT_ENTRY_TYPE_DELETED = 'entry-type-deleted';
+
+    // Settings Events
+    public const EVENT_SYSTEM_SETTINGS_CHANGED = 'system-settings-changed';
+    public const EVENT_EMAIL_SETTINGS_CHANGED = 'email-settings-changed';
+
+    // Database Events
+    public const EVENT_BACKUP_CREATED = 'backup-created';
+    public const EVENT_BACKUP_RESTORED = 'backup-restored';
+
     public const FLASH_RESAVE_ID = 'auditResaveId';
 
     private static $_users;
@@ -257,6 +299,41 @@ class AuditModel extends Model
     {
         $element = $this->getElement();
 
+        // Entry events: show entry title linked, with section name fallback
+        if ($this->isEntryEvent()) {
+            $sectionName = $this->getSnapshotValue('sectionName');
+            $title = $this->title ?: $sectionName;
+
+            if ($element) {
+                $url = $element->getCpEditUrl();
+                return Template::raw('<a href="' . $url . '">' . $title . '</a>');
+            }
+
+            return $title;
+        }
+
+        // Section events: link to section settings
+        if ($this->isSectionEvent()) {
+            $sectionId = $this->getSnapshotValue('sectionId');
+            $sectionName = $this->getSnapshotValue('sectionName');
+
+            if ($sectionId && $this->event !== self::EVENT_SECTION_DELETED) {
+                $url = UrlHelper::cpUrl('settings/sections/' . $sectionId);
+                return Template::raw('<a href="' . $url . '">' . $sectionName . '</a>');
+            }
+
+            return $sectionName;
+        }
+
+        // Settings events: link to settings page
+        if ($this->isSettingsEvent()) {
+            $settingsType = $this->getSnapshotValue('settingsType');
+            $settingsPath = $settingsType === 'email' ? 'settings/email' : 'settings/general';
+            $url = UrlHelper::cpUrl($settingsPath);
+
+            return Template::raw('<a href="' . $url . '">' . $this->title . '</a>');
+        }
+
         if (!$element && $this->title) {
             return Template::raw($this->title);
         }
@@ -276,6 +353,41 @@ class AuditModel extends Model
     }
 
     /**
+     * Check if this is an entry event
+     */
+    public function isEntryEvent(): bool
+    {
+        return in_array($this->event, [
+            self::EVENT_ENTRY_CREATED,
+            self::EVENT_ENTRY_SAVED,
+            self::EVENT_ENTRY_DELETED,
+        ]);
+    }
+
+    /**
+     * Check if this is a section event
+     */
+    public function isSectionEvent(): bool
+    {
+        return in_array($this->event, [
+            self::EVENT_SECTION_CREATED,
+            self::EVENT_SECTION_SAVED,
+            self::EVENT_SECTION_DELETED,
+        ]);
+    }
+
+    /**
+     * Check if this is a settings event
+     */
+    public function isSettingsEvent(): bool
+    {
+        return in_array($this->event, [
+            self::EVENT_SYSTEM_SETTINGS_CHANGED,
+            self::EVENT_EMAIL_SETTINGS_CHANGED,
+        ]);
+    }
+
+    /**
      * @return null|\Twig\Markup
      */
     public function getUserLink()
@@ -286,7 +398,7 @@ class AuditModel extends Model
             return null;
         }
 
-        $text = $user->username;
+        $text = $user->fullName ?: $user->username;
 
         return Template::raw('<a href="' . $user->getCpEditUrl() . '">' . $text . '</a>');
     }
