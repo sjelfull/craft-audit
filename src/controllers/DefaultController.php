@@ -68,13 +68,11 @@ class DefaultController extends Controller
     }
 
     /**
-     * @param int|null $id
+     * @param int $id
      *
      * @return mixed
-     * @internal param array $variables
-     *
      */
-    public function actionDetails(int $id = null)
+    public function actionDetails(int $id)
     {
         $this->requirePermission(Audit::PERMISSION_VIEW_LOGS);
 

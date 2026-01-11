@@ -16,9 +16,20 @@ use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\base\Plugin;
 use craft\base\PluginInterface;
+use craft\elements\Entry;
 use craft\elements\GlobalSet;
 use craft\elements\User;
+use craft\events\BackupEvent;
+use craft\events\EntryTypeEvent;
+use craft\events\FieldEvent;
+use craft\events\RestoreEvent;
 use craft\events\RouteEvent;
+use craft\events\SectionEvent;
+use craft\events\UserAssignGroupEvent;
+use craft\events\UserEvent;
+use craft\events\UserGroupEvent;
+use craft\events\UserGroupPermissionsEvent;
+use craft\events\UserPermissionsEvent;
 use craft\helpers\ElementHelper;
 use craft\helpers\Html;
 use craft\helpers\Template;
@@ -61,11 +72,11 @@ class AuditService extends Component
     }
 
     /**
-     * @param null $id
+     * @param int $id
      *
      * @return null|AuditModel
      */
-    public function getEventById($id = null): ?AuditModel
+    public function getEventById(int $id): ?AuditModel
     {
         $models = null;
         $record = AuditRecord::findOne($id);
@@ -194,6 +205,17 @@ class AuditService extends Component
                 $model->event = AuditModel::EVENT_SAVED_DRAFT;
             }
 
+            if ($element instanceof Entry) {
+                /** @var Entry $element */
+                $model->event = $isNew ? AuditModel::EVENT_ENTRY_CREATED : AuditModel::EVENT_ENTRY_SAVED;
+                $section = $element->getSection();
+                if ($section) {
+                    $snapshot['sectionId'] = $section->id;
+                    $snapshot['sectionName'] = $section->name;
+                    $snapshot['sectionHandle'] = $section->handle;
+                }
+            }
+
             if ($element->hasTitles()) {
                 $title = $element->title;
             }
@@ -269,6 +291,17 @@ class AuditService extends Component
                 'elementType' => get_class($element),
                 'elementTypeLabel' => $element::displayName(),
             ];
+
+            if ($element instanceof Entry) {
+                /** @var Entry $element */
+                $model->event = AuditModel::EVENT_ENTRY_DELETED;
+                $section = $element->getSection();
+                if ($section) {
+                    $snapshot['sectionId'] = $section->id;
+                    $snapshot['sectionName'] = $section->name;
+                    $snapshot['sectionHandle'] = $section->handle;
+                }
+            }
 
             if ($element->hasTitles()) {
                 $model->title = $element->title;
@@ -645,5 +678,466 @@ class AuditService extends Component
             Craft::t('audit', 'Error when logging: {error}', ['error' => $e->getMessage()]),
             __METHOD__
         );
+    }
+
+    // =========================================================================
+    // User Security Events
+    // =========================================================================
+
+    public function onUserActivated(UserEvent $event): bool
+    {
+        if (!Audit::$plugin->getSettings()->logUserSecurityEvents) {
+            return false;
+        }
+
+        return $this->catchSaveError(function() use ($event) {
+            $user = $event->user;
+            $model = $this->_getStandardModel();
+            $model->event = AuditModel::EVENT_USER_ACTIVATED;
+            $model->title = $user->username;
+            $model->elementId = $user->id;
+            $model->elementType = User::class;
+            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
+                'userId' => $user->id,
+                'username' => $user->username,
+                'email' => $user->email,
+            ]));
+
+            return $this->_saveRecord($model);
+        });
+    }
+
+    public function onUserDeactivated(UserEvent $event): bool
+    {
+        if (!Audit::$plugin->getSettings()->logUserSecurityEvents) {
+            return false;
+        }
+
+        return $this->catchSaveError(function() use ($event) {
+            $user = $event->user;
+            $model = $this->_getStandardModel();
+            $model->event = AuditModel::EVENT_USER_DEACTIVATED;
+            $model->title = $user->username;
+            $model->elementId = $user->id;
+            $model->elementType = User::class;
+            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
+                'userId' => $user->id,
+                'username' => $user->username,
+                'email' => $user->email,
+            ]));
+
+            return $this->_saveRecord($model);
+        });
+    }
+
+    public function onUserSuspended(UserEvent $event): bool
+    {
+        if (!Audit::$plugin->getSettings()->logUserSecurityEvents) {
+            return false;
+        }
+
+        return $this->catchSaveError(function() use ($event) {
+            $user = $event->user;
+            $model = $this->_getStandardModel();
+            $model->event = AuditModel::EVENT_USER_SUSPENDED;
+            $model->title = $user->username;
+            $model->elementId = $user->id;
+            $model->elementType = User::class;
+            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
+                'userId' => $user->id,
+                'username' => $user->username,
+                'email' => $user->email,
+            ]));
+
+            return $this->_saveRecord($model);
+        });
+    }
+
+    public function onUserUnsuspended(UserEvent $event): bool
+    {
+        if (!Audit::$plugin->getSettings()->logUserSecurityEvents) {
+            return false;
+        }
+
+        return $this->catchSaveError(function() use ($event) {
+            $user = $event->user;
+            $model = $this->_getStandardModel();
+            $model->event = AuditModel::EVENT_USER_UNSUSPENDED;
+            $model->title = $user->username;
+            $model->elementId = $user->id;
+            $model->elementType = User::class;
+            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
+                'userId' => $user->id,
+                'username' => $user->username,
+                'email' => $user->email,
+            ]));
+
+            return $this->_saveRecord($model);
+        });
+    }
+
+    public function onUserLocked(UserEvent $event): bool
+    {
+        if (!Audit::$plugin->getSettings()->logUserSecurityEvents) {
+            return false;
+        }
+
+        return $this->catchSaveError(function() use ($event) {
+            $user = $event->user;
+            $model = $this->_getStandardModel();
+            $model->event = AuditModel::EVENT_USER_LOCKED;
+            $model->title = $user->username;
+            $model->elementId = $user->id;
+            $model->elementType = User::class;
+            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
+                'userId' => $user->id,
+                'username' => $user->username,
+                'email' => $user->email,
+            ]));
+
+            return $this->_saveRecord($model);
+        });
+    }
+
+    public function onUserUnlocked(UserEvent $event): bool
+    {
+        if (!Audit::$plugin->getSettings()->logUserSecurityEvents) {
+            return false;
+        }
+
+        return $this->catchSaveError(function() use ($event) {
+            $user = $event->user;
+            $model = $this->_getStandardModel();
+            $model->event = AuditModel::EVENT_USER_UNLOCKED;
+            $model->title = $user->username;
+            $model->elementId = $user->id;
+            $model->elementType = User::class;
+            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
+                'userId' => $user->id,
+                'username' => $user->username,
+                'email' => $user->email,
+            ]));
+
+            return $this->_saveRecord($model);
+        });
+    }
+
+    public function onUserGroupsAssigned(UserAssignGroupEvent $event): bool
+    {
+        if (!Audit::$plugin->getSettings()->logUserSecurityEvents) {
+            return false;
+        }
+
+        return $this->catchSaveError(function() use ($event) {
+            $user = $event->user;
+            $groupIds = $event->groupIds;
+            $groups = [];
+            foreach ($groupIds as $groupId) {
+                $group = Craft::$app->getUserGroups()->getGroupById($groupId);
+                if ($group) {
+                    $groups[] = $group->name;
+                }
+            }
+
+            $model = $this->_getStandardModel();
+            $model->event = AuditModel::EVENT_USER_GROUPS_ASSIGNED;
+            $model->title = $user->username . ' → ' . implode(', ', $groups);
+            $model->elementId = $user->id;
+            $model->elementType = User::class;
+            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
+                'userId' => $user->id,
+                'username' => $user->username,
+                'groupIds' => $groupIds,
+                'groupNames' => $groups,
+            ]));
+
+            return $this->_saveRecord($model);
+        });
+    }
+
+    // =========================================================================
+    // Permission Events
+    // =========================================================================
+
+    public function onUserPermissionsSaved(UserPermissionsEvent $event): bool
+    {
+        if (!Audit::$plugin->getSettings()->logPermissionEvents) {
+            return false;
+        }
+
+        return $this->catchSaveError(function() use ($event) {
+            $userId = $event->userId;
+            $user = Craft::$app->getUsers()->getUserById($userId);
+            $permissions = $event->permissions;
+
+            $model = $this->_getStandardModel();
+            $model->event = AuditModel::EVENT_USER_PERMISSIONS_SAVED;
+            $model->title = $user ? $user->username : "User #{$userId}";
+            $model->elementId = $userId;
+            $model->elementType = User::class;
+            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
+                'userId' => $userId,
+                'username' => $user?->username,
+                'permissions' => $permissions,
+            ]));
+
+            return $this->_saveRecord($model);
+        });
+    }
+
+    public function onGroupPermissionsSaved(UserGroupPermissionsEvent $event): bool
+    {
+        if (!Audit::$plugin->getSettings()->logPermissionEvents) {
+            return false;
+        }
+
+        return $this->catchSaveError(function() use ($event) {
+            $groupId = $event->groupId;
+            $group = Craft::$app->getUserGroups()->getGroupById($groupId);
+            $permissions = $event->permissions;
+
+            $model = $this->_getStandardModel();
+            $model->event = AuditModel::EVENT_GROUP_PERMISSIONS_SAVED;
+            $model->title = $group ? $group->name : "Group #{$groupId}";
+            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
+                'groupId' => $groupId,
+                'groupName' => $group?->name,
+                'permissions' => $permissions,
+            ]));
+
+            return $this->_saveRecord($model);
+        });
+    }
+
+    public function onUserGroupSaved(UserGroupEvent $event): bool
+    {
+        if (!Audit::$plugin->getSettings()->logPermissionEvents) {
+            return false;
+        }
+
+        return $this->catchSaveError(function() use ($event) {
+            $group = $event->userGroup;
+            $isNew = $event->isNew;
+
+            $model = $this->_getStandardModel();
+            $model->event = AuditModel::EVENT_USER_GROUP_SAVED;
+            $model->title = ($isNew ? 'Created: ' : 'Updated: ') . $group->name;
+            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
+                'groupId' => $group->id,
+                'groupName' => $group->name,
+                'groupHandle' => $group->handle,
+                'isNew' => $isNew,
+            ]));
+
+            return $this->_saveRecord($model);
+        });
+    }
+
+    public function onUserGroupDeleted(UserGroupEvent $event): bool
+    {
+        if (!Audit::$plugin->getSettings()->logPermissionEvents) {
+            return false;
+        }
+
+        return $this->catchSaveError(function() use ($event) {
+            $group = $event->userGroup;
+
+            $model = $this->_getStandardModel();
+            $model->event = AuditModel::EVENT_USER_GROUP_DELETED;
+            $model->title = $group->name;
+            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
+                'groupId' => $group->id,
+                'groupName' => $group->name,
+                'groupHandle' => $group->handle,
+            ]));
+
+            return $this->_saveRecord($model);
+        });
+    }
+
+    // =========================================================================
+    // Schema Events
+    // =========================================================================
+
+    public function onFieldSaved(FieldEvent $event): bool
+    {
+        if (!Audit::$plugin->getSettings()->logSchemaEvents) {
+            return false;
+        }
+
+        return $this->catchSaveError(function() use ($event) {
+            $field = $event->field;
+            $isNew = $event->isNew;
+
+            $model = $this->_getStandardModel();
+            $model->event = AuditModel::EVENT_FIELD_SAVED;
+            $model->title = ($isNew ? 'Created: ' : 'Updated: ') . $field->name;
+            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
+                'fieldId' => $field->id,
+                'fieldName' => $field->name,
+                'fieldHandle' => $field->handle,
+                'fieldType' => get_class($field),
+                'isNew' => $isNew,
+            ]));
+
+            return $this->_saveRecord($model);
+        });
+    }
+
+    public function onFieldDeleted(FieldEvent $event): bool
+    {
+        if (!Audit::$plugin->getSettings()->logSchemaEvents) {
+            return false;
+        }
+
+        return $this->catchSaveError(function() use ($event) {
+            $field = $event->field;
+
+            $model = $this->_getStandardModel();
+            $model->event = AuditModel::EVENT_FIELD_DELETED;
+            $model->title = $field->name;
+            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
+                'fieldId' => $field->id,
+                'fieldName' => $field->name,
+                'fieldHandle' => $field->handle,
+                'fieldType' => get_class($field),
+            ]));
+
+            return $this->_saveRecord($model);
+        });
+    }
+
+    public function onSectionSaved(SectionEvent $event): bool
+    {
+        if (!Audit::$plugin->getSettings()->logSchemaEvents) {
+            return false;
+        }
+
+        return $this->catchSaveError(function() use ($event) {
+            $section = $event->section;
+            $isNew = $event->isNew;
+
+            $model = $this->_getStandardModel();
+            $model->event = $isNew ? AuditModel::EVENT_SECTION_CREATED : AuditModel::EVENT_SECTION_SAVED;
+            $model->title = $section->name;
+            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
+                'sectionId' => $section->id,
+                'sectionName' => $section->name,
+                'sectionHandle' => $section->handle,
+                'sectionType' => $section->type,
+            ]));
+
+            return $this->_saveRecord($model);
+        });
+    }
+
+    public function onSectionDeleted(SectionEvent $event): bool
+    {
+        if (!Audit::$plugin->getSettings()->logSchemaEvents) {
+            return false;
+        }
+
+        return $this->catchSaveError(function() use ($event) {
+            $section = $event->section;
+
+            $model = $this->_getStandardModel();
+            $model->event = AuditModel::EVENT_SECTION_DELETED;
+            $model->title = $section->name;
+            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
+                'sectionId' => $section->id,
+                'sectionName' => $section->name,
+                'sectionHandle' => $section->handle,
+                'sectionType' => $section->type,
+            ]));
+
+            return $this->_saveRecord($model);
+        });
+    }
+
+    public function onEntryTypeSaved(EntryTypeEvent $event): bool
+    {
+        if (!Audit::$plugin->getSettings()->logSchemaEvents) {
+            return false;
+        }
+
+        return $this->catchSaveError(function() use ($event) {
+            $entryType = $event->entryType;
+            $isNew = $event->isNew;
+
+            $model = $this->_getStandardModel();
+            $model->event = AuditModel::EVENT_ENTRY_TYPE_SAVED;
+            $model->title = ($isNew ? 'Created: ' : 'Updated: ') . $entryType->name;
+            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
+                'entryTypeId' => $entryType->id,
+                'entryTypeName' => $entryType->name,
+                'entryTypeHandle' => $entryType->handle,
+                'isNew' => $isNew,
+            ]));
+
+            return $this->_saveRecord($model);
+        });
+    }
+
+    public function onEntryTypeDeleted(EntryTypeEvent $event): bool
+    {
+        if (!Audit::$plugin->getSettings()->logSchemaEvents) {
+            return false;
+        }
+
+        return $this->catchSaveError(function() use ($event) {
+            $entryType = $event->entryType;
+
+            $model = $this->_getStandardModel();
+            $model->event = AuditModel::EVENT_ENTRY_TYPE_DELETED;
+            $model->title = $entryType->name;
+            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
+                'entryTypeId' => $entryType->id,
+                'entryTypeName' => $entryType->name,
+                'entryTypeHandle' => $entryType->handle,
+            ]));
+
+            return $this->_saveRecord($model);
+        });
+    }
+
+    // =========================================================================
+    // Database Events
+    // =========================================================================
+
+    public function onBackupCreated(BackupEvent $event): bool
+    {
+        if (!Audit::$plugin->getSettings()->logDatabaseEvents) {
+            return false;
+        }
+
+        return $this->catchSaveError(function() use ($event) {
+            $model = $this->_getStandardModel();
+            $model->event = AuditModel::EVENT_BACKUP_CREATED;
+            $model->title = basename($event->file);
+            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
+                'file' => $event->file,
+                'ignoreTables' => $event->ignoreTables,
+            ]));
+
+            return $this->_saveRecord($model);
+        });
+    }
+
+    public function onBackupRestored(RestoreEvent $event): bool
+    {
+        if (!Audit::$plugin->getSettings()->logDatabaseEvents) {
+            return false;
+        }
+
+        return $this->catchSaveError(function() use ($event) {
+            $model = $this->_getStandardModel();
+            $model->event = AuditModel::EVENT_BACKUP_RESTORED;
+            $model->title = basename($event->file);
+            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
+                'file' => $event->file,
+            ]));
+
+            return $this->_saveRecord($model);
+        });
     }
 }
