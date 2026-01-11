@@ -45,12 +45,34 @@ class DefaultController extends Controller
     {
         $this->requirePermission(Audit::PERMISSION_VIEW_LOGS);
 
+        $request = Craft::$app->getRequest();
+        $startDate = $request->getQueryParam('startDate');
+        $endDate = $request->getQueryParam('endDate');
+
         $itemsPerPage = 100;
         $query = AuditRecord::find()
                                ->orderBy('dateCreated desc')
                                ->with('user')
                                ->limit($itemsPerPage)
                                ->where(['parentId' => null]);
+
+        // Apply date range filters if provided
+        if ($startDate) {
+            $startDateTime = \DateTime::createFromFormat('Y-m-d', $startDate);
+            if ($startDateTime) {
+                $startDateTime->setTime(0, 0, 0);
+                $query->andWhere(['>=', 'dateCreated', $startDateTime->format('Y-m-d H:i:s')]);
+            }
+        }
+
+        if ($endDate) {
+            $endDateTime = \DateTime::createFromFormat('Y-m-d', $endDate);
+            if ($endDateTime) {
+                $endDateTime->setTime(23, 59, 59);
+                $query->andWhere(['<=', 'dateCreated', $endDateTime->format('Y-m-d H:i:s')]);
+            }
+        }
+
         $models = [];
         $paginate = Template::paginateCriteria($query);
         list($pageInfo, $records) = $paginate;
@@ -64,6 +86,8 @@ class DefaultController extends Controller
         return $this->renderTemplate('audit/index', [
             'logs' => $models,
             'pageInfo' => $pageInfo,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
         ]);
     }
 

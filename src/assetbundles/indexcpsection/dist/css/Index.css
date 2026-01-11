@@ -9,3 +9,22 @@
  * @package   Audit
  * @since     1.0.0
  */
+
+#audit-filters-form {
+    padding: 14px;
+}
+
+#audit-filters-form .field {
+    margin-bottom: 14px;
+}
+
+#audit-filters-form .buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+#audit-filters-form .buttons .btn {
+    flex: 1;
+}
+

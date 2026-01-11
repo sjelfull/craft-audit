@@ -31,6 +31,34 @@
     {% endif %}
 {% endblock %}
 
+{% block sidebar %}
+    <nav>
+        <h3>{{ "Filters"|t('audit') }}</h3>
+        <form id="audit-filters-form" method="get">
+            <div class="field">
+                {{ forms.dateField({
+                    label: "Start Date"|t('audit'),
+                    id: 'startDate',
+                    name: 'startDate',
+                    value: startDate ?? null,
+                }) }}
+            </div>
+            <div class="field">
+                {{ forms.dateField({
+                    label: "End Date"|t('audit'),
+                    id: 'endDate',
+                    name: 'endDate',
+                    value: endDate ?? null,
+                }) }}
+            </div>
+            <div class="buttons">
+                <button type="submit" class="btn submit">{{ "Apply Filters"|t('audit') }}</button>
+                <button type="button" class="btn" id="clear-filters">{{ "Clear"|t('audit') }}</button>
+            </div>
+        </form>
+    </nav>
+{% endblock %}
+
 {% block content %}
     {% if logs %}
         <table class="data fullwidth">
