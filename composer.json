@@ -2,7 +2,7 @@
     "name": "superbig/craft-audit",
     "description": "Log adding/updating/deleting of elements",
     "type": "craft-plugin",
-    "version": "3.0.3",
+    "version": "4.0.0",
     "keywords": [
         "craft",
         "cms",
@@ -25,13 +25,13 @@
         "php": "^8.2.0",
         "craftcms/cms": "^5.5",
         "donatj/phpuseragentparser": "^1.7.0",
-        "geoip2/geoip2": "^3.0",
-        "markhuot/craft-pest-core": "^3.0"
+        "geoip2/geoip2": "^3.0"
     },
     "require-dev": {
         "craftcms/ecs": "dev-main",
         "craftcms/phpstan": "dev-main",
-        "craftcms/rector": "dev-main"
+        "craftcms/rector": "dev-main",
+        "markhuot/craft-pest-core": "^3.0"
     },
     "repositories": [
         {

@@ -831,25 +831,25 @@ class AuditService extends Component
 
         return $this->catchSaveError(function() use ($event) {
             $user = $event->user;
-            $groupIds = $event->groupIds;
-            $groups = [];
-            foreach ($groupIds as $groupId) {
-                $group = Craft::$app->getUserGroups()->getGroupById($groupId);
-                if ($group) {
-                    $groups[] = $group->name;
-                }
+            // Craft 5: userGroups is an array of UserGroup objects, not IDs
+            $userGroups = $event->userGroups ?? [];
+            $groupIds = [];
+            $groupNames = [];
+            foreach ($userGroups as $group) {
+                $groupIds[] = $group->id;
+                $groupNames[] = $group->name;
             }
 
             $model = $this->_getStandardModel();
             $model->event = AuditModel::EVENT_USER_GROUPS_ASSIGNED;
-            $model->title = $user->username . ' → ' . implode(', ', $groups);
+            $model->title = $user->username . ' → ' . implode(', ', $groupNames);
             $model->elementId = $user->id;
             $model->elementType = User::class;
             $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
                 'userId' => $user->id,
                 'username' => $user->username,
                 'groupIds' => $groupIds,
-                'groupNames' => $groups,
+                'groupNames' => $groupNames,
             ]));
 
             return $this->_saveRecord($model);
