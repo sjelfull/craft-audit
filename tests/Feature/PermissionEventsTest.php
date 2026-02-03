@@ -63,11 +63,11 @@ it('logs audit event when user group is saved', function () {
     Audit::$plugin->auditService->onUserGroupSaved($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_USER_GROUP_SAVED])
+        ->where(['event' => AuditModel::EVENT_USER_GROUP_CREATED])
         ->one();
 
     expect($record)->not->toBeNull();
-    expect($record->title)->toBe('Created: Test Group');
+    expect($record->title)->toBe('Test Group');
 });
 
 it('logs audit event when user group is deleted', function () {

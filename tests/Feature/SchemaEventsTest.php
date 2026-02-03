@@ -30,11 +30,11 @@ it('logs audit event when field is saved', function () {
     Audit::$plugin->auditService->onFieldSaved($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_FIELD_SAVED])
+        ->where(['event' => AuditModel::EVENT_FIELD_CREATED])
         ->one();
 
     expect($record)->not->toBeNull();
-    expect($record->title)->toBe('Created: Test Field');
+    expect($record->title)->toBe('Test Field');
 });
 
 it('logs audit event when field is deleted', function () {
@@ -74,11 +74,11 @@ it('logs audit event when section is saved', function () {
     Audit::$plugin->auditService->onSectionSaved($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_SECTION_SAVED])
+        ->where(['event' => AuditModel::EVENT_SECTION_CREATED])
         ->one();
 
     expect($record)->not->toBeNull();
-    expect($record->title)->toBe('Created: Test Section');
+    expect($record->title)->toBe('Test Section');
 });
 
 it('logs audit event when section is deleted', function () {
@@ -117,11 +117,11 @@ it('logs audit event when entry type is saved', function () {
     Audit::$plugin->auditService->onEntryTypeSaved($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_ENTRY_TYPE_SAVED])
+        ->where(['event' => AuditModel::EVENT_ENTRY_TYPE_CREATED])
         ->one();
 
     expect($record)->not->toBeNull();
-    expect($record->title)->toBe('Created: Test Entry Type');
+    expect($record->title)->toBe('Test Entry Type');
 });
 
 it('logs audit event when entry type is deleted', function () {
