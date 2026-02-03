@@ -14,7 +14,9 @@ use Craft;
 
 use craft\base\Plugin;
 use craft\console\Application as ConsoleApplication;
+use craft\db\Connection as DbConnection;
 use craft\events\BackupEvent;
+use craft\events\ConfigEvent;
 use craft\events\ElementEvent;
 use craft\events\EntryTypeEvent;
 use craft\events\FieldEvent;
@@ -35,8 +37,6 @@ use craft\services\Elements;
 use craft\services\Entries;
 use craft\services\Fields;
 use craft\services\Plugins;
-use craft\db\Connection as DbConnection;
-use craft\events\ConfigEvent;
 use craft\services\ProjectConfig;
 use craft\services\Routes;
 use craft\services\UserGroups;
