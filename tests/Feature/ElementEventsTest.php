@@ -20,7 +20,7 @@ it('logs audit event when entry is created', function () {
         ->one();
 
     expect($record)->not->toBeNull();
-    expect($record->event)->toBe(AuditModel::EVENT_CREATED_ELEMENT);
+    expect($record->event)->toBe(AuditModel::EVENT_ENTRY_CREATED);
     expect($record->elementType)->toBe(EntryElement::class);
 });
 
@@ -39,7 +39,7 @@ it('logs audit event when entry is updated', function () {
         ->one();
 
     expect($record)->not->toBeNull();
-    expect($record->event)->toBe(AuditModel::EVENT_SAVED_ELEMENT);
+    expect($record->event)->toBe(AuditModel::EVENT_ENTRY_SAVED);
 });
 
 it('logs audit event when entry is deleted', function () {
@@ -57,7 +57,7 @@ it('logs audit event when entry is deleted', function () {
         ->one();
 
     expect($record)->not->toBeNull();
-    expect($record->event)->toBe(AuditModel::EVENT_DELETED_ELEMENT);
+    expect($record->event)->toBe(AuditModel::EVENT_ENTRY_DELETED);
 });
 
 it('does not log draft events when disabled', function () {
