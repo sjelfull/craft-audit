@@ -187,13 +187,12 @@ it('captures field details in snapshot', function () {
     Audit::$plugin->auditService->onFieldSaved($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_FIELD_SAVED])
+        ->where(['event' => AuditModel::EVENT_FIELD_CREATED])
         ->one();
 
     $model = AuditModel::createFromRecord($record);
 
     expect($model->snapshot)->toHaveKey('fieldHandle');
     expect($model->snapshot)->toHaveKey('fieldType');
-    expect($model->snapshot)->toHaveKey('isNew');
     expect($model->snapshot['fieldHandle'])->toBe('snapshotTestField');
 });
