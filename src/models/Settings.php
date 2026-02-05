@@ -10,11 +10,12 @@
 
 namespace superbig\audit\models;
 
-use craft\helpers\FileHelper;
-use superbig\audit\Audit;
-
 use Craft;
 use craft\base\Model;
+
+use craft\helpers\App;
+use craft\helpers\FileHelper;
+use superbig\audit\Audit;
 
 /**
  * @author    Superbig
@@ -60,10 +61,15 @@ class Settings extends Model
     public bool $logChildElementEvents = false;
     public bool $logUserEvents = true;
     public bool $logRouteEvents = true;
+    public bool $logUserSecurityEvents = true;
+    public bool $logPermissionEvents = true;
+    public bool $logSchemaEvents = true;
+    public bool $logDatabaseEvents = true;
 
     public $accountAreaUrl = 'https://www.maxmind.com/en/account';
     public $cityDbFilename = 'GeoLite2-City.mmdb';
     public $countryDbFilename = 'GeoLite2-Country.mmdb';
+    public $maxmindAccountId = '';
     public $maxmindLicenseKey = '';
     public $ignoredSections = [];
 
@@ -90,22 +96,27 @@ class Settings extends Model
 
     public function getCountryDownloadUrl()
     {
-        return "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country&suffix=tar.gz&license_key={$this->maxmindLicenseKey}";
+        return 'https://download.maxmind.com/geoip/databases/GeoLite2-Country/download?suffix=tar.gz';
     }
 
     public function getCountryChecksumDownloadUrl()
     {
-        return "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country&suffix=tar.gz.md5&license_key={$this->maxmindLicenseKey}";
+        return 'https://download.maxmind.com/geoip/databases/GeoLite2-Country/download?suffix=tar.gz.sha256';
     }
 
     public function getCityDownloadUrl()
     {
-        return "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-City&suffix=tar.gz&license_key={$this->maxmindLicenseKey}";
+        return 'https://download.maxmind.com/geoip/databases/GeoLite2-City/download?suffix=tar.gz';
     }
 
     public function getCityChecksumDownloadUrl()
     {
-        return "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-City&suffix=tar.gz.md5&license_key={$this->maxmindLicenseKey}";
+        return 'https://download.maxmind.com/geoip/databases/GeoLite2-City/download?suffix=tar.gz.sha256';
+    }
+
+    public function getAuthCredentials(): array
+    {
+        return [App::parseEnv($this->maxmindAccountId), App::parseEnv($this->maxmindLicenseKey)];
     }
 
     public function getCityDbPath($isTempPath = false)
@@ -156,8 +167,11 @@ class Settings extends Model
         return FileHelper::normalizePath($tempPath . \DIRECTORY_SEPARATOR . $filename);
     }
 
-    public function hasValidLicenseKey()
+    public function hasValidLicenseKey(): bool
     {
-        return !empty($this->licenseKey);
+        $accountId = App::parseEnv($this->maxmindAccountId);
+        $licenseKey = App::parseEnv($this->maxmindLicenseKey);
+
+        return !empty($accountId) && !empty($licenseKey);
     }
 }

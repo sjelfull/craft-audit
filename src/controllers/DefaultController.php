@@ -10,12 +10,12 @@
 
 namespace superbig\audit\controllers;
 
+use Craft;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
-use superbig\audit\Audit;
 
-use Craft;
 use craft\web\Controller;
+use superbig\audit\Audit;
 use superbig\audit\models\AuditModel;
 use superbig\audit\records\AuditRecord;
 
@@ -26,14 +26,12 @@ use superbig\audit\records\AuditRecord;
  */
 class DefaultController extends Controller
 {
-
     // Protected Properties
     // =========================================================================
 
     /**
-     * @var    bool|array Allows anonymous access to this controller's actions.
-     *         The actions must be in 'kebab-case'
-     * @access protected
+     * @var array<int|string>|bool|int Allows anonymous access to this controller's actions.
+     *                                  The actions must be in 'kebab-case'
      */
     protected array|int|bool $allowAnonymous = [];
 
@@ -48,12 +46,12 @@ class DefaultController extends Controller
         $this->requirePermission(Audit::PERMISSION_VIEW_LOGS);
 
         $itemsPerPage = 100;
-        $query    = AuditRecord::find()
+        $query = AuditRecord::find()
                                ->orderBy('dateCreated desc')
                                ->with('user')
                                ->limit($itemsPerPage)
                                ->where(['parentId' => null]);
-        $models   = [];
+        $models = [];
         $paginate = Template::paginateCriteria($query);
         list($pageInfo, $records) = $paginate;
 
@@ -64,29 +62,27 @@ class DefaultController extends Controller
         }
 
         return $this->renderTemplate('audit/index', [
-            'logs'     => $models,
+            'logs' => $models,
             'pageInfo' => $pageInfo,
         ]);
     }
 
     /**
-     * @param int|null $id
+     * @param int $id
      *
      * @return mixed
-     * @internal param array $variables
-     *
      */
-    public function actionDetails(int $id = null)
+    public function actionDetails(int $id)
     {
         $this->requirePermission(Audit::PERMISSION_VIEW_LOGS);
 
-        $service       = Audit::$plugin->auditService;
-        $log           = $service->getEventById($id);
+        $service = Audit::$plugin->auditService;
+        $log = $service->getEventById($id);
         $logsInSession = $service->getEventsBySessionId($log->sessionId);
 
         return $this->renderTemplate('audit/_view', [
-            'settings'      => Audit::$plugin->getSettings(),
-            'log'           => $log,
+            'settings' => Audit::$plugin->getSettings(),
+            'log' => $log,
             'logsInSession' => $logsInSession,
         ]);
     }

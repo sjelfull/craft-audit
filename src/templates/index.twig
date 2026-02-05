@@ -51,11 +51,11 @@
                 <tr>
                     <td><span class="audit-index__event-label">{{ log.getEventLabel() }}</span></td>
                     <td class="audit-column--element">{{ log.getElementLabel() }}</td>
-                    <td class="thin">{{ log.getSite().name }}</td>
+                    <td class="thin"><a href="{{ cpUrl('settings/sites/' ~ log.getSite().id) }}">{{ log.getSite().name }}</a></td>
                     <td>{{ log.getElementLink() }}</td>
                     <td>{{ log.getUserLink() }}</td>
                     <td>{{ log.ip }}</td>
-                    <td>{{ "#{log.dateCreated|date('short')} #{log.dateCreated|time('short')}" }}</td>
+                    <td>{{ log.formattedDate }}</td>
                     <td>
                         <a href="{{ log.getCpEditUrl() }}">&rarr;</a>
                     </td>

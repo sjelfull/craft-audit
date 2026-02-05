@@ -2,7 +2,6 @@
 
 namespace superbig\audit\migrations;
 
-use Craft;
 use craft\db\Migration;
 
 /**

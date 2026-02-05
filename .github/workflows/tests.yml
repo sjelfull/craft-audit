@@ -1,0 +1,102 @@
+name: Run Tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - chore/craft5-support
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        database: [mysql, postgres]
+        include:
+          - database: mysql
+            db_driver: mysql
+            db_port: 3306
+          - database: postgres
+            db_driver: pgsql
+            db_port: 5432
+
+    env:
+      CRAFT_APP_ID: audit-test
+      CRAFT_ENVIRONMENT: dev
+      CRAFT_SECURITY_KEY: asdy8f7tgaysdfas987gduyvfas87dfghui
+      CRAFT_DB_DRIVER: ${{ matrix.db_driver }}
+      CRAFT_DB_SERVER: 127.0.0.1
+      CRAFT_DB_PORT: ${{ matrix.db_port }}
+      CRAFT_DB_DATABASE: pest
+      CRAFT_DB_USER: root
+      CRAFT_DB_PASSWORD: root
+      CRAFT_DB_TABLE_PREFIX: craft_
+      CRAFT_TEMPLATES_PATH: ./tests/templates
+      CRAFT_TIMEZONE: UTC
+      CRAFT_OMIT_SCRIPT_NAME_IN_URLS: true
+      CRAFT_DEV_MODE: true
+      DEV_MODE: true
+      CRAFT_EXE_PATH: ./craft
+      PRIMARY_SITE_URL: http://localhost:8080
+
+    services:
+      mysql:
+        image: ${{ matrix.database == 'mysql' && 'mysql:8' || '' }}
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: pest
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping -h localhost -u root -proot" --health-interval=5s --health-timeout=5s --health-retries=10
+
+      postgres:
+        image: ${{ matrix.database == 'postgres' && 'postgres:16' || '' }}
+        env:
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: root
+          POSTGRES_DB: pest
+        ports:
+          - 5432:5432
+        options: --health-cmd="pg_isready -U root -d pest" --health-interval=5s --health-timeout=5s --health-retries=10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+
+      - name: Validate composer.json
+        run: composer validate --strict
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            composer.lock
+            vendor
+          key: ${{ runner.os }}-craft5-vendor-${{ hashFiles('composer.json') }}
+
+      - name: Configure Composer plugins
+        run: |
+          composer config --no-plugins allow-plugins.yiisoft/yii2-composer true
+          composer config --no-plugins allow-plugins.craftcms/plugin-installer true
+          composer config --no-plugins allow-plugins.pestphp/pest-plugin true
+
+      - name: Install dependencies
+        run: composer require "craftcms/cms:^5.5" "markhuot/craft-pest-core:^3.0" --prefer-dist --no-progress --no-interaction --with-all-dependencies
+
+      - name: Copy config files
+        run: |
+          mkdir -p ./storage ./config/project ./tests/templates
+          cp -r ./vendor/markhuot/craft-pest-core/stubs/config/app.php ./config/app.php
+          cp -r ./vendor/markhuot/craft-pest-core/stubs/config/general.php ./config/general.php
+          cp -r ./stubs/project/* ./config/project/
+
+      - name: Run test suite
+        run: ./vendor/bin/pest

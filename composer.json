@@ -2,7 +2,6 @@
     "name": "superbig/craft-audit",
     "description": "Log adding/updating/deleting of elements",
     "type": "craft-plugin",
-    "version": "3.0.3",
     "keywords": [
         "craft",
         "cms",
@@ -22,10 +21,16 @@
         }
     ],
     "require": {
-        "php": "^8.0.2",
-        "craftcms/cms": "^4.0.0",
+        "php": "^8.2.0",
+        "craftcms/cms": "^5.5",
         "donatj/phpuseragentparser": "^1.7.0",
-        "geoip2/geoip2": "^2.5"
+        "geoip2/geoip2": "^3.0"
+    },
+    "require-dev": {
+        "craftcms/ecs": "dev-main",
+        "craftcms/phpstan": "dev-main",
+        "craftcms/rector": "dev-main",
+        "markhuot/craft-pest-core": "^3.0"
     },
     "repositories": [
         {
@@ -37,6 +42,20 @@
         "psr-4": {
           "superbig\\audit\\": "src/"
         }
+    },
+    "scripts": {
+        "phpstan": "phpstan --ansi --memory-limit=1G",
+        "check-cs": "ecs check --ansi",
+        "fix-cs": "ecs check --fix --ansi"
+    },
+    "config": {
+        "allow-plugins": {
+            "craftcms/plugin-installer": true,
+            "yiisoft/yii2-composer": true,
+            "pestphp/pest-plugin": true
+        },
+        "optimize-autoloader": true,
+        "sort-packages": true
     },
     "extra": {
         "name": "Audit",

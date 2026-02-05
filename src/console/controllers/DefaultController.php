@@ -23,7 +23,6 @@ use yii\console\ExitCode;
  */
 class DefaultController extends Controller
 {
-
     // Protected Properties
     // =========================================================================
 
@@ -41,6 +40,14 @@ class DefaultController extends Controller
         ConsoleHelper::startProgress(1, 6);
 
         $response = Audit::$plugin->geo->checkLicenseKey();
+
+        if (isset($response['error'])) {
+            ConsoleHelper::error($response['error']);
+            ConsoleHelper::endProgress();
+
+            return ExitCode::DATAERR;
+        }
+
         $response = Audit::$plugin->geo->downloadDatabase();
 
         ConsoleHelper::startProgress(2, 6);
@@ -59,7 +66,7 @@ class DefaultController extends Controller
         ConsoleHelper::startProgress(4, 6);
 
         if (isset($response['error'])) {
-            Console::error($response['error']);
+            ConsoleHelper::error($response['error']);
             ConsoleHelper::endProgress();
 
             return ExitCode::DATAERR;

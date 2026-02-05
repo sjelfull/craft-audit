@@ -47,7 +47,7 @@
                     <tr>
                         <td><strong>Date</strong></td>
                         <td>
-                            {{ "#{log.dateCreated|date('short')} #{log.dateCreated|time('short')}" }}
+                            {{ log.formattedDate }}
                         </td>
                     </tr>
                     <tr>
@@ -81,6 +81,12 @@
 
             <h2>Snapshot</h2>
             {{ log.getSnapshotTable() }}
+
+            {{ tag('pre', {
+                text: log.getSnapshotJson(),
+                id: 'js-snapshotJson',
+                class: 'audit-snapshot-json'
+            }) }}
 
             {% set content = log.getSnapshotValue('content') %}
             {% if content %}
@@ -159,7 +165,7 @@
                         <td>{{ logEntry.getElementLink() }}</td>
                         <td>{{ logEntry.getUserLink() }}</td>
                         <td>{{ logEntry.ip }}</td>
-                        <td>{{ "#{logEntry.dateCreated|date('short')} #{logEntry.dateCreated|time('short')}" }}</td>
+                        <td>{{ logEntry.formattedDate }}</td>
                         <td>
                             <a href="{{ logEntry.getCpEditUrl() }}">&rarr;</a>
                         </td>
@@ -194,7 +200,7 @@
                         <td>{{ logEntry.getElementLink() }}</td>
                         <td>{{ logEntry.getUserLink() }}</td>
                         <td>{{ logEntry.ip }}</td>
-                        <td>{{ "#{logEntry.dateCreated|date('short')} #{logEntry.dateCreated|time('short')}" }}</td>
+                        <td>{{ logEntry.formattedDate }}</td>
                         <td>
                             <a href="{{ logEntry.getCpEditUrl() }}">&rarr;</a>
                         </td>
@@ -232,5 +238,15 @@
 
     <script async defer
             src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCXtMOFNuC4XzpJcGQpL1wsAWTOgvOXNwk&callback=initMap">
+    </script>
+
+    <script type="module">
+        import { codeToHtml } from 'https://cdn.jsdelivr.net/npm/shiki/+esm'
+
+        const snapshot = document.getElementById('js-snapshotJson')
+        snapshot.innerHTML = await codeToHtml(snapshot.innerText, {
+            lang: 'js',
+            theme: 'rose-pine'
+        })
     </script>
 {% endset %}

@@ -10,13 +10,9 @@
 
 namespace superbig\audit\variables;
 
-use superbig\audit\Audit;
-
-use Craft;
 use craft\base\Component;
-use superbig\audit\models\AuditModel;
-use superbig\audit\records\AuditRecord;
-use yii\base\Exception;
+
+use superbig\audit\Audit;
 
 /**
  * @author    Superbig
@@ -25,9 +21,6 @@ use yii\base\Exception;
  */
 class AuditVariable extends Component
 {
-    // Public Methods
-    // =========================================================================
-
     /**
      * @param null $ipAddress
      *

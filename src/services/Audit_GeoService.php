@@ -10,23 +10,17 @@
 
 namespace superbig\audit\services;
 
-use craft\base\Element;
-use craft\base\ElementInterface;
+use Craft;
+use craft\base\Component;
 use craft\helpers\FileHelper;
-use craft\models\EntryDraft;
 use ErrorException;
 use GeoIp2\Database\Reader;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
+
 use GuzzleHttp\Exception\ConnectException;
 use superbig\audit\Audit;
-
-use Craft;
-use craft\base\Component;
-use superbig\audit\models\AuditModel;
 use superbig\audit\models\Settings;
-use superbig\audit\records\AuditRecord;
-use yii\base\Exception;
 
 /**
  * @author    Superbig
@@ -48,54 +42,47 @@ class Audit_GeoService extends Component
         $this->settings = Audit::$plugin->getSettings();
     }
 
-    /**
-     * @param string $ip
-     *
-     * @return mixed|null
-     */
-    public function getLocationInfoForIp($ip = '84.215.212.44')
+    public function getLocationInfoForIp(string|null $ip = '84.215.212.44'): null|object
     {
         $cache = Craft::$app->getCache();
 
-        if ($ip) {
-            /*if ( $ip == '::1' || $ip == '127.0.0.1' ) {
-                return null;
-            }*/
+        if (!$ip) {
+            return null;
+        }
 
-            $cacheKey = 'audit-ip-' . $ip;
+        $cacheKey = 'audit-ip-' . $ip;
 
-            // Check cache first
-            if ($cacheRecord = $cache->get($cacheKey)) {
-                return $cacheRecord;
-            }
+        // Check cache first
+        if ($cacheRecord = $cache->get($cacheKey)) {
+            return $cacheRecord;
+        }
 
-            try {
-                // This creates the Reader object, which should be reused across lookups.
-                $reader = new Reader($this->settings->getCityDbPath());
-                $record = $reader->city($ip);
+        try {
+            // This creates the Reader object, which should be reused across lookups.
+            $reader = new Reader($this->settings->getCityDbPath());
+            $record = $reader->city($ip);
 
-                $cache->set($cacheKey, $record);
+            $cache->set($cacheKey, $record);
 
-                return $record;
-            } catch (\Exception $e) {
-                Craft::error(
-                    Craft::t(
-                        'audit',
-                        'There was an error getting the ip info: {error}',
-                        ['error' => $e->getMessage()]
-                    ),
-                    __METHOD__
-                );
+            return $record;
+        } catch (\Exception $e) {
+            Craft::error(
+                Craft::t(
+                    'audit',
+                    'There was an error getting the ip info: {error}',
+                    ['error' => $e->getMessage()]
+                ),
+                __METHOD__
+            );
 
-                return null;
-            }
+            return null;
         }
     }
 
     public function checkLicenseKey()
     {
         if (!$this->settings->hasValidLicenseKey()) {
-            $error = $this->formatErrorMessage('Invalid MaxMind license key. Generate one at {url}', [
+            $error = $this->formatErrorMessage('Missing MaxMind Account ID or License Key. Get them at {url}', [
                 'url' => $this->settings->accountAreaUrl,
             ]);
 
@@ -147,6 +134,8 @@ class Audit_GeoService extends Component
                 $client = (new Client())
                     ->get($type['url'], [
                         'sink' => $type['tempPath'],
+                        'auth' => $settings->getAuthCredentials(),
+                        'allow_redirects' => true,
                     ]);
             } catch (ConnectException $e) {
                 $error = $this->formatErrorMessage('Failed to connect to {url}: {error}', [
@@ -212,12 +201,17 @@ class Audit_GeoService extends Component
                 $url = $info['url'];
                 $path = $info['path'];
                 $response = $guzzle
-                    ->get($url);
+                    ->get($url, [
+                        'auth' => $settings->getAuthCredentials(),
+                        'allow_redirects' => true,
+                    ]);
 
-                $remoteChecksum = (string)$response->getBody();
+                $remoteChecksum = trim((string)$response->getBody());
+                // SHA256 response format: "hash  filename" - extract just the hash
+                $remoteChecksum = explode(' ', $remoteChecksum)[0];
 
                 // Verify checksum
-                if (md5(file_get_contents($path)) !== $remoteChecksum) {
+                if (hash_file('sha256', $path) !== $remoteChecksum) {
                     $error = $this->formatErrorMessage('Remote checksum for {type} database doesn\'t match downloaded database. Please try again or contact support.', ['type' => $key]);
 
                     return $this->logError($error, __METHOD__);

@@ -161,3 +161,11 @@
 :root .audit-snapshot-table tbody td:first-child {
     min-width: 100px;
 }
+
+.audit-snapshot-json {
+    padding-top: 10px;
+}
+
+.audit-snapshot-json pre.shiki {
+    padding: 5px;
+}

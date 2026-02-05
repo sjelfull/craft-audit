@@ -10,24 +10,8 @@
 
 namespace superbig\audit\helpers;
 
-use craft\base\Element;
-use craft\base\ElementInterface;
-use craft\base\Field;
-use craft\base\Plugin;
-use craft\base\PluginInterface;
-use craft\fields\Assets;
-use craft\fields\Entries;
-use craft\fields\Lightswitch;
 use craft\helpers\Html;
-use craft\helpers\Json;
-use craft\models\EntryDraft;
 use superbig\audit\Audit;
-
-use Craft;
-use craft\base\Component;
-use superbig\audit\models\AuditModel;
-use superbig\audit\records\AuditRecord;
-use yii\base\Exception;
 
 /**
  * @author    Superbig
@@ -48,11 +32,10 @@ class Route
         foreach ($uriParts as $part) {
             if (is_string($part)) {
                 $uriDisplayHtml .= Html::encode($part);
-            }
-            else {
+            } else {
                 $uriDisplayHtml .= Html::encodeParams('<span class="token" data-name="{name}" data-value="{value}"><span>{name}</span></span>',
                     [
-                        'name'  => $part[0],
+                        'name' => $part[0],
                         'value' => $part[1],
                     ]);
             }
