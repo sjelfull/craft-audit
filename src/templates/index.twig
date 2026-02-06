@@ -32,7 +32,7 @@
 {% endblock %}
 
 {% block sidebar %}
-    <nav>
+    <div>
         <h3>{{ "Filters"|t('audit') }}</h3>
         <form id="audit-filters-form" method="get">
             <div class="field">
@@ -56,7 +56,7 @@
                 <button type="button" class="btn" id="clear-filters">{{ "Clear"|t('audit') }}</button>
             </div>
         </form>
-    </nav>
+    </div>
 {% endblock %}
 
 {% block content %}
