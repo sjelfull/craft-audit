@@ -1,10 +1,38 @@
-# Audit plugin for Craft CMS 3.x
+# Audit plugin for Craft CMS 5
 
-Audit log for Craft 4.
+Enterprise-grade audit logging for Craft CMS. Track every change, login, and system event — then send your logs anywhere.
 
 ![Plugin icon](resources/img/icon.png)
 
-_Note: This plugin costs $99.00 through the [Craft Plugin Store](https://plugins.craftcms.com/audit) when used in production._
+_$99.00 through the [Craft Plugin Store](https://plugins.craftcms.com/audit) for production use._
+
+![Screenshot of index view](resources/screenshots/audit-index.png)
+
+## What It Does
+
+Audit automatically logs actions performed by authenticated users:
+
+- **Content** — Creating, saving, and deleting entries, assets, users, globals, and Commerce products/variants
+- **Users** — Logins, logouts, account activation/deactivation, suspension, locking, group assignments
+- **Permissions** — User and group permission changes
+- **Schema** — Field, section, and entry type changes
+- **System** — Plugin installs/uninstalls, route changes, database backups/restores, settings changes
+
+No configuration required — install the plugin and logging starts immediately.
+
+## Requirements
+
+- Craft CMS 5.5+
+- PHP 8.2+
+
+## Installation
+
+```bash
+cd /path/to/project
+composer require superbig/craft-audit
+```
+
+Then go to **Settings → Plugins** in the Control Panel and click **Install** for Audit.
 
 ## Screenshots
 
@@ -12,81 +40,249 @@ _Note: This plugin costs $99.00 through the [Craft Plugin Store](https://plugins
 
 ![Screenshot of details view](resources/screenshots/audit-details.png)
 
-## Requirements
+---
 
-This plugin requires Craft CMS 4.0.0 or later.
+## Configuration
 
-## Installation
-
-To install the plugin, follow these instructions.
-
-1. Open your terminal and go to your Craft project:
-
-        cd /path/to/project
-
-2. Then tell Composer to load the plugin:
-
-        composer require superbig/craft-audit
-
-3. In the Control Panel, go to Settings → Plugins and click the “Install” button for Audit.
-
-## Audit Overview
-
-Audit automatically keeps an audit log for actions done by logged in users.
-
-## Configuring Audit
+Create a `config/audit.php` file to customize behavior:
 
 ```php
 <?php
+
 return [
-    // How many days to keep log entries around
-    'pruneDays'          => 30,
+    // How many days to keep log entries (default: 30)
+    'pruneDays' => 30,
 
-    // Enable logging
-    'enabled'            => true,
+    // Master switch for logging
+    'enabled' => true,
 
-    // Toggle specific event types
-    'logElementEvents'            => true,
-    'logChildElementEvents'       => false,
-    'logDraftEvents'              => false,
-    'logPluginEvents'             => true,
-    'logUserEvents'               => true,
-    'logRouteEvents'              => true,
+    // Toggle event categories
+    'logElementEvents'       => true,
+    'logChildElementEvents'  => false,
+    'logDraftEvents'         => false,
+    'logPluginEvents'        => true,
+    'logUserEvents'          => true,
+    'logRouteEvents'         => true,
+    'logUserSecurityEvents'  => true,
+    'logPermissionEvents'    => true,
+    'logSchemaEvents'        => true,
+    'logDatabaseEvents'      => true,
 
-    
-    // Prune old records when a admin is logged in
-    'pruneRecordsOnAdminRequests'          => false,
+    // Auto-prune on admin CP requests
+    'pruneRecordsOnAdminRequests' => false,
 
-    // Enable geolocation status
+    // Geolocation (requires MaxMind license)
     'enabledGeolocation' => true,
-    'maxmindLicenseKey' => '',
-    
-    // Where to save Maxmind DB files
-    'dbPath' => '',
+    'maxmindAccountId'   => '',
+    'maxmindLicenseKey'  => '',
+    'dbPath'             => '',
 ];
 ```
 
-## Using Audit
+This file supports [multi-environment config](https://craftcms.com/docs/5.x/configure.html#multi-environment-configs), so you can have different settings per environment.
 
-As long as the plugin is installed, it will log the following events automatically:
+### Event Categories
 
-- Creating/saving/deleting elements (including users, Commerce product/variants etc.)
-- Saving global sets
-- Creating/saving/deleting routes
-- Installing/uninstalling and enabling/disabling plugins
-- Login/logout
+| Setting | What It Logs | Default |
+|---------|-------------|---------|
+| `logElementEvents` | Entry/asset/user create, save, delete | `true` |
+| `logChildElementEvents` | Child element changes (e.g., Matrix blocks) | `false` |
+| `logDraftEvents` | Draft creation and saves | `false` |
+| `logPluginEvents` | Plugin install, uninstall, enable, disable | `true` |
+| `logUserEvents` | Login, logout | `true` |
+| `logRouteEvents` | Route create, save, delete | `true` |
+| `logUserSecurityEvents` | Account activate, deactivate, suspend, lock | `true` |
+| `logPermissionEvents` | User/group permission changes | `true` |
+| `logSchemaEvents` | Field, section, entry type changes | `true` |
+| `logDatabaseEvents` | Database backup and restore | `true` |
 
-More events like Commerce-specific event handling is planned.
+---
 
-### Geolocation
+## Console Commands
 
-To enable geolocation lookup with the help of the MaxMind GeoLite2 databases, you first have to generate a license key. 
+### Prune Old Logs
 
-Add your [MaxMind.com License Key](https://support.maxmind.com/account-faq/license-keys/can-generate-new-license-key/) obtained from the [MaxMind.com account area](https://www.maxmind.com/en/accounts/current/people/current).  
+Remove log entries older than `pruneDays`:
 
-## Clearing old records
+```bash
+./craft audit/default/prune-logs
+```
 
-You can prune records older than `n` days (configured by the `pruneDays` setting) either by using the console command `./craft audit/default/prune-logs` or by a button on the Audit index screen. 
+### Update Geolocation Database
+
+Download the latest MaxMind GeoLite2 database:
+
+```bash
+./craft audit/default/update-database
+```
+
+---
+
+## Geolocation
+
+Audit can enrich log entries with geographic data using [MaxMind GeoLite2](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data) databases.
+
+### Setup
+
+1. Create a free account at [MaxMind.com](https://www.maxmind.com/en/geolite2/signup)
+2. Generate a [license key](https://www.maxmind.com/en/accounts/current/license-key)
+3. Add your credentials to `config/audit.php`:
+
+```php
+return [
+    'enabledGeolocation' => true,
+    'maxmindAccountId'   => getenv('MAXMIND_ACCOUNT_ID'),
+    'maxmindLicenseKey'  => getenv('MAXMIND_LICENSE_KEY'),
+];
+```
+
+4. Download the database:
+
+```bash
+./craft audit/default/update-database
+```
+
+---
+
+## Tracked Events
+
+Here's the full list of events Audit captures:
+
+### Content Events
+
+| Event | Constant | Description |
+|-------|----------|-------------|
+| Entry created | `EVENT_ENTRY_CREATED` | New entry saved for the first time |
+| Entry saved | `EVENT_ENTRY_SAVED` | Existing entry updated |
+| Entry deleted | `EVENT_ENTRY_DELETED` | Entry removed |
+| Element created | `EVENT_CREATED_ELEMENT` | Any element (asset, user, etc.) created |
+| Element saved | `EVENT_SAVED_ELEMENT` | Any element updated |
+| Element deleted | `EVENT_DELETED_ELEMENT` | Any element removed |
+| Global set saved | `EVENT_SAVED_GLOBAL` | Global set content updated |
+| Draft created | `EVENT_CREATED_DRAFT` | New draft created |
+| Draft saved | `EVENT_SAVED_DRAFT` | Draft updated |
+| Draft deleted | `EVENT_DELETED_DRAFT` | Draft removed |
+| Elements resaved | `EVENT_RESAVED_ELEMENTS` | Bulk resave operation |
+
+### User Events
+
+| Event | Constant | Description |
+|-------|----------|-------------|
+| User logged in | `USER_LOGGED_IN` | Successful login |
+| User logged out | `USER_LOGGED_OUT` | Logout |
+| User activated | `EVENT_USER_ACTIVATED` | Account activated |
+| User deactivated | `EVENT_USER_DEACTIVATED` | Account deactivated |
+| User suspended | `EVENT_USER_SUSPENDED` | Account suspended |
+| User unsuspended | `EVENT_USER_UNSUSPENDED` | Suspension lifted |
+| User locked | `EVENT_USER_LOCKED` | Account locked (too many failed logins) |
+| User unlocked | `EVENT_USER_UNLOCKED` | Account unlocked |
+| Groups assigned | `EVENT_USER_GROUPS_ASSIGNED` | User assigned to groups |
+
+### Permission Events
+
+| Event | Constant | Description |
+|-------|----------|-------------|
+| User permissions saved | `EVENT_USER_PERMISSIONS_SAVED` | Individual user permissions changed |
+| Group permissions saved | `EVENT_GROUP_PERMISSIONS_SAVED` | Group-level permissions changed |
+| User group created | `EVENT_USER_GROUP_CREATED` | New user group |
+| User group saved | `EVENT_USER_GROUP_SAVED` | User group updated |
+| User group deleted | `EVENT_USER_GROUP_DELETED` | User group removed |
+
+### Schema Events
+
+| Event | Constant | Description |
+|-------|----------|-------------|
+| Field created | `EVENT_FIELD_CREATED` | New field added |
+| Field saved | `EVENT_FIELD_SAVED` | Field settings updated |
+| Field deleted | `EVENT_FIELD_DELETED` | Field removed |
+| Section created | `EVENT_SECTION_CREATED` | New section added |
+| Section saved | `EVENT_SECTION_SAVED` | Section settings updated |
+| Section deleted | `EVENT_SECTION_DELETED` | Section removed |
+| Entry type created | `EVENT_ENTRY_TYPE_CREATED` | New entry type added |
+| Entry type saved | `EVENT_ENTRY_TYPE_SAVED` | Entry type updated |
+| Entry type deleted | `EVENT_ENTRY_TYPE_DELETED` | Entry type removed |
+
+### System Events
+
+| Event | Constant | Description |
+|-------|----------|-------------|
+| Plugin installed | `EVENT_PLUGIN_INSTALLED` | Plugin installed |
+| Plugin uninstalled | `EVENT_PLUGIN_UNINSTALLED` | Plugin removed |
+| Plugin enabled | `EVENT_PLUGIN_ENABLED` | Plugin activated |
+| Plugin disabled | `EVENT_PLUGIN_DISABLED` | Plugin deactivated |
+| Route created | `EVENT_CREATED_ROUTE` | URL route added |
+| Route saved | `EVENT_SAVED_ROUTE` | URL route updated |
+| Route deleted | `EVENT_DELETED_ROUTE` | URL route removed |
+| Backup created | `EVENT_BACKUP_CREATED` | Database backup made |
+| Backup restored | `EVENT_BACKUP_RESTORED` | Database backup restored |
+| System settings changed | `EVENT_SYSTEM_SETTINGS_CHANGED` | System config updated |
+| Email settings changed | `EVENT_EMAIL_SETTINGS_CHANGED` | Email config updated |
+
+---
+
+## Extending Audit
+
+### Modifying Snapshots
+
+Use the `EVENT_SNAPSHOT` event to add custom data to audit log snapshots:
+
+```php
+use superbig\audit\services\AuditService;
+use superbig\audit\events\SnapshotEvent;
+
+Event::on(
+    AuditService::class,
+    AuditService::EVENT_SNAPSHOT,
+    function(SnapshotEvent $event) {
+        // Add custom data to the snapshot
+        $event->snapshot['customField'] = 'custom value';
+        
+        // Access the audit model
+        $auditModel = $event->audit;
+    }
+);
+```
+
+### Permissions
+
+Audit registers two permissions you can assign to user groups:
+
+| Permission | Handle | Description |
+|-----------|--------|-------------|
+| View audit logs | `audit-view-logs` | Access the Audit CP section |
+| Clear old logs | `audit-clear-logs` | Prune old log entries |
+
+### Template Variables
+
+Access audit data in your Twig templates:
+
+```twig
+{# Get events for a specific element #}
+{% set events = craft.audit.getEventsForElement(entry) %}
+
+{# Loop through events #}
+{% for event in events %}
+    {{ event.event }} by {{ event.user }} at {{ event.dateCreated|date }}
+{% endfor %}
+```
+
+---
+
+## Upgrading
+
+### From Craft 4 (Audit 2.x/3.x) to Craft 5
+
+- **PHP 8.2+** is now required
+- Run `composer update superbig/craft-audit` after upgrading Craft
+- All existing audit data is preserved — no migration needed
+- Event naming is more semantic in v5 (e.g., `entry-created` for entries vs. generic `created-element`)
+
+---
+
+## Support
+
+- [GitHub Issues](https://github.com/sjelfull/craft-audit/issues)
+- [Craft Plugin Store](https://plugins.craftcms.com/audit)
 
 ## Credits
 
