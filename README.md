@@ -222,9 +222,92 @@ Here's the full list of events Audit captures:
 
 ## Extending Audit
 
+Audit exposes events that let other plugins and modules hook into the logging pipeline. All events follow Craft's standard patterns — `CancelableEvent` for before hooks, `Event` for after hooks.
+
+### Events Reference
+
+| Event | Class | Cancelable | Description |
+|-------|-------|:----------:|-------------|
+| `EVENT_DEFINE_SHOULD_LOG` | `AuditService` | — | Early filter — skip logging before model is built |
+| `EVENT_BEFORE_LOG` | `AuditService` | ✓ | Modify or cancel an audit entry before save |
+| `EVENT_AFTER_LOG` | `AuditService` | — | React after an entry is saved (notifications, sync) |
+| `EVENT_SNAPSHOT` | `AuditService` | — | Modify snapshot data attached to an entry |
+| `EVENT_REGISTER_EVENT_TYPES` | `AuditService` | — | Register custom event types with labels and categories |
+| `EVENT_BEFORE_DRIVER_WRITE` | `DriverManager` | ✓ | Transform or skip data per-driver (e.g., redact PII) |
+| `EVENT_AFTER_DRIVER_WRITE` | `DriverManager` | — | Monitor driver health and write performance |
+| `EVENT_DEFINE_AUDIT_QUERY` | `AuditService` | — | Modify CP audit log queries |
+| `EVENT_BEFORE_PRUNE_LOGS` | `AuditService` | ✓ | Custom retention policies before pruning |
+| `EVENT_AFTER_PRUNE_LOGS` | `AuditService` | — | React after logs are pruned |
+
+> For full event class definitions and advanced usage, see [docs/events.md](docs/events.md).
+
+### Cancel Logging for Specific Conditions
+
+Use `EVENT_BEFORE_LOG` to cancel or modify entries before they're saved:
+
+```php
+use superbig\audit\services\AuditService;
+use superbig\audit\events\BeforeLogEvent;
+
+Event::on(
+    AuditService::class,
+    AuditService::EVENT_BEFORE_LOG,
+    function(BeforeLogEvent $event) {
+        // Skip audit for bot traffic
+        if (str_contains($event->audit->userAgent ?? '', 'Googlebot')) {
+            $event->isValid = false;
+        }
+    }
+);
+```
+
+### Register Custom Event Types
+
+Let your plugin's events show up with proper labels in the Audit CP:
+
+```php
+use superbig\audit\services\AuditService;
+use superbig\audit\events\RegisterEventTypesEvent;
+
+Event::on(
+    AuditService::class,
+    AuditService::EVENT_REGISTER_EVENT_TYPES,
+    function(RegisterEventTypesEvent $event) {
+        $event->eventTypes['order-completed'] = [
+            'label' => 'Order completed',
+            'category' => 'Commerce',
+        ];
+        $event->eventTypes['payment-received'] = [
+            'label' => 'Payment received',
+            'category' => 'Commerce',
+        ];
+    }
+);
+```
+
+### Filter by Element Type
+
+Use `EVENT_DEFINE_SHOULD_LOG` for cheap, early filtering — before the audit model is even built:
+
+```php
+use superbig\audit\services\AuditService;
+use superbig\audit\events\ShouldLogEvent;
+
+Event::on(
+    AuditService::class,
+    AuditService::EVENT_DEFINE_SHOULD_LOG,
+    function(ShouldLogEvent $event) {
+        // Never log Asset saves
+        if ($event->element instanceof \craft\elements\Asset) {
+            $event->shouldLog = false;
+        }
+    }
+);
+```
+
 ### Modifying Snapshots
 
-Use the `EVENT_SNAPSHOT` event to add custom data to audit log snapshots:
+Use `EVENT_SNAPSHOT` to add custom data to audit log snapshots:
 
 ```php
 use superbig\audit\services\AuditService;
@@ -234,11 +317,7 @@ Event::on(
     AuditService::class,
     AuditService::EVENT_SNAPSHOT,
     function(SnapshotEvent $event) {
-        // Add custom data to the snapshot
         $event->snapshot['customField'] = 'custom value';
-        
-        // Access the audit model
-        $auditModel = $event->audit;
     }
 );
 ```
