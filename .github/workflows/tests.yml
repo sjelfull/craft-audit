@@ -6,6 +6,7 @@ on:
     branches:
       - main
       - chore/craft5-support
+      - v3
 
 permissions:
   contents: read
@@ -16,6 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        php: ['8.2', '8.3', '8.4']
         database: [mysql, postgres]
         include:
           - database: mysql
@@ -69,7 +71,7 @@ jobs:
 
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: ${{ matrix.php }}
 
       - name: Validate composer.json
         run: composer validate --strict
