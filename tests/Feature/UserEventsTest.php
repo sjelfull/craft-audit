@@ -2,7 +2,7 @@
 
 use craft\elements\User;
 use superbig\audit\Audit;
-use superbig\audit\models\AuditModel;
+use superbig\audit\enums\AuditEvent;
 use superbig\audit\records\AuditRecord;
 
 beforeEach(function () {
@@ -20,7 +20,7 @@ it('logs audit event when user logs in', function () {
     Audit::$plugin->auditService->onLogin();
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::USER_LOGGED_IN])
+        ->where(['event' => AuditEvent::UserLoggedIn->value])
         ->one();
 
     expect($record)->not->toBeNull();
@@ -37,7 +37,7 @@ it('logs audit event when user logs out', function () {
     Audit::$plugin->auditService->onBeforeLogout();
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::USER_LOGGED_OUT])
+        ->where(['event' => AuditEvent::UserLoggedOut->value])
         ->one();
 
     expect($record)->not->toBeNull();
@@ -57,7 +57,7 @@ it('does not log user events when disabled', function () {
     expect($result)->toBeFalse();
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::USER_LOGGED_IN])
+        ->where(['event' => AuditEvent::UserLoggedIn->value])
         ->one();
 
     expect($record)->toBeNull();
@@ -73,7 +73,7 @@ it('captures session ID on login event', function () {
     Audit::$plugin->auditService->onLogin();
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::USER_LOGGED_IN])
+        ->where(['event' => AuditEvent::UserLoggedIn->value])
         ->one();
 
     expect($record)->not->toBeNull();

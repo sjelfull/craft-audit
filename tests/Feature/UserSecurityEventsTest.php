@@ -3,6 +3,7 @@
 use craft\elements\User;
 use craft\events\UserEvent;
 use superbig\audit\Audit;
+use superbig\audit\enums\AuditEvent;
 use superbig\audit\models\AuditModel;
 use superbig\audit\records\AuditRecord;
 
@@ -18,7 +19,7 @@ it('logs audit event when user is activated', function () {
     Audit::$plugin->auditService->onUserActivated($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_USER_ACTIVATED])
+        ->where(['event' => AuditEvent::UserActivated->value])
         ->one();
 
     expect($record)->not->toBeNull();
@@ -34,7 +35,7 @@ it('logs audit event when user is deactivated', function () {
     Audit::$plugin->auditService->onUserDeactivated($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_USER_DEACTIVATED])
+        ->where(['event' => AuditEvent::UserDeactivated->value])
         ->one();
 
     expect($record)->not->toBeNull();
@@ -49,7 +50,7 @@ it('logs audit event when user is suspended', function () {
     Audit::$plugin->auditService->onUserSuspended($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_USER_SUSPENDED])
+        ->where(['event' => AuditEvent::UserSuspended->value])
         ->one();
 
     expect($record)->not->toBeNull();
@@ -64,7 +65,7 @@ it('logs audit event when user is unsuspended', function () {
     Audit::$plugin->auditService->onUserUnsuspended($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_USER_UNSUSPENDED])
+        ->where(['event' => AuditEvent::UserUnsuspended->value])
         ->one();
 
     expect($record)->not->toBeNull();
@@ -79,7 +80,7 @@ it('logs audit event when user is locked', function () {
     Audit::$plugin->auditService->onUserLocked($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_USER_LOCKED])
+        ->where(['event' => AuditEvent::UserLocked->value])
         ->one();
 
     expect($record)->not->toBeNull();
@@ -94,7 +95,7 @@ it('logs audit event when user is unlocked', function () {
     Audit::$plugin->auditService->onUserUnlocked($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_USER_UNLOCKED])
+        ->where(['event' => AuditEvent::UserUnlocked->value])
         ->one();
 
     expect($record)->not->toBeNull();
@@ -113,7 +114,7 @@ it('does not log user security events when disabled', function () {
     expect($result)->toBeFalse();
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_USER_ACTIVATED])
+        ->where(['event' => AuditEvent::UserActivated->value])
         ->one();
 
     expect($record)->toBeNull();
@@ -129,7 +130,7 @@ it('captures user details in snapshot', function () {
     Audit::$plugin->auditService->onUserActivated($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_USER_ACTIVATED])
+        ->where(['event' => AuditEvent::UserActivated->value])
         ->one();
 
     expect($record)->not->toBeNull();

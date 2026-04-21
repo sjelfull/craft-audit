@@ -6,6 +6,7 @@ use craft\events\UserGroupPermissionsEvent;
 use craft\events\UserPermissionsEvent;
 use craft\models\UserGroup;
 use superbig\audit\Audit;
+use superbig\audit\enums\AuditEvent;
 use superbig\audit\models\AuditModel;
 use superbig\audit\records\AuditRecord;
 
@@ -24,7 +25,7 @@ it('logs audit event when user permissions are saved', function () {
     Audit::$plugin->auditService->onUserPermissionsSaved($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_USER_PERMISSIONS_SAVED])
+        ->where(['event' => AuditEvent::UserPermissionsSaved->value])
         ->one();
 
     expect($record)->not->toBeNull();
@@ -42,7 +43,7 @@ it('logs audit event when group permissions are saved', function () {
     Audit::$plugin->auditService->onGroupPermissionsSaved($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_GROUP_PERMISSIONS_SAVED])
+        ->where(['event' => AuditEvent::GroupPermissionsSaved->value])
         ->one();
 
     expect($record)->not->toBeNull();
@@ -63,7 +64,7 @@ it('logs audit event when user group is saved', function () {
     Audit::$plugin->auditService->onUserGroupSaved($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_USER_GROUP_CREATED])
+        ->where(['event' => AuditEvent::UserGroupCreated->value])
         ->one();
 
     expect($record)->not->toBeNull();
@@ -84,7 +85,7 @@ it('logs audit event when user group is deleted', function () {
     Audit::$plugin->auditService->onUserGroupDeleted($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_USER_GROUP_DELETED])
+        ->where(['event' => AuditEvent::UserGroupDeleted->value])
         ->one();
 
     expect($record)->not->toBeNull();
@@ -106,7 +107,7 @@ it('does not log permission events when disabled', function () {
     expect($result)->toBeFalse();
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_USER_PERMISSIONS_SAVED])
+        ->where(['event' => AuditEvent::UserPermissionsSaved->value])
         ->one();
 
     expect($record)->toBeNull();
@@ -126,7 +127,7 @@ it('captures permissions in snapshot', function () {
     Audit::$plugin->auditService->onUserPermissionsSaved($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_USER_PERMISSIONS_SAVED])
+        ->where(['event' => AuditEvent::UserPermissionsSaved->value])
         ->one();
 
     $model = AuditModel::createFromRecord($record);
