@@ -33,6 +33,7 @@ use craft\events\UserGroupPermissionsEvent;
 use craft\events\UserPermissionsEvent;
 use craft\helpers\ElementHelper;
 use craft\helpers\Html;
+use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\queue\jobs\ResaveElements;
 
@@ -475,7 +476,7 @@ class AuditService extends Component
             $record->ip = $model->ip;
             $record->userAgent = $model->userAgent;
             $record->siteId = $model->siteId;
-            $record->snapshot = base64_encode(serialize($model->snapshot));
+            $record->snapshot = Json::encode($model->snapshot ?: []);
             $record->sessionId = $model->sessionId;
 
             if (!$record->save()) {
