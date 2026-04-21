@@ -44,6 +44,22 @@ use craft\services\UserPermissions;
 use craft\services\Users;
 use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
+use superbig\audit\events\RegisterFieldHandlersEvent;
+use superbig\audit\fieldHandlers\handlers\BooleanHandler;
+use superbig\audit\fieldHandlers\handlers\ColorHandler;
+use superbig\audit\fieldHandlers\handlers\DateHandler;
+use superbig\audit\fieldHandlers\handlers\MatrixHandler;
+use superbig\audit\fieldHandlers\handlers\MoneyHandler;
+use superbig\audit\fieldHandlers\handlers\MultiOptionHandler;
+use superbig\audit\fieldHandlers\handlers\NeoHandler;
+use superbig\audit\fieldHandlers\handlers\OptionHandler;
+use superbig\audit\fieldHandlers\handlers\PlainHandler;
+use superbig\audit\fieldHandlers\handlers\RelationHandler;
+use superbig\audit\fieldHandlers\handlers\RichTextHandler;
+use superbig\audit\fieldHandlers\handlers\SeoHandler;
+use superbig\audit\fieldHandlers\handlers\SuperTableHandler;
+use superbig\audit\fieldHandlers\handlers\TableHandler;
+use superbig\audit\fieldHandlers\handlers\VizyHandler;
 use superbig\audit\models\AuditModel;
 use superbig\audit\models\Settings;
 use superbig\audit\services\Audit_GeoService;
@@ -124,6 +140,8 @@ class Audit extends Plugin
             'fieldDiffService' => FieldDiffService::class,
             'auditRecorder' => AuditRecorder::class,
         ]);
+
+        $this->registerFieldHandlers();
 
         Event::on(
             Plugins::class,
@@ -481,6 +499,38 @@ class Audit extends Plugin
         );
 
         $this->setupQueueEvents();
+    }
+
+    /**
+     * Register the built-in field handlers with the FieldHandlerRegistry.
+     * Third-party plugin handlers gate themselves via class_exists() inside
+     * supportedFields(), so they register safely even when the plugin is missing.
+     */
+    protected function registerFieldHandlers(): void
+    {
+        Event::on(
+            FieldHandlerRegistry::class,
+            FieldHandlerRegistry::EVENT_REGISTER_HANDLERS,
+            static function(RegisterFieldHandlersEvent $event) {
+                $event->handlers = array_merge($event->handlers, [
+                    PlainHandler::class,
+                    ColorHandler::class,
+                    RichTextHandler::class,
+                    DateHandler::class,
+                    BooleanHandler::class,
+                    OptionHandler::class,
+                    MultiOptionHandler::class,
+                    RelationHandler::class,
+                    MoneyHandler::class,
+                    TableHandler::class,
+                    MatrixHandler::class,
+                    NeoHandler::class,
+                    SuperTableHandler::class,
+                    VizyHandler::class,
+                    SeoHandler::class,
+                ]);
+            }
+        );
     }
 
     public function setupPermissions()
