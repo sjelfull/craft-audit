@@ -1,0 +1,14 @@
+{# _diff/truncated.twig — field too large, shown truncated. #}
+<div class="audit-diff-truncated">
+    <strong>✂ Content truncated</strong>
+    {% if change.reason ?? null %}
+        — {{ change.reason }}
+    {% elseif change.size ?? null %}
+        — {{ change.size }} bytes (limit exceeded)
+    {% else %}
+        — value exceeded the diff size limit
+    {% endif %}
+    {% if change.preview ?? null %}
+        <pre style="margin-top:6px;font-size:11px;opacity:0.7;white-space:pre-wrap">{{ change.preview }}</pre>
+    {% endif %}
+</div>

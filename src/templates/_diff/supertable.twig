@@ -1,0 +1,32 @@
+{# _diff/supertable.twig — SuperTable rows (simpler — no types). #}
+{% set rows = change.rows ?? change.blocks ?? [] %}
+
+{% if rows is empty %}
+    <span class="audit-diff-badge audit-diff-badge--identical">No changes</span>
+{% else %}
+<div class="audit-diff-blocks">
+    {% for row in rows %}
+        <div class="audit-diff-block audit-diff-block--{{ row.status ?? 'unchanged' }}">
+            <div class="audit-diff-block-label">
+                {{ (row.status ?? 'unchanged')|capitalize }} · Row {{ (row.rowIndex ?? loop.index0) + 1 }}
+            </div>
+            {% if row.summary ?? null %}
+                <div class="audit-diff-block-summary">{{ row.summary }}</div>
+            {% endif %}
+            {% if row.fieldDiffs ?? [] is not empty %}
+                <details>
+                    <summary style="cursor:pointer;font-size:12px;opacity:0.7">
+                        {{ row.fieldDiffs|length }} field(s) changed
+                    </summary>
+                    {% for fieldDiff in row.fieldDiffs %}
+                        <div style="margin-top:4px">
+                            <strong>{{ fieldDiff.label ?? fieldDiff.handle ?? '' }}:</strong>
+                            {{ (fieldDiff.diff ?? '')|raw }}
+                        </div>
+                    {% endfor %}
+                </details>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+{% endif %}

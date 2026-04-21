@@ -1,0 +1,18 @@
+{# _diff/generic.twig — fallback: JSON-encoded old/new side by side. #}
+{% set from = change.from ?? null %}
+{% set to   = change.to   ?? null %}
+
+{% if from == to %}
+    <span class="audit-diff-badge audit-diff-badge--identical">No changes</span>
+{% else %}
+    <div class="audit-diff-generic">
+        <div class="audit-diff-generic-side old">
+            <div class="audit-diff-generic-label">Old</div>
+            <pre>{{ from is iterable ? from|json_encode(constant('JSON_PRETTY_PRINT')) : from }}</pre>
+        </div>
+        <div class="audit-diff-generic-side new">
+            <div class="audit-diff-generic-label">New</div>
+            <pre>{{ to is iterable ? to|json_encode(constant('JSON_PRETTY_PRINT')) : to }}</pre>
+        </div>
+    </div>
+{% endif %}

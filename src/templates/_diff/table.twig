@@ -1,0 +1,37 @@
+{# _diff/table.twig — row-level diff with changed cells highlighted. #}
+{% set columns = change.columns ?? [] %}
+{% set rows    = change.rows    ?? [] %}
+
+{% if rows is empty %}
+    <span class="audit-diff-badge audit-diff-badge--identical">No changes</span>
+{% else %}
+<div class="audit-diff-table-wrap">
+    <table class="audit-diff-table">
+        <thead>
+            <tr>
+                {% for col in columns %}
+                    <th>{{ col.label ?? col.handle ?? col }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+                <tr class="row-{{ row.status ?? 'unchanged' }}">
+                    {% for col in columns %}
+                        {% set handle = col.handle ?? col %}
+                        {% set cell = (row.cells ?? {})[handle] ?? {} %}
+                        <td class="{{ cell.changed ?? false ? 'changed' : '' }}">
+                            {% if cell.changed ?? false %}
+                                <del>{{ cell.old ?? '' }}</del>
+                                <ins>{{ cell.new ?? '' }}</ins>
+                            {% else %}
+                                {{ cell.value ?? cell.new ?? cell.old ?? '' }}
+                            {% endif %}
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}

@@ -1,0 +1,26 @@
+{# _diff/boolean.twig — on/off toggle badges. #}
+{% macro boolBadge(value) %}
+    {% set on = value ? true : false %}
+    <span class="audit-diff-bool-badge audit-diff-bool-badge--{{ on ? 'on' : 'off' }}">
+        {% if on %}
+            <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 5l2.5 2.5 4.5-4.5" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+            On
+        {% else %}
+            <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 2l6 6M8 2l-6 6" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+            Off
+        {% endif %}
+    </span>
+{% endmacro %}
+
+{% set from = change.from ? true : false %}
+{% set to   = change.to   ? true : false %}
+
+{% if from == to %}
+    <span class="audit-diff-badge audit-diff-badge--identical">No changes</span>
+{% else %}
+<div class="audit-diff-bool">
+    {{ _self.boolBadge(from) }}
+    <span class="audit-diff-arrow">→</span>
+    {{ _self.boolBadge(to) }}
+</div>
+{% endif %}

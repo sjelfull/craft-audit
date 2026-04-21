@@ -1,0 +1,32 @@
+{# _diff/seo.twig — SEO meta grid, only shows changed fields. #}
+{% set fields = change.fields ?? {} %}
+{% set seoFields = [
+    { key: 'title',              label: 'Title' },
+    { key: 'description',        label: 'Description' },
+    { key: 'keywords',           label: 'Keywords' },
+    { key: 'ogTitle',            label: 'OG Title' },
+    { key: 'ogDescription',      label: 'OG Description' },
+    { key: 'ogImage',            label: 'OG Image' },
+    { key: 'twitterTitle',       label: 'Twitter Title' },
+    { key: 'twitterDescription', label: 'Twitter Desc' }
+] %}
+
+{% set anyChanged = false %}
+{% for f in seoFields %}
+    {% if fields[f.key] is defined and (fields[f.key].changed ?? false) %}
+        {% set anyChanged = true %}
+    {% endif %}
+{% endfor %}
+
+{% if not anyChanged %}
+    <span class="audit-diff-badge audit-diff-badge--identical">No SEO changes</span>
+{% else %}
+    <div class="audit-diff-seo-grid">
+        {% for f in seoFields %}
+            {% if fields[f.key] is defined and (fields[f.key].changed ?? false) %}
+                <div class="audit-diff-seo-label">{{ f.label }}</div>
+                <div>{{ (fields[f.key].diff ?? '')|raw }}</div>
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endif %}

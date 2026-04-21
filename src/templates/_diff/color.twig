@@ -1,0 +1,27 @@
+{# _diff/color.twig — color swatches + hex values #}
+{% set from = change.from ?? '' %}
+{% set to   = change.to   ?? '' %}
+
+{% if from == to %}
+    <span class="audit-diff-badge audit-diff-badge--identical">No changes</span>
+{% else %}
+<div class="audit-diff-color">
+    <div class="audit-diff-color-side">
+        {% if from %}
+            <span class="audit-color-swatch audit-diff-color-swatch" style="background: {{ from }};"></span>
+            <code class="audit-diff-old">{{ from }}</code>
+        {% else %}
+            <em class="audit-diff-old">None</em>
+        {% endif %}
+    </div>
+    <span class="audit-diff-arrow">→</span>
+    <div class="audit-diff-color-side">
+        {% if to %}
+            <span class="audit-color-swatch audit-diff-color-swatch" style="background: {{ to }};"></span>
+            <code class="audit-diff-new">{{ to }}</code>
+        {% else %}
+            <em class="audit-diff-new">None</em>
+        {% endif %}
+    </div>
+</div>
+{% endif %}

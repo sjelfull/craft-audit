@@ -1,0 +1,37 @@
+{# _diff/neo.twig — Neo blocks with nesting-level indentation. #}
+{% set blocks = change.blocks ?? [] %}
+
+{% if blocks is empty %}
+    <span class="audit-diff-badge audit-diff-badge--identical">No changes</span>
+{% else %}
+<div class="audit-diff-blocks">
+    {% for block in blocks %}
+        {% set level = block.level ?? 1 %}
+        <div class="audit-diff-block audit-diff-block--{{ block.status ?? 'unchanged' }}"
+             style="margin-left: {{ (level - 1) * 16 }}px;">
+            <div class="audit-diff-block-label">
+                {% if level > 1 %}{% for i in 1..(level - 1) %}└ {% endfor %}{% endif %}
+                {{ (block.status ?? 'unchanged')|capitalize }}
+                {% if block.typeLabel ?? null %} · {{ block.typeLabel }}{% endif %}
+                <small style="opacity:0.5">L{{ level }}</small>
+            </div>
+            {% if block.summary ?? null %}
+                <div class="audit-diff-block-summary">{{ block.summary }}</div>
+            {% endif %}
+            {% if block.fieldDiffs ?? [] is not empty %}
+                <details>
+                    <summary style="cursor:pointer;font-size:12px;opacity:0.7">
+                        {{ block.fieldDiffs|length }} field(s) changed
+                    </summary>
+                    {% for fieldDiff in block.fieldDiffs %}
+                        <div style="margin-top:4px">
+                            <strong>{{ fieldDiff.label ?? fieldDiff.handle ?? '' }}:</strong>
+                            {{ (fieldDiff.diff ?? '')|raw }}
+                        </div>
+                    {% endfor %}
+                </details>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
