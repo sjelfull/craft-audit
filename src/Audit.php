@@ -67,6 +67,7 @@ use superbig\audit\services\AuditRecorder;
 use superbig\audit\services\AuditService;
 use superbig\audit\services\FieldDiffService;
 use superbig\audit\services\FieldHandlerRegistry;
+use superbig\audit\services\ProjectConfigTracker;
 
 use superbig\audit\variables\AuditVariable;
 use yii\base\Event;
@@ -86,6 +87,7 @@ use yii\web\UserEvent;
  * @property  FieldHandlerRegistry  $fieldHandlerRegistry
  * @property  FieldDiffService      $fieldDiffService
  * @property  AuditRecorder         $auditRecorder
+ * @property  ProjectConfigTracker  $projectConfigTracker
  * @method  Settings getSettings()
  */
 class Audit extends Plugin
@@ -139,9 +141,11 @@ class Audit extends Plugin
             'fieldHandlerRegistry' => FieldHandlerRegistry::class,
             'fieldDiffService' => FieldDiffService::class,
             'auditRecorder' => AuditRecorder::class,
+            'projectConfigTracker' => ProjectConfigTracker::class,
         ]);
 
         $this->registerFieldHandlers();
+        $this->projectConfigTracker->register();
 
         Event::on(
             Plugins::class,

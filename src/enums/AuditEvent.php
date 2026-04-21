@@ -93,6 +93,48 @@ enum AuditEvent: string
     case BackupCreated = 'backup-created';
     case BackupRestored = 'backup-restored';
 
+    // ===== Project Config Events (Branch 4) =====
+
+    // Category Groups
+    case CategoryGroupCreated = 'category-group-created';
+    case CategoryGroupSaved = 'category-group-saved';
+    case CategoryGroupDeleted = 'category-group-deleted';
+
+    // Tag Groups
+    case TagGroupCreated = 'tag-group-created';
+    case TagGroupSaved = 'tag-group-saved';
+    case TagGroupDeleted = 'tag-group-deleted';
+
+    // Filesystems
+    case FilesystemCreated = 'filesystem-created';
+    case FilesystemSaved = 'filesystem-saved';
+    case FilesystemDeleted = 'filesystem-deleted';
+
+    // Image Transforms
+    case ImageTransformCreated = 'image-transform-created';
+    case ImageTransformSaved = 'image-transform-saved';
+    case ImageTransformDeleted = 'image-transform-deleted';
+
+    // Sites
+    case SiteCreated = 'site-created';
+    case SiteSaved = 'site-saved';
+    case SiteDeleted = 'site-deleted';
+
+    // Site Groups
+    case SiteGroupCreated = 'site-group-created';
+    case SiteGroupSaved = 'site-group-saved';
+    case SiteGroupDeleted = 'site-group-deleted';
+
+    // Volumes
+    case VolumeCreated = 'volume-created';
+    case VolumeSaved = 'volume-saved';
+    case VolumeDeleted = 'volume-deleted';
+
+    // Global Sets (config)
+    case GlobalSetConfigCreated = 'global-set-config-created';
+    case GlobalSetConfigSaved = 'global-set-config-saved';
+    case GlobalSetConfigDeleted = 'global-set-config-deleted';
+
     /**
      * Human-readable, translated label for this event.
      *
