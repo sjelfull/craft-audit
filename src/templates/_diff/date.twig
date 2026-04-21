@@ -1,0 +1,29 @@
+{# _diff/date.twig — formatted dates with arrow. #}
+{% set from = change.from ?? null %}
+{% set to   = change.to   ?? null %}
+
+{% if from == to %}
+    <span class="audit-diff-badge audit-diff-badge--identical">No changes</span>
+{% else %}
+<div class="audit-diff-simple">
+    <span class="audit-diff-old">
+        {% if from %}
+            <time datetime="{{ from|date('c') }}" title="{{ from|date('Y-m-d H:i:s') }}">
+                {{ from|date('D, d M Y') }}
+            </time>
+        {% else %}
+            <em>None</em>
+        {% endif %}
+    </span>
+    <span class="audit-diff-arrow">→</span>
+    <span class="audit-diff-new">
+        {% if to %}
+            <time datetime="{{ to|date('c') }}" title="{{ to|date('Y-m-d H:i:s') }}">
+                {{ to|date('D, d M Y') }}
+            </time>
+        {% else %}
+            <em>None</em>
+        {% endif %}
+    </span>
+</div>
+{% endif %}

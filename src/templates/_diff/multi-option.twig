@@ -1,0 +1,28 @@
+{# _diff/multi-option.twig — pill tags: removed (red), kept (grey), added (green). #}
+{% set removed = change.removed ?? [] %}
+{% set added   = change.added   ?? [] %}
+{% set kept    = change.kept    ?? [] %}
+
+{% if removed is empty and added is empty %}
+    <span class="audit-diff-badge audit-diff-badge--identical">No changes</span>
+{% else %}
+<div class="audit-diff-pills">
+    {% for item in removed %}
+        <span class="audit-diff-pill audit-diff-pill--removed audit-tag-removed"
+              title="Removed: {{ item.value ?? item }}">
+            − {{ item.label ?? item.value ?? item }}
+        </span>
+    {% endfor %}
+    {% for item in kept %}
+        <span class="audit-diff-pill audit-diff-pill--kept">
+            {{ item.label ?? item.value ?? item }}
+        </span>
+    {% endfor %}
+    {% for item in added %}
+        <span class="audit-diff-pill audit-diff-pill--added audit-tag-added"
+              title="Added: {{ item.value ?? item }}">
+            + {{ item.label ?? item.value ?? item }}
+        </span>
+    {% endfor %}
+</div>
+{% endif %}

@@ -65,6 +65,7 @@ use superbig\audit\models\Settings;
 use superbig\audit\services\Audit_GeoService;
 use superbig\audit\services\AuditRecorder;
 use superbig\audit\services\AuditService;
+use superbig\audit\services\DiffRenderer;
 use superbig\audit\services\FieldDiffService;
 use superbig\audit\services\FieldHandlerRegistry;
 use superbig\audit\services\ProjectConfigTracker;
@@ -88,6 +89,7 @@ use yii\web\UserEvent;
  * @property  FieldDiffService      $fieldDiffService
  * @property  AuditRecorder         $auditRecorder
  * @property  ProjectConfigTracker  $projectConfigTracker
+ * @property  DiffRenderer          $diffRenderer
  * @method  Settings getSettings()
  */
 class Audit extends Plugin
@@ -142,6 +144,7 @@ class Audit extends Plugin
             'fieldDiffService' => FieldDiffService::class,
             'auditRecorder' => AuditRecorder::class,
             'projectConfigTracker' => ProjectConfigTracker::class,
+            'diffRenderer' => DiffRenderer::class,
         ]);
 
         $this->registerFieldHandlers();

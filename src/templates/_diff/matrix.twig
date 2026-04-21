@@ -1,0 +1,33 @@
+{# _diff/matrix.twig — Matrix blocks summary as cards. #}
+{% set blocks = change.blocks ?? [] %}
+
+{% if blocks is empty %}
+    <span class="audit-diff-badge audit-diff-badge--identical">No changes</span>
+{% else %}
+<div class="audit-diff-blocks">
+    {% for block in blocks %}
+        <div class="audit-diff-block audit-diff-block--{{ block.status ?? 'unchanged' }}">
+            <div class="audit-diff-block-label">
+                {{ (block.status ?? 'unchanged')|capitalize }}
+                {% if block.typeLabel ?? null %} · {{ block.typeLabel }}{% endif %}
+            </div>
+            {% if block.summary ?? null %}
+                <div class="audit-diff-block-summary">{{ block.summary }}</div>
+            {% endif %}
+            {% if block.fieldDiffs ?? [] is not empty %}
+                <details>
+                    <summary style="cursor:pointer;font-size:12px;opacity:0.7">
+                        {{ block.fieldDiffs|length }} field(s) changed
+                    </summary>
+                    {% for fieldDiff in block.fieldDiffs %}
+                        <div style="margin-top:4px">
+                            <strong>{{ fieldDiff.label ?? fieldDiff.handle ?? '' }}:</strong>
+                            {{ (fieldDiff.diff ?? '')|raw }}
+                        </div>
+                    {% endfor %}
+                </details>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+{% endif %}

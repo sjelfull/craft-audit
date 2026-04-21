@@ -18,6 +18,7 @@ use craft\web\Controller;
 use superbig\audit\Audit;
 use superbig\audit\models\AuditModel;
 use superbig\audit\records\AuditRecord;
+use superbig\audit\web\assets\diff\AuditDiffAsset;
 
 /**
  * @author    Superbig
@@ -44,6 +45,8 @@ class DefaultController extends Controller
     public function actionIndex()
     {
         $this->requirePermission(Audit::PERMISSION_VIEW_LOGS);
+
+        Craft::$app->view->registerAssetBundle(AuditDiffAsset::class);
 
         $itemsPerPage = 100;
         $query = AuditRecord::find()
@@ -75,6 +78,8 @@ class DefaultController extends Controller
     public function actionDetails(int $id)
     {
         $this->requirePermission(Audit::PERMISSION_VIEW_LOGS);
+
+        Craft::$app->view->registerAssetBundle(AuditDiffAsset::class);
 
         $service = Audit::$plugin->auditService;
         $log = $service->getEventById($id);

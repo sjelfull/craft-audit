@@ -13,6 +13,7 @@ namespace superbig\audit\variables;
 use craft\base\Component;
 
 use superbig\audit\Audit;
+use superbig\audit\services\DiffRenderer;
 
 /**
  * @author    Superbig
@@ -29,5 +30,23 @@ class AuditVariable extends Component
     public function getLocationInfoForIp($ipAddress = null)
     {
         return Audit::$plugin->geo->getLocationInfoForIp($ipAddress);
+    }
+
+    /**
+     * Expose the DiffRenderer service to Twig.
+     *
+     * Usage: {{ craft.audit.diff.renderHtmlDiff(from, to)|raw }}
+     */
+    public function getDiff(): DiffRenderer
+    {
+        return Audit::$plugin->diffRenderer;
+    }
+
+    /**
+     * Alias so both {{ craft.audit.diff }} and {{ craft.audit.diff() }} work.
+     */
+    public function diff(): DiffRenderer
+    {
+        return Audit::$plugin->diffRenderer;
     }
 }

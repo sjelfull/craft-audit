@@ -1,0 +1,11 @@
+{# _diff/index.twig — dispatcher.
+   Usage: {% include 'audit/_diff/index.twig' with { change: { handler, from, to, ... } } %}
+   Looks up a per-handler template by the 'handler' key on the change object.
+#}
+{% set handler = change.handler ?? 'generic' %}
+{% set tpl = 'audit/_diff/' ~ handler %}
+{% if view.doesTemplateExist(tpl) %}
+    {% include tpl with { change: change } only %}
+{% else %}
+    {% include 'audit/_diff/generic' with { change: change } only %}
+{% endif %}

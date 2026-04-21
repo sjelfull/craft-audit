@@ -1,0 +1,23 @@
+{# _diff/money.twig — formatted currency with arrow. #}
+{% set from = change.from ?? null %}
+{% set to   = change.to   ?? null %}
+
+{% macro formatMoney(m) %}
+    {% if m is null %}
+        <em>None</em>
+    {% else %}
+        {% set amount = (m.amount ?? 0) / 100 %}
+        {% set currency = m.currency ?? 'USD' %}
+        {{ amount|number_format(2, '.', ',') }} {{ currency }}
+    {% endif %}
+{% endmacro %}
+
+{% if from == to %}
+    <span class="audit-diff-badge audit-diff-badge--identical">No changes</span>
+{% else %}
+<div class="audit-diff-simple">
+    <span class="audit-diff-old">{{ _self.formatMoney(from) }}</span>
+    <span class="audit-diff-arrow">→</span>
+    <span class="audit-diff-new">{{ _self.formatMoney(to) }}</span>
+</div>
+{% endif %}

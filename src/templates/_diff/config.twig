@@ -1,0 +1,27 @@
+{# _diff/config.twig — project config changes: key → old/new pairs. #}
+{% set path = change.path ?? change.key ?? '' %}
+{% set from = change.from ?? null %}
+{% set to   = change.to   ?? null %}
+{% set rows = change.rows ?? null %}
+
+<div class="audit-diff-config">
+    {% if path %}
+        <div class="audit-diff-config-row">
+            <div class="audit-diff-config-key">path</div>
+            <div><code>{{ path }}</code></div>
+        </div>
+    {% endif %}
+    {% if rows %}
+        {% for row in rows %}
+            <div class="audit-diff-config-row">
+                <div class="audit-diff-config-key">{{ row.key }}</div>
+                <div>{{ craft.audit.diff.renderSimpleDiff(row.from ?? '', row.to ?? '')|raw }}</div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="audit-diff-config-row">
+            <div class="audit-diff-config-key">value</div>
+            <div>{{ craft.audit.diff.renderJsonDiff(from, to)|raw }}</div>
+        </div>
+    {% endif %}
+</div>

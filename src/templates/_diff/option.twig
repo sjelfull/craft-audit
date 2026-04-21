@@ -1,0 +1,15 @@
+{# _diff/option.twig — option labels with arrow. #}
+{% set from = change.from ?? '' %}
+{% set to   = change.to   ?? '' %}
+{% set fromLabel = change.fromLabel ?? from %}
+{% set toLabel   = change.toLabel   ?? to %}
+
+{% if from == to %}
+    <span class="audit-diff-badge audit-diff-badge--identical">No changes</span>
+{% else %}
+<div class="audit-diff-simple">
+    <span class="audit-diff-old" title="{{ from }}">{{ fromLabel }}</span>
+    <span class="audit-diff-arrow">→</span>
+    <span class="audit-diff-new" title="{{ to }}">{{ toLabel }}</span>
+</div>
+{% endif %}

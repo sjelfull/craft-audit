@@ -1,0 +1,17 @@
+{# _diff/richtext.twig — caxy HTML diff, collapsed if output >5KB. #}
+{% set from = (change.from ?? '')|default('') %}
+{% set to   = (change.to   ?? '')|default('') %}
+{% set diff = craft.audit.diff.renderHtmlDiff(from, to) %}
+{% set isLarge = diff|length > 5000 %}
+
+<div class="audit-diff-collapsible{% if isLarge %} audit-diff-collapsed{% endif %}"
+     data-collapsed="{{ isLarge ? 'true' : 'false' }}">
+    <div class="audit-diff-collapsible-content">
+        {{ diff|raw }}
+    </div>
+    {% if isLarge %}
+        <button type="button" class="audit-diff-collapsible-toggle" data-audit-diff-toggle>
+            Show full diff ({{ (diff|length / 1024)|round(1) }}KB)
+        </button>
+    {% endif %}
+</div>

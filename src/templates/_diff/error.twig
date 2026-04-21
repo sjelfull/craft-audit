@@ -1,0 +1,12 @@
+{# _diff/error.twig — field normalization failed. #}
+<div class="audit-diff-error">
+    <strong>⚠ Diff unavailable</strong>
+    {% if change.message ?? null %}
+        <div>{{ change.message }}</div>
+    {% else %}
+        <div>This field could not be normalized for comparison.</div>
+    {% endif %}
+    {% if change.handler ?? null %}
+        <small style="opacity:0.7">handler: {{ change.handler }}</small>
+    {% endif %}
+</div>

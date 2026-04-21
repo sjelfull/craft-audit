@@ -1,0 +1,17 @@
+{# _diff/plain.twig — "old → new" for short scalar values,
+   inline text diff for longer. #}
+{% set from = (change.from ?? '')|default('')|string %}
+{% set to   = (change.to   ?? '')|default('')|string %}
+{% set isShort = from|length < 80 and to|length < 80 %}
+
+{% if from == to %}
+    <span class="audit-diff-badge audit-diff-badge--identical">No changes</span>
+{% elseif isShort %}
+    <span class="audit-diff-simple">
+        <span class="audit-diff-old">{{ from }}</span>
+        <span class="audit-diff-arrow">→</span>
+        <span class="audit-diff-new">{{ to }}</span>
+    </span>
+{% else %}
+    {{ craft.audit.diff.renderTextDiff(from, to, 'inline', 'word')|raw }}
+{% endif %}

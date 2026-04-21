@@ -1,0 +1,40 @@
+{# _diff/relation.twig — element chips with thumbnail + type. #}
+{% set removed = change.removed ?? [] %}
+{% set added   = change.added   ?? [] %}
+
+{% if removed is empty and added is empty %}
+    <span class="audit-diff-badge audit-diff-badge--identical">No changes</span>
+{% else %}
+<div class="audit-diff-relations">
+    {% for element in removed %}
+        <div class="audit-diff-relation-chip audit-chip audit-diff-relation-chip--removed">
+            {% if element.thumbUrl ?? null %}
+                <img class="audit-diff-relation-thumb" src="{{ element.thumbUrl }}" alt="">
+            {% endif %}
+            <span>{{ element.title ?? '(no title)' }}</span>
+            {% if element.type ?? null %}
+                <span class="audit-diff-relation-type">{{ element.type }}</span>
+            {% endif %}
+            {% if element.id ?? null %}
+                <small style="opacity:0.6">#{{ element.id }}</small>
+            {% endif %}
+            <span class="audit-diff-pill audit-diff-pill--removed audit-tag-removed" style="margin-left:auto">Removed</span>
+        </div>
+    {% endfor %}
+    {% for element in added %}
+        <div class="audit-diff-relation-chip audit-chip audit-diff-relation-chip--added">
+            {% if element.thumbUrl ?? null %}
+                <img class="audit-diff-relation-thumb" src="{{ element.thumbUrl }}" alt="">
+            {% endif %}
+            <span>{{ element.title ?? '(no title)' }}</span>
+            {% if element.type ?? null %}
+                <span class="audit-diff-relation-type">{{ element.type }}</span>
+            {% endif %}
+            {% if element.id ?? null %}
+                <small style="opacity:0.6">#{{ element.id }}</small>
+            {% endif %}
+            <span class="audit-diff-pill audit-diff-pill--added audit-tag-added" style="margin-left:auto">Added</span>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
