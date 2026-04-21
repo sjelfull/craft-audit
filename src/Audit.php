@@ -68,6 +68,9 @@ use superbig\audit\services\AuditService;
 use superbig\audit\services\DiffRenderer;
 use superbig\audit\services\FieldDiffService;
 use superbig\audit\services\FieldHandlerRegistry;
+use superbig\audit\services\handlers\ElementHandler;
+use superbig\audit\services\handlers\UserGroupHandler;
+use superbig\audit\services\handlers\UserHandler;
 use superbig\audit\services\ProjectConfigTracker;
 
 use superbig\audit\variables\AuditVariable;
@@ -90,6 +93,9 @@ use yii\web\UserEvent;
  * @property  AuditRecorder         $auditRecorder
  * @property  ProjectConfigTracker  $projectConfigTracker
  * @property  DiffRenderer          $diffRenderer
+ * @property  ElementHandler        $elementHandler
+ * @property  UserHandler           $userHandler
+ * @property  UserGroupHandler      $userGroupHandler
  * @method  Settings getSettings()
  */
 class Audit extends Plugin
@@ -145,6 +151,9 @@ class Audit extends Plugin
             'auditRecorder' => AuditRecorder::class,
             'projectConfigTracker' => ProjectConfigTracker::class,
             'diffRenderer' => DiffRenderer::class,
+            'elementHandler' => ElementHandler::class,
+            'userHandler' => UserHandler::class,
+            'userGroupHandler' => UserGroupHandler::class,
         ]);
 
         $this->registerFieldHandlers();
