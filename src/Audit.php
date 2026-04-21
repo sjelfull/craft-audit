@@ -68,7 +68,12 @@ use superbig\audit\services\AuditService;
 use superbig\audit\services\DiffRenderer;
 use superbig\audit\services\FieldDiffService;
 use superbig\audit\services\FieldHandlerRegistry;
+use superbig\audit\services\handlers\BackupHandler;
 use superbig\audit\services\handlers\ElementHandler;
+use superbig\audit\services\handlers\PluginHandler;
+use superbig\audit\services\handlers\RouteHandler;
+use superbig\audit\services\handlers\SchemaHandler;
+use superbig\audit\services\handlers\SettingsHandler;
 use superbig\audit\services\handlers\UserGroupHandler;
 use superbig\audit\services\handlers\UserHandler;
 use superbig\audit\services\ProjectConfigTracker;
@@ -96,6 +101,11 @@ use yii\web\UserEvent;
  * @property  ElementHandler        $elementHandler
  * @property  UserHandler           $userHandler
  * @property  UserGroupHandler      $userGroupHandler
+ * @property  SchemaHandler         $schemaHandler
+ * @property  RouteHandler          $routeHandler
+ * @property  BackupHandler         $backupHandler
+ * @property  PluginHandler         $pluginHandler
+ * @property  SettingsHandler       $settingsHandler
  * @method  Settings getSettings()
  */
 class Audit extends Plugin
@@ -154,6 +164,11 @@ class Audit extends Plugin
             'elementHandler' => ElementHandler::class,
             'userHandler' => UserHandler::class,
             'userGroupHandler' => UserGroupHandler::class,
+            'schemaHandler' => SchemaHandler::class,
+            'routeHandler' => RouteHandler::class,
+            'backupHandler' => BackupHandler::class,
+            'pluginHandler' => PluginHandler::class,
+            'settingsHandler' => SettingsHandler::class,
         ]);
 
         $this->registerFieldHandlers();

@@ -35,7 +35,6 @@ use craft\queue\jobs\ResaveElements;
 use DateTime;
 use superbig\audit\Audit;
 use superbig\audit\events\SnapshotEvent;
-use superbig\audit\helpers\Route;
 use superbig\audit\models\AuditModel;
 use superbig\audit\records\AuditRecord;
 use yii\base\Exception;
@@ -177,33 +176,12 @@ class AuditService extends Component
      *
      * @return bool
      */
+    /**
+     * @deprecated Use Audit::$plugin->pluginHandler->onPluginEvent() instead
+     */
     public function onPluginEvent(string $event, PluginInterface $plugin): bool
     {
-        if (!Audit::$plugin->getSettings()->logPluginEvents) {
-            return false;
-        }
-
-        /** @var Plugin $plugin */
-        try {
-            $model = $this->_getStandardModel();
-            $model->event = $event;
-            $model->title = $plugin->name;
-            $snapshot = [
-                'title' => $plugin->name,
-                'handle' => $plugin->handle,
-                'version' => $plugin->version,
-            ];
-            $model->snapshot = $snapshot;
-
-            return $this->_saveRecord($model);
-        } catch (\Exception $e) {
-            Craft::error(
-                Craft::t('audit', 'Error when logging: {error}', ['error' => $e->getMessage()]),
-                __METHOD__
-            );
-
-            return false;
-        }
+        return Audit::$plugin->pluginHandler->onPluginEvent($event, $plugin);
     }
 
     /**
@@ -384,49 +362,20 @@ class AuditService extends Component
         return Audit::$plugin->elementHandler->getParentIdKey($elementType);
     }
 
+    /**
+     * @deprecated Use Audit::$plugin->routeHandler->onSaveRoute() instead
+     */
     public function onSaveRoute(RouteEvent $event)
     {
-        if (!Audit::$plugin->getSettings()->logRouteEvents) {
-            return false;
-        }
-
-        $this->catchSaveError(function() use ($event) {
-            $uriDisplay = Route::getUriDisplayHtml($event->uriParts);
-            $model = $this->_getStandardModel();
-            // Craft 5's RouteEvent doesn't expose routeId, so we can't distinguish new vs. existing
-            $model->event = AuditModel::EVENT_SAVED_ROUTE;
-            $model->title = $uriDisplay . ' -> ' . $event->template;
-            $snapshot = [
-                'uriParts' => $event->uriParts,
-                'template' => $event->template,
-                'siteUid' => $event->siteUid,
-            ];
-            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
-
-            return $this->_saveRecord($model);
-        });
+        return Audit::$plugin->routeHandler->onSaveRoute($event);
     }
 
+    /**
+     * @deprecated Use Audit::$plugin->routeHandler->onDeleteRoute() instead
+     */
     public function onDeleteRoute(RouteEvent $event)
     {
-        if (!Audit::$plugin->getSettings()->logRouteEvents) {
-            return false;
-        }
-
-        $this->catchSaveError(function() use ($event) {
-            $uriDisplay = Route::getUriDisplayHtml($event->uriParts);
-            $model = $this->_getStandardModel();
-            $model->event = AuditModel::EVENT_DELETED_ROUTE;
-            $model->title = $uriDisplay . ' -> ' . $event->template;
-            $snapshot = [
-                'uriParts' => $event->uriParts,
-                'template' => $event->template,
-                'siteUid' => $event->siteUid,
-            ];
-            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
-
-            return $this->_saveRecord($model);
-        });
+        return Audit::$plugin->routeHandler->onDeleteRoute($event);
     }
 
     /**
@@ -551,202 +500,79 @@ class AuditService extends Component
     // Schema Events
     // =========================================================================
 
+    /**
+     * @deprecated Use Audit::$plugin->schemaHandler->onFieldSaved() instead
+     */
     public function onFieldSaved(FieldEvent $event): bool
     {
-        if (!Audit::$plugin->getSettings()->logSchemaEvents) {
-            return false;
-        }
-
-        return $this->catchSaveError(function() use ($event) {
-            $field = $event->field;
-            $isNew = $event->isNew;
-
-            $model = $this->_getStandardModel();
-            $model->event = $isNew ? AuditModel::EVENT_FIELD_CREATED : AuditModel::EVENT_FIELD_SAVED;
-            $model->title = $field->name;
-            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
-                'fieldId' => $field->id,
-                'fieldName' => $field->name,
-                'fieldHandle' => $field->handle,
-                'fieldType' => get_class($field),
-            ]));
-
-            return $this->_saveRecord($model);
-        });
+        return Audit::$plugin->schemaHandler->onFieldSaved($event);
     }
 
+    /**
+     * @deprecated Use Audit::$plugin->schemaHandler->onFieldDeleted() instead
+     */
     public function onFieldDeleted(FieldEvent $event): bool
     {
-        if (!Audit::$plugin->getSettings()->logSchemaEvents) {
-            return false;
-        }
-
-        return $this->catchSaveError(function() use ($event) {
-            $field = $event->field;
-
-            $model = $this->_getStandardModel();
-            $model->event = AuditModel::EVENT_FIELD_DELETED;
-            $model->title = $field->name;
-            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
-                'fieldId' => $field->id,
-                'fieldName' => $field->name,
-                'fieldHandle' => $field->handle,
-                'fieldType' => get_class($field),
-            ]));
-
-            return $this->_saveRecord($model);
-        });
+        return Audit::$plugin->schemaHandler->onFieldDeleted($event);
     }
 
+    /**
+     * @deprecated Use Audit::$plugin->schemaHandler->onSectionSaved() instead
+     */
     public function onSectionSaved(SectionEvent $event): bool
     {
-        if (!Audit::$plugin->getSettings()->logSchemaEvents) {
-            return false;
-        }
-
-        return $this->catchSaveError(function() use ($event) {
-            $section = $event->section;
-            $isNew = $event->isNew;
-
-            $model = $this->_getStandardModel();
-            $model->event = $isNew ? AuditModel::EVENT_SECTION_CREATED : AuditModel::EVENT_SECTION_SAVED;
-            $model->title = $section->name;
-            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
-                'sectionId' => $section->id,
-                'sectionName' => $section->name,
-                'sectionHandle' => $section->handle,
-                'sectionType' => $section->type,
-            ]));
-
-            return $this->_saveRecord($model);
-        });
+        return Audit::$plugin->schemaHandler->onSectionSaved($event);
     }
 
+    /**
+     * @deprecated Use Audit::$plugin->schemaHandler->onSectionDeleted() instead
+     */
     public function onSectionDeleted(SectionEvent $event): bool
     {
-        if (!Audit::$plugin->getSettings()->logSchemaEvents) {
-            return false;
-        }
-
-        return $this->catchSaveError(function() use ($event) {
-            $section = $event->section;
-
-            $model = $this->_getStandardModel();
-            $model->event = AuditModel::EVENT_SECTION_DELETED;
-            $model->title = $section->name;
-            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
-                'sectionId' => $section->id,
-                'sectionName' => $section->name,
-                'sectionHandle' => $section->handle,
-                'sectionType' => $section->type,
-            ]));
-
-            return $this->_saveRecord($model);
-        });
+        return Audit::$plugin->schemaHandler->onSectionDeleted($event);
     }
 
+    /**
+     * @deprecated Use Audit::$plugin->schemaHandler->onEntryTypeSaved() instead
+     */
     public function onEntryTypeSaved(EntryTypeEvent $event): bool
     {
-        if (!Audit::$plugin->getSettings()->logSchemaEvents) {
-            return false;
-        }
-
-        return $this->catchSaveError(function() use ($event) {
-            $entryType = $event->entryType;
-            $isNew = $event->isNew;
-
-            $model = $this->_getStandardModel();
-            $model->event = $isNew ? AuditModel::EVENT_ENTRY_TYPE_CREATED : AuditModel::EVENT_ENTRY_TYPE_SAVED;
-            $model->title = $entryType->name;
-            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
-                'entryTypeId' => $entryType->id,
-                'entryTypeName' => $entryType->name,
-                'entryTypeHandle' => $entryType->handle,
-            ]));
-
-            return $this->_saveRecord($model);
-        });
+        return Audit::$plugin->schemaHandler->onEntryTypeSaved($event);
     }
 
+    /**
+     * @deprecated Use Audit::$plugin->schemaHandler->onEntryTypeDeleted() instead
+     */
     public function onEntryTypeDeleted(EntryTypeEvent $event): bool
     {
-        if (!Audit::$plugin->getSettings()->logSchemaEvents) {
-            return false;
-        }
-
-        return $this->catchSaveError(function() use ($event) {
-            $entryType = $event->entryType;
-
-            $model = $this->_getStandardModel();
-            $model->event = AuditModel::EVENT_ENTRY_TYPE_DELETED;
-            $model->title = $entryType->name;
-            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
-                'entryTypeId' => $entryType->id,
-                'entryTypeName' => $entryType->name,
-                'entryTypeHandle' => $entryType->handle,
-            ]));
-
-            return $this->_saveRecord($model);
-        });
+        return Audit::$plugin->schemaHandler->onEntryTypeDeleted($event);
     }
 
     // =========================================================================
     // Database Events
     // =========================================================================
 
+    /**
+     * @deprecated Use Audit::$plugin->backupHandler->onBackupCreated() instead
+     */
     public function onBackupCreated(BackupEvent $event): bool
     {
-        if (!Audit::$plugin->getSettings()->logDatabaseEvents) {
-            return false;
-        }
-
-        return $this->catchSaveError(function() use ($event) {
-            $model = $this->_getStandardModel();
-            $model->event = AuditModel::EVENT_BACKUP_CREATED;
-            $model->title = basename($event->file);
-            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
-                'file' => $event->file,
-                'ignoreTables' => $event->ignoreTables,
-            ]));
-
-            return $this->_saveRecord($model);
-        });
+        return Audit::$plugin->backupHandler->onBackupCreated($event);
     }
 
+    /**
+     * @deprecated Use Audit::$plugin->backupHandler->onBackupRestored() instead
+     */
     public function onBackupRestored(RestoreEvent $event): bool
     {
-        if (!Audit::$plugin->getSettings()->logDatabaseEvents) {
-            return false;
-        }
-
-        return $this->catchSaveError(function() use ($event) {
-            $model = $this->_getStandardModel();
-            $model->event = AuditModel::EVENT_BACKUP_RESTORED;
-            $model->title = basename($event->file);
-            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
-                'file' => $event->file,
-            ]));
-
-            return $this->_saveRecord($model);
-        });
+        return Audit::$plugin->backupHandler->onBackupRestored($event);
     }
 
+    /**
+     * @deprecated Use Audit::$plugin->settingsHandler->onSettingsChanged() instead
+     */
     public function onSettingsChanged(ConfigEvent $event, string $settingsType): bool
     {
-        return $this->catchSaveError(function() use ($event, $settingsType) {
-            $model = $this->_getStandardModel();
-            $model->event = $settingsType === 'system'
-                ? AuditModel::EVENT_SYSTEM_SETTINGS_CHANGED
-                : AuditModel::EVENT_EMAIL_SETTINGS_CHANGED;
-            $model->title = ucfirst($settingsType) . ' settings';
-            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
-                'settingsType' => $settingsType,
-                'path' => $event->path,
-                'oldValue' => $event->oldValue,
-                'newValue' => $event->newValue,
-            ]));
-
-            return $this->_saveRecord($model);
-        });
+        return Audit::$plugin->settingsHandler->onSettingsChanged($event, $settingsType);
     }
 }
