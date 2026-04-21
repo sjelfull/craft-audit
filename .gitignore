@@ -17,6 +17,7 @@
 /config/app.php
 /config/general.php
 /config/project
+/config/license.key
 composer.lock
 
 # MISC FILES
