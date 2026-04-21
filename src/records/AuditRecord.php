@@ -36,6 +36,9 @@ use yii\db\ActiveQueryInterface;
  * @property string       $userAgent
  * @property string|null  $snapshot     JSON-encoded snapshot payload (as stored in the DB; decoded lazily by {@see \superbig\audit\models\AuditModel::createFromRecord()}).
  * @property string|null  $sessionId
+ * @property string|null  $location     JSON-encoded geolocation payload.
+ * @property string|null  $changedFields JSON-encoded field diffs
+ * @property string|null  $request      Request source: 'cp', 'site', 'console', 'yaml'
  */
 class AuditRecord extends ActiveRecord
 {

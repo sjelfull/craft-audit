@@ -47,7 +47,10 @@ use craft\web\UrlManager;
 use superbig\audit\models\AuditModel;
 use superbig\audit\models\Settings;
 use superbig\audit\services\Audit_GeoService;
+use superbig\audit\services\AuditRecorder;
 use superbig\audit\services\AuditService;
+use superbig\audit\services\FieldDiffService;
+use superbig\audit\services\FieldHandlerRegistry;
 
 use superbig\audit\variables\AuditVariable;
 use yii\base\Event;
@@ -62,8 +65,11 @@ use yii\web\UserEvent;
  * @package   Audit
  * @since     1.0.0
  *
- * @property  AuditService     $auditService
- * @property  Audit_GeoService $geo
+ * @property  AuditService          $auditService
+ * @property  Audit_GeoService      $geo
+ * @property  FieldHandlerRegistry  $fieldHandlerRegistry
+ * @property  FieldDiffService      $fieldDiffService
+ * @property  AuditRecorder         $auditRecorder
  * @method  Settings getSettings()
  */
 class Audit extends Plugin
@@ -114,6 +120,9 @@ class Audit extends Plugin
         $this->setComponents([
             'auditService' => AuditService::class,
             'geo' => Audit_GeoService::class,
+            'fieldHandlerRegistry' => FieldHandlerRegistry::class,
+            'fieldDiffService' => FieldDiffService::class,
+            'auditRecorder' => AuditRecorder::class,
         ]);
 
         Event::on(

@@ -184,6 +184,12 @@ class AuditModel extends Model
      */
     public ?string $sessionId = null;
 
+    /** @var string|null Request source: 'cp', 'site', 'console', 'yaml' */
+    public ?string $request = null;
+
+    /** @var array Field-level diff data */
+    public array $changedFields = [];
+
     /**
      * @var User|null
      */
@@ -233,6 +239,18 @@ class AuditModel extends Model
             ]);
             Craft::warning($error, 'audit');
             $model->snapshot = [];
+        }
+
+        $model->request = $record->request;
+        try {
+            $model->changedFields = $record->changedFields
+                ? (Json::decode($record->changedFields, true) ?: [])
+                : [];
+            if (!is_array($model->changedFields)) {
+                $model->changedFields = [];
+            }
+        } catch (Throwable) {
+            $model->changedFields = [];
         }
 
         return $model;
