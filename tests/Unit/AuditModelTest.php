@@ -15,7 +15,7 @@ it('creates model from record with all fields populated', function () {
     $record->userAgent = 'Mozilla/5.0';
     $record->siteId = 1;
     $record->sessionId = 'test-session';
-    $record->snapshot = base64_encode(serialize(['key' => 'value']));
+    $record->snapshot = '{"key":"value"}';
     $record->dateCreated = new \DateTime();
 
     $model = AuditModel::createFromRecord($record);

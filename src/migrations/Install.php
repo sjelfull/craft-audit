@@ -91,9 +91,11 @@ class Install extends Migration
                     'event' => $this->string()->null()->defaultValue(null),
                     'title' => $this->string()->null()->defaultValue(null),
                     'ip' => $this->string()->null()->defaultValue(null),
+                    'request' => $this->string(10)->null(),
                     'userAgent' => $this->text()->null(),
-                    'location' => $this->text()->null()->defaultValue(null),
-                    'snapshot' => $this->mediumText()->null()->defaultValue(null),
+                    'location' => $this->json()->null(),
+                    'snapshot' => $this->json()->null(),
+                    'changedFields' => $this->json()->null(),
                 ]
             );
         }
@@ -113,6 +115,8 @@ class Install extends Migration
         $this->createIndex(null, $this->tableName, 'dateCreated', false);
         $this->createIndex(null, $this->tableName, 'siteId', false);
         $this->createIndex(null, $this->tableName, 'event', false);
+        $this->createIndex(null, $this->tableName, ['dateCreated', 'event'], false);
+        $this->createIndex(null, $this->tableName, ['userId', 'dateCreated'], false);
     }
 
     /**

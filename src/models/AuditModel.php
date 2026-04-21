@@ -18,14 +18,15 @@ use craft\elements\User;
 use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
 use craft\models\Site;
 
 use DateTime;
 use superbig\audit\Audit;
+use superbig\audit\enums\AuditEvent;
 use superbig\audit\records\AuditRecord;
+use Throwable;
 
 /**
  * @author    Superbig
@@ -34,6 +35,13 @@ use superbig\audit\records\AuditRecord;
  */
 class AuditModel extends Model
 {
+    /**
+     * String constants for audit event types.
+     *
+     * @deprecated since 3.0.0. Use {@see \superbig\audit\enums\AuditEvent} instead.
+     *             The constants remain as string backing values for backward
+     *             compatibility with third-party consumers and existing DB rows.
+     */
     public const EVENT_SAVED_ELEMENT = 'saved-element';
     public const EVENT_RESAVED_ELEMENTS = 'resaved-elements';
     public const EVENT_CREATED_ELEMENT = 'created-element';
@@ -163,9 +171,18 @@ class AuditModel extends Model
     public $snapshot = [];
 
     /**
-     * @var string
+     * Typed enum representation of {@see $event}, if the string value matches
+     * a known {@see AuditEvent} case. Null for legacy / unknown events.
+     *
+     * Populated by {@see self::createFromRecord()}. The string {@see $event}
+     * property remains the canonical value for backward compatibility.
      */
-    public $sessionId = null;
+    public ?AuditEvent $eventEnum = null;
+
+    /**
+     * @var string|null
+     */
+    public ?string $sessionId = null;
 
     /**
      * @var User|null
@@ -189,6 +206,7 @@ class AuditModel extends Model
         $model = new self();
         $model->id = $record->id;
         $model->event = $record->event;
+        $model->eventEnum = AuditEvent::tryFromString($record->event);
         $model->title = $record->title;
         $model->userId = $record->userId;
         $model->elementId = $record->elementId;
@@ -203,17 +221,18 @@ class AuditModel extends Model
         $snapshot = $record->snapshot;
 
         try {
-            if (StringHelper::isBase64($snapshot)) {
-                $model->snapshot = unserialize(base64_decode($snapshot));
-            } else {
-                $model->snapshot = unserialize($snapshot);
+            $model->snapshot = $snapshot ? Json::decode($snapshot, true) : [];
+
+            if (!is_array($model->snapshot)) {
+                $model->snapshot = [];
             }
-        } catch (\Exception $e) {
-            $error = Craft::t('audit', 'Failed to unserialize snapshot of log entry #{id}: {message}', [
+        } catch (Throwable $e) {
+            $error = Craft::t('audit', 'Failed to decode JSON snapshot of log entry #{id}: {message}', [
                 'id' => $model->id,
                 'message' => $e->getMessage(),
             ]);
             Craft::warning($error, 'audit');
+            $model->snapshot = [];
         }
 
         return $model;

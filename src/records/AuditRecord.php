@@ -34,7 +34,7 @@ use yii\db\ActiveQueryInterface;
  * @property \DateTime    $dateUpdated
  * @property string       $ip
  * @property string       $userAgent
- * @property string|null  $snapshot
+ * @property string|null  $snapshot     JSON-encoded snapshot payload (as stored in the DB; decoded lazily by {@see \superbig\audit\models\AuditModel::createFromRecord()}).
  * @property string|null  $sessionId
  */
 class AuditRecord extends ActiveRecord
