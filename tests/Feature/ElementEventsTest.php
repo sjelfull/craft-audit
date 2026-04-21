@@ -4,6 +4,7 @@ use markhuot\craftpest\factories\Entry;
 use craft\elements\Entry as EntryElement;
 use craft\elements\GlobalSet;
 use superbig\audit\Audit;
+use superbig\audit\enums\AuditEvent;
 use superbig\audit\models\AuditModel;
 use superbig\audit\records\AuditRecord;
 
@@ -20,7 +21,7 @@ it('logs audit event when entry is created', function () {
         ->one();
 
     expect($record)->not->toBeNull();
-    expect($record->event)->toBe(AuditModel::EVENT_ENTRY_CREATED);
+    expect($record->event)->toBe(AuditEvent::EntryCreated->value);
     expect($record->elementType)->toBe(EntryElement::class);
 });
 
@@ -39,7 +40,7 @@ it('logs audit event when entry is updated', function () {
         ->one();
 
     expect($record)->not->toBeNull();
-    expect($record->event)->toBe(AuditModel::EVENT_ENTRY_SAVED);
+    expect($record->event)->toBe(AuditEvent::EntrySaved->value);
 });
 
 it('logs audit event when entry is deleted', function () {
@@ -57,7 +58,7 @@ it('logs audit event when entry is deleted', function () {
         ->one();
 
     expect($record)->not->toBeNull();
-    expect($record->event)->toBe(AuditModel::EVENT_ENTRY_DELETED);
+    expect($record->event)->toBe(AuditEvent::EntryDeleted->value);
 });
 
 it('does not log draft events when disabled', function () {
@@ -70,7 +71,7 @@ it('does not log draft events when disabled', function () {
     $draft = \Craft::$app->getDrafts()->createDraft($entry, \Craft::$app->getUser()->getId());
 
     $draftRecord = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_SAVED_DRAFT])
+        ->where(['event' => AuditEvent::SavedDraft->value])
         ->one();
 
     expect($draftRecord)->toBeNull();
@@ -99,7 +100,7 @@ it('logs global set saves', function () {
     \Craft::$app->getElements()->saveElement($globals);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_SAVED_GLOBAL])
+        ->where(['event' => AuditEvent::SavedGlobal->value])
         ->one();
 
     expect($record)->not->toBeNull();

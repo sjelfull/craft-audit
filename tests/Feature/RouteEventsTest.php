@@ -2,6 +2,7 @@
 
 use craft\events\RouteEvent;
 use superbig\audit\Audit;
+use superbig\audit\enums\AuditEvent;
 use superbig\audit\models\AuditModel;
 use superbig\audit\records\AuditRecord;
 
@@ -20,7 +21,7 @@ it('logs audit event when route is saved', function () {
     Audit::$plugin->auditService->onSaveRoute($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_SAVED_ROUTE])
+        ->where(['event' => AuditEvent::SavedRoute->value])
         ->one();
 
     expect($record)->not->toBeNull();
@@ -37,7 +38,7 @@ it('logs audit event when route is deleted', function () {
     Audit::$plugin->auditService->onDeleteRoute($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_DELETED_ROUTE])
+        ->where(['event' => AuditEvent::DeletedRoute->value])
         ->one();
 
     expect($record)->not->toBeNull();
@@ -59,7 +60,7 @@ it('captures site UID in route snapshot', function () {
     Audit::$plugin->auditService->onSaveRoute($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_SAVED_ROUTE])
+        ->where(['event' => AuditEvent::SavedRoute->value])
         ->one();
 
     $model = AuditModel::createFromRecord($record);

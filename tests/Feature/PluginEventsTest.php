@@ -1,6 +1,7 @@
 <?php
 
 use superbig\audit\Audit;
+use superbig\audit\enums\AuditEvent;
 use superbig\audit\models\AuditModel;
 use superbig\audit\records\AuditRecord;
 
@@ -17,12 +18,12 @@ it('logs audit event when plugin is enabled', function () {
     };
 
     Audit::$plugin->auditService->onPluginEvent(
-        AuditModel::EVENT_PLUGIN_ENABLED,
+        AuditEvent::PluginEnabled->value,
         $mockPlugin
     );
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_PLUGIN_ENABLED])
+        ->where(['event' => AuditEvent::PluginEnabled->value])
         ->one();
 
     expect($record)->not->toBeNull();
@@ -36,12 +37,12 @@ it('logs audit event when plugin is disabled', function () {
     };
 
     Audit::$plugin->auditService->onPluginEvent(
-        AuditModel::EVENT_PLUGIN_DISABLED,
+        AuditEvent::PluginDisabled->value,
         $mockPlugin
     );
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_PLUGIN_DISABLED])
+        ->where(['event' => AuditEvent::PluginDisabled->value])
         ->one();
 
     expect($record)->not->toBeNull();
@@ -56,7 +57,7 @@ it('does not log plugin events when disabled', function () {
     };
 
     $result = Audit::$plugin->auditService->onPluginEvent(
-        AuditModel::EVENT_PLUGIN_ENABLED,
+        AuditEvent::PluginEnabled->value,
         $mockPlugin
     );
 
@@ -73,12 +74,12 @@ it('captures plugin info in snapshot', function () {
     };
 
     Audit::$plugin->auditService->onPluginEvent(
-        AuditModel::EVENT_PLUGIN_ENABLED,
+        AuditEvent::PluginEnabled->value,
         $mockPlugin
     );
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_PLUGIN_ENABLED])
+        ->where(['event' => AuditEvent::PluginEnabled->value])
         ->one();
 
     $model = AuditModel::createFromRecord($record);

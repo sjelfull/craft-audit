@@ -8,6 +8,7 @@ use craft\fields\PlainText;
 use craft\models\EntryType;
 use craft\models\Section;
 use superbig\audit\Audit;
+use superbig\audit\enums\AuditEvent;
 use superbig\audit\models\AuditModel;
 use superbig\audit\records\AuditRecord;
 
@@ -30,7 +31,7 @@ it('logs audit event when field is saved', function () {
     Audit::$plugin->auditService->onFieldSaved($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_FIELD_CREATED])
+        ->where(['event' => AuditEvent::FieldCreated->value])
         ->one();
 
     expect($record)->not->toBeNull();
@@ -51,7 +52,7 @@ it('logs audit event when field is deleted', function () {
     Audit::$plugin->auditService->onFieldDeleted($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_FIELD_DELETED])
+        ->where(['event' => AuditEvent::FieldDeleted->value])
         ->one();
 
     expect($record)->not->toBeNull();
@@ -74,7 +75,7 @@ it('logs audit event when section is saved', function () {
     Audit::$plugin->auditService->onSectionSaved($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_SECTION_CREATED])
+        ->where(['event' => AuditEvent::SectionCreated->value])
         ->one();
 
     expect($record)->not->toBeNull();
@@ -95,7 +96,7 @@ it('logs audit event when section is deleted', function () {
     Audit::$plugin->auditService->onSectionDeleted($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_SECTION_DELETED])
+        ->where(['event' => AuditEvent::SectionDeleted->value])
         ->one();
 
     expect($record)->not->toBeNull();
@@ -117,7 +118,7 @@ it('logs audit event when entry type is saved', function () {
     Audit::$plugin->auditService->onEntryTypeSaved($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_ENTRY_TYPE_CREATED])
+        ->where(['event' => AuditEvent::EntryTypeCreated->value])
         ->one();
 
     expect($record)->not->toBeNull();
@@ -138,7 +139,7 @@ it('logs audit event when entry type is deleted', function () {
     Audit::$plugin->auditService->onEntryTypeDeleted($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_ENTRY_TYPE_DELETED])
+        ->where(['event' => AuditEvent::EntryTypeDeleted->value])
         ->one();
 
     expect($record)->not->toBeNull();
@@ -164,7 +165,7 @@ it('does not log schema events when disabled', function () {
     expect($result)->toBeFalse();
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_FIELD_SAVED])
+        ->where(['event' => AuditEvent::FieldSaved->value])
         ->one();
 
     expect($record)->toBeNull();
@@ -187,7 +188,7 @@ it('captures field details in snapshot', function () {
     Audit::$plugin->auditService->onFieldSaved($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_FIELD_CREATED])
+        ->where(['event' => AuditEvent::FieldCreated->value])
         ->one();
 
     $model = AuditModel::createFromRecord($record);

@@ -4,6 +4,7 @@ use craft\elements\User;
 use craft\events\BackupEvent;
 use craft\events\RestoreEvent;
 use superbig\audit\Audit;
+use superbig\audit\enums\AuditEvent;
 use superbig\audit\models\AuditModel;
 use superbig\audit\records\AuditRecord;
 
@@ -21,7 +22,7 @@ it('logs audit event when backup is created', function () {
     Audit::$plugin->auditService->onBackupCreated($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_BACKUP_CREATED])
+        ->where(['event' => AuditEvent::BackupCreated->value])
         ->one();
 
     expect($record)->not->toBeNull();
@@ -38,7 +39,7 @@ it('logs audit event when backup is restored', function () {
     Audit::$plugin->auditService->onBackupRestored($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_BACKUP_RESTORED])
+        ->where(['event' => AuditEvent::BackupRestored->value])
         ->one();
 
     expect($record)->not->toBeNull();
@@ -59,7 +60,7 @@ it('does not log database events when disabled', function () {
     expect($result)->toBeFalse();
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_BACKUP_CREATED])
+        ->where(['event' => AuditEvent::BackupCreated->value])
         ->one();
 
     expect($record)->toBeNull();
@@ -78,7 +79,7 @@ it('captures backup file path in snapshot', function () {
     Audit::$plugin->auditService->onBackupCreated($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_BACKUP_CREATED])
+        ->where(['event' => AuditEvent::BackupCreated->value])
         ->one();
 
     $model = AuditModel::createFromRecord($record);
@@ -98,7 +99,7 @@ it('captures restore file path in snapshot', function () {
     Audit::$plugin->auditService->onBackupRestored($event);
 
     $record = AuditRecord::find()
-        ->where(['event' => AuditModel::EVENT_BACKUP_RESTORED])
+        ->where(['event' => AuditEvent::BackupRestored->value])
         ->one();
 
     $model = AuditModel::createFromRecord($record);
