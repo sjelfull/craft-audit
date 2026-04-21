@@ -236,7 +236,7 @@ class Audit extends Plugin
             Queue::EVENT_BEFORE_EXEC,
             function(ExecEvent $event) {
                 if ($event->job instanceof ResaveElements) {
-                    $this->auditService->onBeforeResave($event->job);
+                    $this->elementHandler->onBeforeResave($event->job);
                 }
             }
         );
@@ -246,7 +246,7 @@ class Audit extends Plugin
             Queue::EVENT_AFTER_EXEC,
             function(ExecEvent $event) {
                 if ($event->job instanceof ResaveElements) {
-                    $this->auditService->onResaveEnd($event->job);
+                    $this->elementHandler->onResaveEnd($event->job);
                 }
             }
         );
@@ -256,7 +256,7 @@ class Audit extends Plugin
             Queue::EVENT_AFTER_ERROR,
             function(ExecEvent $event) {
                 if ($event->job instanceof ResaveElements) {
-                    $this->auditService->onResaveEnd($event->job);
+                    $this->elementHandler->onResaveEnd($event->job);
                 }
             }
         );
@@ -308,14 +308,14 @@ class Audit extends Plugin
                 'class' => User::class,
                 'event' => User::EVENT_AFTER_LOGIN,
                 'handler' => function(UserEvent $event) {
-                    $this->auditService->onLogin();
+                    $this->userHandler->onLogin();
                 },
             ],
             [
                 'class' => User::class,
                 'event' => User::EVENT_BEFORE_LOGOUT,
                 'handler' => function(UserEvent $event) {
-                    $this->auditService->onBeforeLogout();
+                    $this->userHandler->onBeforeLogout();
                 },
             ],
             [
@@ -323,14 +323,14 @@ class Audit extends Plugin
                 'event' => Elements::EVENT_AFTER_SAVE_ELEMENT,
                 'handler' => function(ElementEvent $event) {
                     $isNew = $event->sender->firstSave ?? $event->isNew;
-                    $this->auditService->onSaveElement($event->element, $isNew);
+                    $this->elementHandler->onSaveElement($event->element, $isNew);
                 },
             ],
             [
                 'class' => Elements::class,
                 'event' => Elements::EVENT_AFTER_DELETE_ELEMENT,
                 'handler' => function(ElementEvent $event) {
-                    $this->auditService->onDeleteElement($event->element);
+                    $this->elementHandler->onDeleteElement($event->element);
                 },
             ],
             // Routes
@@ -338,35 +338,35 @@ class Audit extends Plugin
                 'class' => Routes::class,
                 'event' => Routes::EVENT_AFTER_SAVE_ROUTE,
                 'handler' => function(RouteEvent $event) {
-                    $this->auditService->onSaveRoute($event);
+                    $this->routeHandler->onSaveRoute($event);
                 },
             ],
             [
                 'class' => Routes::class,
                 'event' => Routes::EVENT_BEFORE_DELETE_ROUTE,
                 'handler' => function(RouteEvent $event) {
-                    $this->auditService->onDeleteRoute($event);
+                    $this->routeHandler->onDeleteRoute($event);
                 },
             ],
             [
                 'class' => Plugins::class,
                 'event' => Plugins::EVENT_AFTER_UNINSTALL_PLUGIN,
                 'handler' => function(PluginEvent $event) {
-                    $this->auditService->onPluginEvent(AuditModel::EVENT_PLUGIN_UNINSTALLED, $event->plugin);
+                    $this->pluginHandler->onPluginEvent(AuditModel::EVENT_PLUGIN_UNINSTALLED, $event->plugin);
                 },
             ],
             [
                 'class' => Plugins::class,
                 'event' => Plugins::EVENT_AFTER_DISABLE_PLUGIN,
                 'handler' => function(PluginEvent $event) {
-                    $this->auditService->onPluginEvent(AuditModel::EVENT_PLUGIN_DISABLED, $event->plugin);
+                    $this->pluginHandler->onPluginEvent(AuditModel::EVENT_PLUGIN_DISABLED, $event->plugin);
                 },
             ],
             [
                 'class' => Plugins::class,
                 'event' => Plugins::EVENT_AFTER_ENABLE_PLUGIN,
                 'handler' => function(PluginEvent $event) {
-                    $this->auditService->onPluginEvent(AuditModel::EVENT_PLUGIN_ENABLED, $event->plugin);
+                    $this->pluginHandler->onPluginEvent(AuditModel::EVENT_PLUGIN_ENABLED, $event->plugin);
                 },
             ],
             // User Security Events
@@ -374,49 +374,49 @@ class Audit extends Plugin
                 'class' => Users::class,
                 'event' => Users::EVENT_AFTER_ACTIVATE_USER,
                 'handler' => function(\craft\events\UserEvent $event) {
-                    $this->auditService->onUserActivated($event);
+                    $this->userHandler->onUserActivated($event);
                 },
             ],
             [
                 'class' => Users::class,
                 'event' => Users::EVENT_AFTER_DEACTIVATE_USER,
                 'handler' => function(\craft\events\UserEvent $event) {
-                    $this->auditService->onUserDeactivated($event);
+                    $this->userHandler->onUserDeactivated($event);
                 },
             ],
             [
                 'class' => Users::class,
                 'event' => Users::EVENT_AFTER_SUSPEND_USER,
                 'handler' => function(\craft\events\UserEvent $event) {
-                    $this->auditService->onUserSuspended($event);
+                    $this->userHandler->onUserSuspended($event);
                 },
             ],
             [
                 'class' => Users::class,
                 'event' => Users::EVENT_AFTER_UNSUSPEND_USER,
                 'handler' => function(\craft\events\UserEvent $event) {
-                    $this->auditService->onUserUnsuspended($event);
+                    $this->userHandler->onUserUnsuspended($event);
                 },
             ],
             [
                 'class' => Users::class,
                 'event' => Users::EVENT_AFTER_LOCK_USER,
                 'handler' => function(\craft\events\UserEvent $event) {
-                    $this->auditService->onUserLocked($event);
+                    $this->userHandler->onUserLocked($event);
                 },
             ],
             [
                 'class' => Users::class,
                 'event' => Users::EVENT_AFTER_UNLOCK_USER,
                 'handler' => function(\craft\events\UserEvent $event) {
-                    $this->auditService->onUserUnlocked($event);
+                    $this->userHandler->onUserUnlocked($event);
                 },
             ],
             [
                 'class' => Users::class,
                 'event' => Users::EVENT_AFTER_ASSIGN_USER_TO_GROUPS,
                 'handler' => function(UserAssignGroupEvent $event) {
-                    $this->auditService->onUserGroupsAssigned($event);
+                    $this->userGroupHandler->onUserGroupsAssigned($event);
                 },
             ],
             // Permission Events
@@ -424,28 +424,28 @@ class Audit extends Plugin
                 'class' => UserPermissions::class,
                 'event' => UserPermissions::EVENT_AFTER_SAVE_USER_PERMISSIONS,
                 'handler' => function(UserPermissionsEvent $event) {
-                    $this->auditService->onUserPermissionsSaved($event);
+                    $this->userGroupHandler->onUserPermissionsSaved($event);
                 },
             ],
             [
                 'class' => UserPermissions::class,
                 'event' => UserPermissions::EVENT_AFTER_SAVE_GROUP_PERMISSIONS,
                 'handler' => function(UserGroupPermissionsEvent $event) {
-                    $this->auditService->onGroupPermissionsSaved($event);
+                    $this->userGroupHandler->onGroupPermissionsSaved($event);
                 },
             ],
             [
                 'class' => UserGroups::class,
                 'event' => UserGroups::EVENT_AFTER_SAVE_USER_GROUP,
                 'handler' => function(UserGroupEvent $event) {
-                    $this->auditService->onUserGroupSaved($event);
+                    $this->userGroupHandler->onUserGroupSaved($event);
                 },
             ],
             [
                 'class' => UserGroups::class,
                 'event' => UserGroups::EVENT_AFTER_DELETE_USER_GROUP,
                 'handler' => function(UserGroupEvent $event) {
-                    $this->auditService->onUserGroupDeleted($event);
+                    $this->userGroupHandler->onUserGroupDeleted($event);
                 },
             ],
             // Schema Events
@@ -453,42 +453,42 @@ class Audit extends Plugin
                 'class' => Fields::class,
                 'event' => Fields::EVENT_AFTER_SAVE_FIELD,
                 'handler' => function(FieldEvent $event) {
-                    $this->auditService->onFieldSaved($event);
+                    $this->schemaHandler->onFieldSaved($event);
                 },
             ],
             [
                 'class' => Fields::class,
                 'event' => Fields::EVENT_AFTER_DELETE_FIELD,
                 'handler' => function(FieldEvent $event) {
-                    $this->auditService->onFieldDeleted($event);
+                    $this->schemaHandler->onFieldDeleted($event);
                 },
             ],
             [
                 'class' => Entries::class,
                 'event' => Entries::EVENT_AFTER_SAVE_SECTION,
                 'handler' => function(SectionEvent $event) {
-                    $this->auditService->onSectionSaved($event);
+                    $this->schemaHandler->onSectionSaved($event);
                 },
             ],
             [
                 'class' => Entries::class,
                 'event' => Entries::EVENT_AFTER_DELETE_SECTION,
                 'handler' => function(SectionEvent $event) {
-                    $this->auditService->onSectionDeleted($event);
+                    $this->schemaHandler->onSectionDeleted($event);
                 },
             ],
             [
                 'class' => Entries::class,
                 'event' => Entries::EVENT_AFTER_SAVE_ENTRY_TYPE,
                 'handler' => function(EntryTypeEvent $event) {
-                    $this->auditService->onEntryTypeSaved($event);
+                    $this->schemaHandler->onEntryTypeSaved($event);
                 },
             ],
             [
                 'class' => Entries::class,
                 'event' => Entries::EVENT_AFTER_DELETE_ENTRY_TYPE,
                 'handler' => function(EntryTypeEvent $event) {
-                    $this->auditService->onEntryTypeDeleted($event);
+                    $this->schemaHandler->onEntryTypeDeleted($event);
                 },
             ],
             // Database Events
@@ -496,14 +496,14 @@ class Audit extends Plugin
                 'class' => DbConnection::class,
                 'event' => DbConnection::EVENT_AFTER_CREATE_BACKUP,
                 'handler' => function(BackupEvent $event) {
-                    $this->auditService->onBackupCreated($event);
+                    $this->backupHandler->onBackupCreated($event);
                 },
             ],
             [
                 'class' => DbConnection::class,
                 'event' => DbConnection::EVENT_AFTER_RESTORE_BACKUP,
                 'handler' => function(RestoreEvent $event) {
-                    $this->auditService->onBackupRestored($event);
+                    $this->backupHandler->onBackupRestored($event);
                 },
             ],
         ];
@@ -522,9 +522,9 @@ class Audit extends Plugin
             ProjectConfig::EVENT_UPDATE_ITEM,
             function(ConfigEvent $event) {
                 if (str_starts_with($event->path, 'system')) {
-                    $this->auditService->onSettingsChanged($event, 'system');
+                    $this->settingsHandler->onSettingsChanged($event, 'system');
                 } elseif (str_starts_with($event->path, 'email')) {
-                    $this->auditService->onSettingsChanged($event, 'email');
+                    $this->settingsHandler->onSettingsChanged($event, 'email');
                 }
             }
         );
