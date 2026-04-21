@@ -12,12 +12,9 @@ namespace superbig\audit\services;
 
 use Craft;
 use craft\base\Component;
-use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\base\Plugin;
 use craft\base\PluginInterface;
-use craft\elements\Entry;
-use craft\elements\GlobalSet;
 use craft\elements\User;
 use craft\events\BackupEvent;
 use craft\events\ConfigEvent;
@@ -31,8 +28,6 @@ use craft\events\UserEvent;
 use craft\events\UserGroupEvent;
 use craft\events\UserGroupPermissionsEvent;
 use craft\events\UserPermissionsEvent;
-use craft\helpers\ElementHelper;
-use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\queue\jobs\ResaveElements;
@@ -140,235 +135,40 @@ class AuditService extends Component
      * @param bool $isNew
      *
      * @return bool
+     * @deprecated Use Audit::$plugin->elementHandler->onSaveElement() instead.
      */
     public function onSaveElement(ElementInterface $element, bool $isNew = false): bool
     {
-        $settings = Audit::$plugin->getSettings();
-        $title = null;
-        $rootElement = ElementHelper::rootElement($element);
-        $hasParent = $rootElement->id !== $element->id;
-        $isGlobal = $element instanceof GlobalSet;
-        $isDraft = false;
-        $isRevision = false;
-
-        // Skip if this event type is disabled
-        if (!$settings->logElementEvents) {
-            return false;
-        }
-
-        // Skip if this is an element that has a parent
-        if ($hasParent && !Audit::$plugin->getSettings()->logChildElementEvents) {
-            return false;
-        }
-
-        // Return early if no fields have changed?
-        $hasNoDirtyAttributes = Audit::$craft34 ? empty($element->getDirtyAttributes()) : false;
-        $hasNoDirtyFields = Audit::$craft34 ? empty($element->getDirtyFields()) : false;
-
-        // Skip save if all of these is true
-        if (!$settings->logDraftEvents && $hasNoDirtyAttributes && $hasNoDirtyFields && !$isGlobal) {
-            return false;
-        }
-
-        if (Audit::$craft32) {
-            // Skip draft events unless enabled
-            $rootElement = ElementHelper::rootElement($element);
-            $isDraft = $rootElement->getIsDraft();
-            $isRevision = $rootElement->getIsRevision();
-
-            if (!$settings->logDraftEvents && $rootElement->getIsDraft()) {
-                return false;
-            }
-
-            if ($rootElement->getIsRevision()) {
-                return false;
-            }
-        }
-
-        // Skip drafts and propagating elements
-        if ($element->propagating || $element->resaving) {
-            return false;
-        }
-
-        try {
-            /** @var Element $element */
-            $model = $this->_getStandardModel();
-            $model->event = $isNew ? AuditModel::EVENT_CREATED_ELEMENT : AuditModel::EVENT_SAVED_ELEMENT;
-            $model->elementId = $element->getId();
-            $model->siteId = $element->siteId;
-            $model->elementType = get_class($element);
-            $snapshot = [
-                'elementId' => $element->getId(),
-                'elementType' => get_class($element),
-                'elementTypeLabel' => $element::displayName(),
-            ];
-
-            if (Audit::$craft32 && ($isDraft || $isRevision)) {
-                $model->event = AuditModel::EVENT_SAVED_DRAFT;
-            }
-
-            if ($element instanceof Entry) {
-                /** @var Entry $element */
-                $model->event = $isNew ? AuditModel::EVENT_ENTRY_CREATED : AuditModel::EVENT_ENTRY_SAVED;
-                $section = $element->getSection();
-                if ($section) {
-                    $snapshot['sectionId'] = $section->id;
-                    $snapshot['sectionName'] = $section->name;
-                    $snapshot['sectionHandle'] = $section->handle;
-                }
-            }
-
-            if ($element->hasTitles()) {
-                $title = $element->title;
-            }
-
-            if ($isGlobal) {
-                /** @var GlobalSet $element */
-                $title = $element->name;
-                $model->event = AuditModel::EVENT_SAVED_GLOBAL;
-            }
-
-            if ($element instanceof User) {
-                /** @var User $element */
-                $title = $element->username;
-            }
-
-            $snapshot['content'] = $element->getSerializedFieldValues();
-
-            if ($title) {
-                $model->title = Html::encode($title);
-                $snapshot['title'] = Html::encode($title);
-            }
-
-            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
-            $parentId = $this->getParentId($model->elementType);
-
-            if (!empty($parentId)) {
-                $model->parentId = $parentId;
-            }
-
-            return $this->_saveRecord($model);
-        } catch (\Exception $e) {
-            Craft::error(
-                Craft::t('audit', 'Error when logging: {error}', ['error' => $e->getMessage()]),
-                __METHOD__
-            );
-
-            return false;
-        }
+        return Audit::$plugin->elementHandler->onSaveElement($element, $isNew);
     }
 
     /**
      * @param ElementInterface $element
      *
      * @return bool
+     * @deprecated Use Audit::$plugin->elementHandler->onDeleteElement() instead.
      */
     public function onDeleteElement(ElementInterface $element): bool
     {
-        $rootElement = ElementHelper::rootElement($element);
-        $hasParent = $rootElement->id !== $element->id;
-
-        if (!Audit::$plugin->getSettings()->logElementEvents) {
-            return false;
-        }
-
-        // Skip drafts
-        if (ElementHelper::isDraftOrRevision($element)) {
-            return false;
-        }
-
-        if ($hasParent && !Audit::$plugin->getSettings()->logChildElementEvents) {
-            return false;
-        }
-
-        try {
-            /** @var Element $element */
-            $model = $this->_getStandardModel();
-            $model->event = AuditModel::EVENT_DELETED_ELEMENT;
-            $model->elementId = $element->getId();
-            $model->elementType = get_class($element);
-            $model->siteId = $element->siteId;
-            $snapshot = [
-                'elementId' => $element->getId(),
-                'elementType' => get_class($element),
-                'elementTypeLabel' => $element::displayName(),
-            ];
-
-            if ($element instanceof Entry) {
-                /** @var Entry $element */
-                $model->event = AuditModel::EVENT_ENTRY_DELETED;
-                $section = $element->getSection();
-                if ($section) {
-                    $snapshot['sectionId'] = $section->id;
-                    $snapshot['sectionName'] = $section->name;
-                    $snapshot['sectionHandle'] = $section->handle;
-                }
-            }
-
-            if ($element->hasTitles()) {
-                $model->title = $element->title;
-                $snapshot['title'] = $element->title;
-            }
-
-            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
-
-            return $this->_saveRecord($model);
-        } catch (\Exception $e) {
-            Craft::error(
-                Craft::t('audit', 'Error when logging: {error}', ['error' => $e->getMessage()]),
-                __METHOD__
-            );
-
-            return false;
-        }
+        return Audit::$plugin->elementHandler->onDeleteElement($element);
     }
 
     /**
      * @return bool
+     * @deprecated Use Audit::$plugin->userHandler->onLogin() instead.
      */
     public function onLogin(): bool
     {
-        if (!Audit::$plugin->getSettings()->logUserEvents) {
-            return false;
-        }
-
-        try {
-            $model = $this->_getStandardModel();
-            $model->event = AuditModel::USER_LOGGED_IN;
-
-            return $this->_saveRecord($model);
-        } catch (\Exception $e) {
-            Craft::error(
-                Craft::t('audit', 'Error when logging: {error}', ['error' => $e->getMessage()]),
-                __METHOD__
-            );
-
-            return false;
-        }
+        return Audit::$plugin->userHandler->onLogin();
     }
 
     /**
      * @return bool
+     * @deprecated Use Audit::$plugin->userHandler->onBeforeLogout() instead.
      */
     public function onBeforeLogout(): bool
     {
-        if (!Audit::$plugin->getSettings()->logUserEvents) {
-            return false;
-        }
-
-        try {
-            $model = $this->_getStandardModel();
-            $model->event = AuditModel::USER_LOGGED_OUT;
-
-            return $this->_saveRecord($model);
-        } catch (\Exception $e) {
-            Craft::error(
-                Craft::t('audit', 'Error when logging: {error}', ['error' => $e->getMessage()]),
-                __METHOD__
-            );
-
-            return false;
-        }
+        return Audit::$plugin->userHandler->onBeforeLogout();
     }
 
     /**
@@ -411,8 +211,9 @@ class AuditService extends Component
      * @param            $snapshot
      *
      * @return array
+     * @internal Public for use by handler services in services/handlers/.
      */
-    protected function afterSnapshot(AuditModel $auditModel, $snapshot): array
+    public function afterSnapshot(AuditModel $auditModel, $snapshot): array
     {
         $event = new SnapshotEvent([
             'audit' => $auditModel,
@@ -426,8 +227,9 @@ class AuditService extends Component
 
     /**
      * @return AuditModel
+     * @internal Public for use by handler services in services/handlers/. Do not call from outside the plugin.
      */
-    private function _getStandardModel(): AuditModel
+    public function _getStandardModel(): AuditModel
     {
         $app = Craft::$app;
         $request = $app->getRequest();
@@ -544,78 +346,42 @@ class AuditService extends Component
         return $count;
     }
 
+    /**
+     * @deprecated Use Audit::$plugin->elementHandler->onBeforeResave() instead.
+     */
     public function onBeforeResave(ResaveElements $job): bool
     {
-        try {
-            $model = $this->_getStandardModel();
-            $model->event = AuditModel::EVENT_RESAVED_ELEMENTS;
-            $model->elementType = $job->elementType;
-            $model->appendSnapshot('resaveCriteria', $job->criteria);
-
-            $this->_saveRecord($model);
-
-            if ($model->id) {
-                $parentIdKey = $this->getParentIdKey($job->elementType);
-
-                Craft::$app->getCache()->set($parentIdKey, $model->id);
-            }
-        } catch (\Exception $e) {
-            Craft::error(
-                Craft::t('audit', 'Error when logging: {error}', ['error' => $e->getMessage()]),
-                __METHOD__
-            );
-        }
-
-        return true;
+        return Audit::$plugin->elementHandler->onBeforeResave($job);
     }
 
     /**
      * @param string $elementType
      *
      * @return mixed
+     * @deprecated Use Audit::$plugin->elementHandler->getParentId() instead.
      */
     public function getParentId(string $elementType = ''): mixed
     {
-        $cache = Craft::$app->getCache();
-        $parentId = $cache->get($this->getParentIdKey($elementType));
-
-        return $parentId;
+        return Audit::$plugin->elementHandler->getParentId($elementType);
     }
 
     /**
      * @param ResaveElements $job
      *
      * @return mixed
+     * @deprecated Use Audit::$plugin->elementHandler->onResaveEnd() instead.
      */
     public function onResaveEnd(ResaveElements $job): mixed
     {
-        try {
-            $cache = Craft::$app->getCache();
-            $parentKey = $this->getParentIdKey($job->elementType);
-            $parentId = $cache->get($parentKey);
-
-            if ($parentId) {
-                $parentEvent = $this->getEventById((int) $parentId);
-                $subEventCount = $this->getEventCountByParentId((int) $parentId);
-
-                if ($parentEvent) {
-                    $parentEvent->title = $subEventCount . ' elements was re-saved';
-
-                    $this->_saveRecord($parentEvent);
-                }
-
-                $cache->delete($parentKey);
-            }
-        } catch (\Exception $e) {
-            Craft::error('Failed to remove resave id: ' . $e->getMessage(), __METHOD__);
-        }
-
-        return true;
+        return Audit::$plugin->elementHandler->onResaveEnd($job);
     }
 
+    /**
+     * @deprecated Use Audit::$plugin->elementHandler->getParentIdKey() instead.
+     */
     public function getParentIdKey($elementType = ''): string
     {
-        return AuditModel::FLASH_RESAVE_ID . ':' . $elementType;
+        return Audit::$plugin->elementHandler->getParentIdKey($elementType);
     }
 
     public function onSaveRoute(RouteEvent $event)
@@ -663,7 +429,10 @@ class AuditService extends Component
         });
     }
 
-    private function catchSaveError(callable $callable)
+    /**
+     * @internal Public for use by handler services in services/handlers/.
+     */
+    public function catchSaveError(callable $callable)
     {
         try {
             return $callable();
@@ -686,274 +455,96 @@ class AuditService extends Component
     // User Security Events
     // =========================================================================
 
+    /**
+     * @deprecated Use Audit::$plugin->userHandler->onUserActivated() instead.
+     */
     public function onUserActivated(UserEvent $event): bool
     {
-        if (!Audit::$plugin->getSettings()->logUserSecurityEvents) {
-            return false;
-        }
-
-        return $this->catchSaveError(function() use ($event) {
-            $user = $event->user;
-            $model = $this->_getStandardModel();
-            $model->event = AuditModel::EVENT_USER_ACTIVATED;
-            $model->title = $user->username;
-            $model->elementId = $user->id;
-            $model->elementType = User::class;
-            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
-                'userId' => $user->id,
-                'username' => $user->username,
-                'email' => $user->email,
-            ]));
-
-            return $this->_saveRecord($model);
-        });
+        return Audit::$plugin->userHandler->onUserActivated($event);
     }
 
+    /**
+     * @deprecated Use Audit::$plugin->userHandler->onUserDeactivated() instead.
+     */
     public function onUserDeactivated(UserEvent $event): bool
     {
-        if (!Audit::$plugin->getSettings()->logUserSecurityEvents) {
-            return false;
-        }
-
-        return $this->catchSaveError(function() use ($event) {
-            $user = $event->user;
-            $model = $this->_getStandardModel();
-            $model->event = AuditModel::EVENT_USER_DEACTIVATED;
-            $model->title = $user->username;
-            $model->elementId = $user->id;
-            $model->elementType = User::class;
-            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
-                'userId' => $user->id,
-                'username' => $user->username,
-                'email' => $user->email,
-            ]));
-
-            return $this->_saveRecord($model);
-        });
+        return Audit::$plugin->userHandler->onUserDeactivated($event);
     }
 
+    /**
+     * @deprecated Use Audit::$plugin->userHandler->onUserSuspended() instead.
+     */
     public function onUserSuspended(UserEvent $event): bool
     {
-        if (!Audit::$plugin->getSettings()->logUserSecurityEvents) {
-            return false;
-        }
-
-        return $this->catchSaveError(function() use ($event) {
-            $user = $event->user;
-            $model = $this->_getStandardModel();
-            $model->event = AuditModel::EVENT_USER_SUSPENDED;
-            $model->title = $user->username;
-            $model->elementId = $user->id;
-            $model->elementType = User::class;
-            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
-                'userId' => $user->id,
-                'username' => $user->username,
-                'email' => $user->email,
-            ]));
-
-            return $this->_saveRecord($model);
-        });
+        return Audit::$plugin->userHandler->onUserSuspended($event);
     }
 
+    /**
+     * @deprecated Use Audit::$plugin->userHandler->onUserUnsuspended() instead.
+     */
     public function onUserUnsuspended(UserEvent $event): bool
     {
-        if (!Audit::$plugin->getSettings()->logUserSecurityEvents) {
-            return false;
-        }
-
-        return $this->catchSaveError(function() use ($event) {
-            $user = $event->user;
-            $model = $this->_getStandardModel();
-            $model->event = AuditModel::EVENT_USER_UNSUSPENDED;
-            $model->title = $user->username;
-            $model->elementId = $user->id;
-            $model->elementType = User::class;
-            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
-                'userId' => $user->id,
-                'username' => $user->username,
-                'email' => $user->email,
-            ]));
-
-            return $this->_saveRecord($model);
-        });
+        return Audit::$plugin->userHandler->onUserUnsuspended($event);
     }
 
+    /**
+     * @deprecated Use Audit::$plugin->userHandler->onUserLocked() instead.
+     */
     public function onUserLocked(UserEvent $event): bool
     {
-        if (!Audit::$plugin->getSettings()->logUserSecurityEvents) {
-            return false;
-        }
-
-        return $this->catchSaveError(function() use ($event) {
-            $user = $event->user;
-            $model = $this->_getStandardModel();
-            $model->event = AuditModel::EVENT_USER_LOCKED;
-            $model->title = $user->username;
-            $model->elementId = $user->id;
-            $model->elementType = User::class;
-            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
-                'userId' => $user->id,
-                'username' => $user->username,
-                'email' => $user->email,
-            ]));
-
-            return $this->_saveRecord($model);
-        });
+        return Audit::$plugin->userHandler->onUserLocked($event);
     }
 
+    /**
+     * @deprecated Use Audit::$plugin->userHandler->onUserUnlocked() instead.
+     */
     public function onUserUnlocked(UserEvent $event): bool
     {
-        if (!Audit::$plugin->getSettings()->logUserSecurityEvents) {
-            return false;
-        }
-
-        return $this->catchSaveError(function() use ($event) {
-            $user = $event->user;
-            $model = $this->_getStandardModel();
-            $model->event = AuditModel::EVENT_USER_UNLOCKED;
-            $model->title = $user->username;
-            $model->elementId = $user->id;
-            $model->elementType = User::class;
-            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
-                'userId' => $user->id,
-                'username' => $user->username,
-                'email' => $user->email,
-            ]));
-
-            return $this->_saveRecord($model);
-        });
+        return Audit::$plugin->userHandler->onUserUnlocked($event);
     }
 
+    /**
+     * @deprecated Use Audit::$plugin->userGroupHandler->onUserGroupsAssigned() instead.
+     */
     public function onUserGroupsAssigned(UserAssignGroupEvent $event): bool
     {
-        if (!Audit::$plugin->getSettings()->logUserSecurityEvents) {
-            return false;
-        }
-
-        return $this->catchSaveError(function() use ($event) {
-            $user = $event->user;
-            // Craft 5: userGroups is an array of UserGroup objects, not IDs
-            $userGroups = $event->userGroups ?? [];
-            $groupIds = [];
-            $groupNames = [];
-            foreach ($userGroups as $group) {
-                $groupIds[] = $group->id;
-                $groupNames[] = $group->name;
-            }
-
-            $model = $this->_getStandardModel();
-            $model->event = AuditModel::EVENT_USER_GROUPS_ASSIGNED;
-            $model->title = $user->username . ' → ' . implode(', ', $groupNames);
-            $model->elementId = $user->id;
-            $model->elementType = User::class;
-            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
-                'userId' => $user->id,
-                'username' => $user->username,
-                'groupIds' => $groupIds,
-                'groupNames' => $groupNames,
-            ]));
-
-            return $this->_saveRecord($model);
-        });
+        return Audit::$plugin->userGroupHandler->onUserGroupsAssigned($event);
     }
 
     // =========================================================================
     // Permission Events
     // =========================================================================
 
+    /**
+     * @deprecated Use Audit::$plugin->userGroupHandler->onUserPermissionsSaved() instead.
+     */
     public function onUserPermissionsSaved(UserPermissionsEvent $event): bool
     {
-        if (!Audit::$plugin->getSettings()->logPermissionEvents) {
-            return false;
-        }
-
-        return $this->catchSaveError(function() use ($event) {
-            $userId = $event->userId;
-            $user = Craft::$app->getUsers()->getUserById($userId);
-            $permissions = $event->permissions;
-
-            $model = $this->_getStandardModel();
-            $model->event = AuditModel::EVENT_USER_PERMISSIONS_SAVED;
-            $model->title = $user ? $user->username : "User #{$userId}";
-            $model->elementId = $userId;
-            $model->elementType = User::class;
-            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
-                'userId' => $userId,
-                'username' => $user?->username,
-                'permissions' => $permissions,
-            ]));
-
-            return $this->_saveRecord($model);
-        });
+        return Audit::$plugin->userGroupHandler->onUserPermissionsSaved($event);
     }
 
+    /**
+     * @deprecated Use Audit::$plugin->userGroupHandler->onGroupPermissionsSaved() instead.
+     */
     public function onGroupPermissionsSaved(UserGroupPermissionsEvent $event): bool
     {
-        if (!Audit::$plugin->getSettings()->logPermissionEvents) {
-            return false;
-        }
-
-        return $this->catchSaveError(function() use ($event) {
-            $groupId = $event->groupId;
-            $group = Craft::$app->getUserGroups()->getGroupById($groupId);
-            $permissions = $event->permissions;
-
-            $model = $this->_getStandardModel();
-            $model->event = AuditModel::EVENT_GROUP_PERMISSIONS_SAVED;
-            $model->title = $group ? $group->name : "Group #{$groupId}";
-            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
-                'groupId' => $groupId,
-                'groupName' => $group?->name,
-                'permissions' => $permissions,
-            ]));
-
-            return $this->_saveRecord($model);
-        });
+        return Audit::$plugin->userGroupHandler->onGroupPermissionsSaved($event);
     }
 
+    /**
+     * @deprecated Use Audit::$plugin->userGroupHandler->onUserGroupSaved() instead.
+     */
     public function onUserGroupSaved(UserGroupEvent $event): bool
     {
-        if (!Audit::$plugin->getSettings()->logPermissionEvents) {
-            return false;
-        }
-
-        return $this->catchSaveError(function() use ($event) {
-            $group = $event->userGroup;
-            $isNew = $event->isNew;
-
-            $model = $this->_getStandardModel();
-            $model->event = $isNew ? AuditModel::EVENT_USER_GROUP_CREATED : AuditModel::EVENT_USER_GROUP_SAVED;
-            $model->title = $group->name;
-            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
-                'groupId' => $group->id,
-                'groupName' => $group->name,
-                'groupHandle' => $group->handle,
-            ]));
-
-            return $this->_saveRecord($model);
-        });
+        return Audit::$plugin->userGroupHandler->onUserGroupSaved($event);
     }
 
+    /**
+     * @deprecated Use Audit::$plugin->userGroupHandler->onUserGroupDeleted() instead.
+     */
     public function onUserGroupDeleted(UserGroupEvent $event): bool
     {
-        if (!Audit::$plugin->getSettings()->logPermissionEvents) {
-            return false;
-        }
-
-        return $this->catchSaveError(function() use ($event) {
-            $group = $event->userGroup;
-
-            $model = $this->_getStandardModel();
-            $model->event = AuditModel::EVENT_USER_GROUP_DELETED;
-            $model->title = $group->name;
-            $model->snapshot = $this->afterSnapshot($model, array_merge($model->snapshot, [
-                'groupId' => $group->id,
-                'groupName' => $group->name,
-                'groupHandle' => $group->handle,
-            ]));
-
-            return $this->_saveRecord($model);
-        });
+        return Audit::$plugin->userGroupHandler->onUserGroupDeleted($event);
     }
 
     // =========================================================================
