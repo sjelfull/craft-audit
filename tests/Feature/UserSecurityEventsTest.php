@@ -16,7 +16,7 @@ it('logs audit event when user is activated', function () {
     \Craft::$app->getUser()->setIdentity($user);
 
     $event = new UserEvent(['user' => $user]);
-    Audit::$plugin->auditService->onUserActivated($event);
+    Audit::$plugin->userHandler->onUserActivated($event);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::UserActivated->value])
@@ -32,7 +32,7 @@ it('logs audit event when user is deactivated', function () {
     \Craft::$app->getUser()->setIdentity($user);
 
     $event = new UserEvent(['user' => $user]);
-    Audit::$plugin->auditService->onUserDeactivated($event);
+    Audit::$plugin->userHandler->onUserDeactivated($event);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::UserDeactivated->value])
@@ -47,7 +47,7 @@ it('logs audit event when user is suspended', function () {
     \Craft::$app->getUser()->setIdentity($user);
 
     $event = new UserEvent(['user' => $user]);
-    Audit::$plugin->auditService->onUserSuspended($event);
+    Audit::$plugin->userHandler->onUserSuspended($event);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::UserSuspended->value])
@@ -62,7 +62,7 @@ it('logs audit event when user is unsuspended', function () {
     \Craft::$app->getUser()->setIdentity($user);
 
     $event = new UserEvent(['user' => $user]);
-    Audit::$plugin->auditService->onUserUnsuspended($event);
+    Audit::$plugin->userHandler->onUserUnsuspended($event);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::UserUnsuspended->value])
@@ -77,7 +77,7 @@ it('logs audit event when user is locked', function () {
     \Craft::$app->getUser()->setIdentity($user);
 
     $event = new UserEvent(['user' => $user]);
-    Audit::$plugin->auditService->onUserLocked($event);
+    Audit::$plugin->userHandler->onUserLocked($event);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::UserLocked->value])
@@ -92,7 +92,7 @@ it('logs audit event when user is unlocked', function () {
     \Craft::$app->getUser()->setIdentity($user);
 
     $event = new UserEvent(['user' => $user]);
-    Audit::$plugin->auditService->onUserUnlocked($event);
+    Audit::$plugin->userHandler->onUserUnlocked($event);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::UserUnlocked->value])
@@ -109,7 +109,7 @@ it('does not log user security events when disabled', function () {
     \Craft::$app->getUser()->setIdentity($user);
 
     $event = new UserEvent(['user' => $user]);
-    $result = Audit::$plugin->auditService->onUserActivated($event);
+    $result = Audit::$plugin->userHandler->onUserActivated($event);
 
     expect($result)->toBeFalse();
 
@@ -127,7 +127,7 @@ it('captures user details in snapshot', function () {
     \Craft::$app->getUser()->setIdentity($user);
 
     $event = new UserEvent(['user' => $user]);
-    Audit::$plugin->auditService->onUserActivated($event);
+    Audit::$plugin->userHandler->onUserActivated($event);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::UserActivated->value])

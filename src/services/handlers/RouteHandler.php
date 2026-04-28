@@ -18,8 +18,8 @@ use superbig\audit\models\AuditModel;
  * RouteHandler — handles route save/delete audit events extracted from AuditService.
  *
  * Behavior is preserved verbatim: methods delegate back to AuditService for
- * `_saveRecord`, `_getStandardModel`, `afterSnapshot`, and `catchSaveError`
- * via `Audit::$plugin->auditService`.
+ * `saveRecord`, `getStandardModel`, `afterSnapshot`, and `catchSaveError`
+ * via `Audit::$plugin->auditRecorder`.
  *
  * @author    Superbig
  * @package   Audit
@@ -33,11 +33,11 @@ class RouteHandler extends Component
             return false;
         }
 
-        $auditService = Audit::$plugin->auditService;
+        $auditRecorder = Audit::$plugin->auditRecorder;
 
-        $auditService->catchSaveError(function() use ($event, $auditService) {
+        $auditRecorder->catchSaveError(function() use ($event, $auditRecorder) {
             $uriDisplay = Route::getUriDisplayHtml($event->uriParts);
-            $model = $auditService->_getStandardModel();
+            $model = $auditRecorder->getStandardModel();
             // Craft 5's RouteEvent doesn't expose routeId, so we can't distinguish new vs. existing
             $model->event = AuditModel::EVENT_SAVED_ROUTE;
             $model->title = $uriDisplay . ' -> ' . $event->template;
@@ -46,9 +46,9 @@ class RouteHandler extends Component
                 'template' => $event->template,
                 'siteUid' => $event->siteUid,
             ];
-            $model->snapshot = $auditService->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
+            $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
 
-            return $auditService->_saveRecord($model);
+            return $auditRecorder->saveRecord($model);
         });
     }
 
@@ -58,11 +58,11 @@ class RouteHandler extends Component
             return false;
         }
 
-        $auditService = Audit::$plugin->auditService;
+        $auditRecorder = Audit::$plugin->auditRecorder;
 
-        $auditService->catchSaveError(function() use ($event, $auditService) {
+        $auditRecorder->catchSaveError(function() use ($event, $auditRecorder) {
             $uriDisplay = Route::getUriDisplayHtml($event->uriParts);
-            $model = $auditService->_getStandardModel();
+            $model = $auditRecorder->getStandardModel();
             $model->event = AuditModel::EVENT_DELETED_ROUTE;
             $model->title = $uriDisplay . ' -> ' . $event->template;
             $snapshot = [
@@ -70,9 +70,9 @@ class RouteHandler extends Component
                 'template' => $event->template,
                 'siteUid' => $event->siteUid,
             ];
-            $model->snapshot = $auditService->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
+            $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
 
-            return $auditService->_saveRecord($model);
+            return $auditRecorder->saveRecord($model);
         });
     }
 }

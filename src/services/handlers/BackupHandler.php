@@ -18,8 +18,8 @@ use superbig\audit\models\AuditModel;
  * BackupHandler — handles database backup/restore audit events extracted from AuditService.
  *
  * Behavior is preserved verbatim: methods delegate back to AuditService for
- * `_saveRecord`, `_getStandardModel`, `afterSnapshot`, and `catchSaveError`
- * via `Audit::$plugin->auditService`.
+ * `saveRecord`, `getStandardModel`, `afterSnapshot`, and `catchSaveError`
+ * via `Audit::$plugin->auditRecorder`.
  *
  * @author    Superbig
  * @package   Audit
@@ -33,18 +33,18 @@ class BackupHandler extends Component
             return false;
         }
 
-        $auditService = Audit::$plugin->auditService;
+        $auditRecorder = Audit::$plugin->auditRecorder;
 
-        return $auditService->catchSaveError(function() use ($event, $auditService) {
-            $model = $auditService->_getStandardModel();
+        return $auditRecorder->catchSaveError(function() use ($event, $auditRecorder) {
+            $model = $auditRecorder->getStandardModel();
             $model->event = AuditModel::EVENT_BACKUP_CREATED;
             $model->title = basename($event->file);
-            $model->snapshot = $auditService->afterSnapshot($model, array_merge($model->snapshot, [
+            $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, [
                 'file' => $event->file,
                 'ignoreTables' => $event->ignoreTables,
             ]));
 
-            return $auditService->_saveRecord($model);
+            return $auditRecorder->saveRecord($model);
         });
     }
 
@@ -54,17 +54,17 @@ class BackupHandler extends Component
             return false;
         }
 
-        $auditService = Audit::$plugin->auditService;
+        $auditRecorder = Audit::$plugin->auditRecorder;
 
-        return $auditService->catchSaveError(function() use ($event, $auditService) {
-            $model = $auditService->_getStandardModel();
+        return $auditRecorder->catchSaveError(function() use ($event, $auditRecorder) {
+            $model = $auditRecorder->getStandardModel();
             $model->event = AuditModel::EVENT_BACKUP_RESTORED;
             $model->title = basename($event->file);
-            $model->snapshot = $auditService->afterSnapshot($model, array_merge($model->snapshot, [
+            $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, [
                 'file' => $event->file,
             ]));
 
-            return $auditService->_saveRecord($model);
+            return $auditRecorder->saveRecord($model);
         });
     }
 }

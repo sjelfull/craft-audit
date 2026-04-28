@@ -18,7 +18,7 @@ it('logs audit event when route is saved', function () {
         'siteUid' => null,
     ]);
 
-    Audit::$plugin->auditService->onSaveRoute($event);
+    Audit::$plugin->routeHandler->onSaveRoute($event);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::SavedRoute->value])
@@ -35,7 +35,7 @@ it('logs audit event when route is deleted', function () {
         'siteUid' => null,
     ]);
 
-    Audit::$plugin->auditService->onDeleteRoute($event);
+    Audit::$plugin->routeHandler->onDeleteRoute($event);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::DeletedRoute->value])
@@ -57,7 +57,7 @@ it('captures site UID in route snapshot', function () {
         'siteUid' => $siteUid,
     ]);
 
-    Audit::$plugin->auditService->onSaveRoute($event);
+    Audit::$plugin->routeHandler->onSaveRoute($event);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::SavedRoute->value])

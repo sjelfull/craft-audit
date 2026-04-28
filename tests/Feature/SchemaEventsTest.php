@@ -28,7 +28,7 @@ it('logs audit event when field is saved', function () {
         'field' => $field,
         'isNew' => true,
     ]);
-    Audit::$plugin->auditService->onFieldSaved($event);
+    Audit::$plugin->schemaHandler->onFieldSaved($event);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::FieldCreated->value])
@@ -49,7 +49,7 @@ it('logs audit event when field is deleted', function () {
     $event = new FieldEvent([
         'field' => $field,
     ]);
-    Audit::$plugin->auditService->onFieldDeleted($event);
+    Audit::$plugin->schemaHandler->onFieldDeleted($event);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::FieldDeleted->value])
@@ -72,7 +72,7 @@ it('logs audit event when section is saved', function () {
         'section' => $section,
         'isNew' => true,
     ]);
-    Audit::$plugin->auditService->onSectionSaved($event);
+    Audit::$plugin->schemaHandler->onSectionSaved($event);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::SectionCreated->value])
@@ -93,7 +93,7 @@ it('logs audit event when section is deleted', function () {
     $event = new SectionEvent([
         'section' => $section,
     ]);
-    Audit::$plugin->auditService->onSectionDeleted($event);
+    Audit::$plugin->schemaHandler->onSectionDeleted($event);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::SectionDeleted->value])
@@ -115,7 +115,7 @@ it('logs audit event when entry type is saved', function () {
         'entryType' => $entryType,
         'isNew' => true,
     ]);
-    Audit::$plugin->auditService->onEntryTypeSaved($event);
+    Audit::$plugin->schemaHandler->onEntryTypeSaved($event);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::EntryTypeCreated->value])
@@ -136,7 +136,7 @@ it('logs audit event when entry type is deleted', function () {
     $event = new EntryTypeEvent([
         'entryType' => $entryType,
     ]);
-    Audit::$plugin->auditService->onEntryTypeDeleted($event);
+    Audit::$plugin->schemaHandler->onEntryTypeDeleted($event);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::EntryTypeDeleted->value])
@@ -160,7 +160,7 @@ it('does not log schema events when disabled', function () {
         'field' => $field,
         'isNew' => true,
     ]);
-    $result = Audit::$plugin->auditService->onFieldSaved($event);
+    $result = Audit::$plugin->schemaHandler->onFieldSaved($event);
 
     expect($result)->toBeFalse();
 
@@ -185,7 +185,7 @@ it('captures field details in snapshot', function () {
         'field' => $field,
         'isNew' => true,
     ]);
-    Audit::$plugin->auditService->onFieldSaved($event);
+    Audit::$plugin->schemaHandler->onFieldSaved($event);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::FieldCreated->value])

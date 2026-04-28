@@ -17,7 +17,7 @@ it('logs audit event when plugin is enabled', function () {
         public string $version = '1.0.0';
     };
 
-    Audit::$plugin->auditService->onPluginEvent(
+    Audit::$plugin->pluginHandler->onPluginEvent(
         AuditEvent::PluginEnabled->value,
         $mockPlugin
     );
@@ -36,7 +36,7 @@ it('logs audit event when plugin is disabled', function () {
         public string $version = '1.0.0';
     };
 
-    Audit::$plugin->auditService->onPluginEvent(
+    Audit::$plugin->pluginHandler->onPluginEvent(
         AuditEvent::PluginDisabled->value,
         $mockPlugin
     );
@@ -56,7 +56,7 @@ it('does not log plugin events when disabled', function () {
         public string $version = '1.0.0';
     };
 
-    $result = Audit::$plugin->auditService->onPluginEvent(
+    $result = Audit::$plugin->pluginHandler->onPluginEvent(
         AuditEvent::PluginEnabled->value,
         $mockPlugin
     );
@@ -73,7 +73,7 @@ it('captures plugin info in snapshot', function () {
         public string $version = '1.0.0';
     };
 
-    Audit::$plugin->auditService->onPluginEvent(
+    Audit::$plugin->pluginHandler->onPluginEvent(
         AuditEvent::PluginEnabled->value,
         $mockPlugin
     );

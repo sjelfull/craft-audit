@@ -20,7 +20,7 @@ use superbig\audit\models\AuditModel;
  * extracted from AuditService.
  *
  * Behavior is preserved verbatim: methods delegate back to AuditService for
- * `_saveRecord`, `_getStandardModel`, and `afterSnapshot` via `Audit::$plugin->auditService`.
+ * `saveRecord`, `getStandardModel`, and `afterSnapshot` via `Audit::$plugin->auditRecorder`.
  *
  * @author    Superbig
  * @package   Audit
@@ -33,17 +33,17 @@ class UserHandler extends Component
      */
     public function onLogin(): bool
     {
-        $auditService = Audit::$plugin->auditService;
+        $auditRecorder = Audit::$plugin->auditRecorder;
 
         if (!Audit::$plugin->getSettings()->logUserEvents) {
             return false;
         }
 
         try {
-            $model = $auditService->_getStandardModel();
+            $model = $auditRecorder->getStandardModel();
             $model->event = AuditModel::USER_LOGGED_IN;
 
-            return $auditService->_saveRecord($model);
+            return $auditRecorder->saveRecord($model);
         } catch (\Exception $e) {
             Craft::error(
                 Craft::t('audit', 'Error when logging: {error}', ['error' => $e->getMessage()]),
@@ -59,17 +59,17 @@ class UserHandler extends Component
      */
     public function onBeforeLogout(): bool
     {
-        $auditService = Audit::$plugin->auditService;
+        $auditRecorder = Audit::$plugin->auditRecorder;
 
         if (!Audit::$plugin->getSettings()->logUserEvents) {
             return false;
         }
 
         try {
-            $model = $auditService->_getStandardModel();
+            $model = $auditRecorder->getStandardModel();
             $model->event = AuditModel::USER_LOGGED_OUT;
 
-            return $auditService->_saveRecord($model);
+            return $auditRecorder->saveRecord($model);
         } catch (\Exception $e) {
             Craft::error(
                 Craft::t('audit', 'Error when logging: {error}', ['error' => $e->getMessage()]),
@@ -82,151 +82,151 @@ class UserHandler extends Component
 
     public function onUserActivated(UserEvent $event): bool
     {
-        $auditService = Audit::$plugin->auditService;
+        $auditRecorder = Audit::$plugin->auditRecorder;
 
         if (!Audit::$plugin->getSettings()->logUserSecurityEvents) {
             return false;
         }
 
-        return $auditService->catchSaveError(function() use ($event, $auditService) {
+        return $auditRecorder->catchSaveError(function() use ($event, $auditRecorder) {
             $user = $event->user;
-            $model = $auditService->_getStandardModel();
+            $model = $auditRecorder->getStandardModel();
             $model->event = AuditModel::EVENT_USER_ACTIVATED;
             $model->title = $user->username;
             $model->elementId = $user->id;
             $model->elementType = User::class;
-            $model->snapshot = $auditService->afterSnapshot($model, array_merge($model->snapshot, [
+            $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, [
                 'userId' => $user->id,
                 'username' => $user->username,
                 'email' => $user->email,
             ]));
 
-            return $auditService->_saveRecord($model);
+            return $auditRecorder->saveRecord($model);
         });
     }
 
     public function onUserDeactivated(UserEvent $event): bool
     {
-        $auditService = Audit::$plugin->auditService;
+        $auditRecorder = Audit::$plugin->auditRecorder;
 
         if (!Audit::$plugin->getSettings()->logUserSecurityEvents) {
             return false;
         }
 
-        return $auditService->catchSaveError(function() use ($event, $auditService) {
+        return $auditRecorder->catchSaveError(function() use ($event, $auditRecorder) {
             $user = $event->user;
-            $model = $auditService->_getStandardModel();
+            $model = $auditRecorder->getStandardModel();
             $model->event = AuditModel::EVENT_USER_DEACTIVATED;
             $model->title = $user->username;
             $model->elementId = $user->id;
             $model->elementType = User::class;
-            $model->snapshot = $auditService->afterSnapshot($model, array_merge($model->snapshot, [
+            $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, [
                 'userId' => $user->id,
                 'username' => $user->username,
                 'email' => $user->email,
             ]));
 
-            return $auditService->_saveRecord($model);
+            return $auditRecorder->saveRecord($model);
         });
     }
 
     public function onUserSuspended(UserEvent $event): bool
     {
-        $auditService = Audit::$plugin->auditService;
+        $auditRecorder = Audit::$plugin->auditRecorder;
 
         if (!Audit::$plugin->getSettings()->logUserSecurityEvents) {
             return false;
         }
 
-        return $auditService->catchSaveError(function() use ($event, $auditService) {
+        return $auditRecorder->catchSaveError(function() use ($event, $auditRecorder) {
             $user = $event->user;
-            $model = $auditService->_getStandardModel();
+            $model = $auditRecorder->getStandardModel();
             $model->event = AuditModel::EVENT_USER_SUSPENDED;
             $model->title = $user->username;
             $model->elementId = $user->id;
             $model->elementType = User::class;
-            $model->snapshot = $auditService->afterSnapshot($model, array_merge($model->snapshot, [
+            $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, [
                 'userId' => $user->id,
                 'username' => $user->username,
                 'email' => $user->email,
             ]));
 
-            return $auditService->_saveRecord($model);
+            return $auditRecorder->saveRecord($model);
         });
     }
 
     public function onUserUnsuspended(UserEvent $event): bool
     {
-        $auditService = Audit::$plugin->auditService;
+        $auditRecorder = Audit::$plugin->auditRecorder;
 
         if (!Audit::$plugin->getSettings()->logUserSecurityEvents) {
             return false;
         }
 
-        return $auditService->catchSaveError(function() use ($event, $auditService) {
+        return $auditRecorder->catchSaveError(function() use ($event, $auditRecorder) {
             $user = $event->user;
-            $model = $auditService->_getStandardModel();
+            $model = $auditRecorder->getStandardModel();
             $model->event = AuditModel::EVENT_USER_UNSUSPENDED;
             $model->title = $user->username;
             $model->elementId = $user->id;
             $model->elementType = User::class;
-            $model->snapshot = $auditService->afterSnapshot($model, array_merge($model->snapshot, [
+            $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, [
                 'userId' => $user->id,
                 'username' => $user->username,
                 'email' => $user->email,
             ]));
 
-            return $auditService->_saveRecord($model);
+            return $auditRecorder->saveRecord($model);
         });
     }
 
     public function onUserLocked(UserEvent $event): bool
     {
-        $auditService = Audit::$plugin->auditService;
+        $auditRecorder = Audit::$plugin->auditRecorder;
 
         if (!Audit::$plugin->getSettings()->logUserSecurityEvents) {
             return false;
         }
 
-        return $auditService->catchSaveError(function() use ($event, $auditService) {
+        return $auditRecorder->catchSaveError(function() use ($event, $auditRecorder) {
             $user = $event->user;
-            $model = $auditService->_getStandardModel();
+            $model = $auditRecorder->getStandardModel();
             $model->event = AuditModel::EVENT_USER_LOCKED;
             $model->title = $user->username;
             $model->elementId = $user->id;
             $model->elementType = User::class;
-            $model->snapshot = $auditService->afterSnapshot($model, array_merge($model->snapshot, [
+            $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, [
                 'userId' => $user->id,
                 'username' => $user->username,
                 'email' => $user->email,
             ]));
 
-            return $auditService->_saveRecord($model);
+            return $auditRecorder->saveRecord($model);
         });
     }
 
     public function onUserUnlocked(UserEvent $event): bool
     {
-        $auditService = Audit::$plugin->auditService;
+        $auditRecorder = Audit::$plugin->auditRecorder;
 
         if (!Audit::$plugin->getSettings()->logUserSecurityEvents) {
             return false;
         }
 
-        return $auditService->catchSaveError(function() use ($event, $auditService) {
+        return $auditRecorder->catchSaveError(function() use ($event, $auditRecorder) {
             $user = $event->user;
-            $model = $auditService->_getStandardModel();
+            $model = $auditRecorder->getStandardModel();
             $model->event = AuditModel::EVENT_USER_UNLOCKED;
             $model->title = $user->username;
             $model->elementId = $user->id;
             $model->elementType = User::class;
-            $model->snapshot = $auditService->afterSnapshot($model, array_merge($model->snapshot, [
+            $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, [
                 'userId' => $user->id,
                 'username' => $user->username,
                 'email' => $user->email,
             ]));
 
-            return $auditService->_saveRecord($model);
+            return $auditRecorder->saveRecord($model);
         });
     }
 }

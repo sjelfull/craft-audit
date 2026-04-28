@@ -18,7 +18,7 @@ use superbig\audit\Audit;
  * PluginHandler — handles plugin install/uninstall/enable/disable audit events extracted from AuditService.
  *
  * Behavior is preserved verbatim: methods delegate back to AuditService for
- * `_saveRecord` and `_getStandardModel` via `Audit::$plugin->auditService`.
+ * `saveRecord` and `getStandardModel` via `Audit::$plugin->auditRecorder`.
  *
  * @author    Superbig
  * @package   Audit
@@ -32,11 +32,11 @@ class PluginHandler extends Component
             return false;
         }
 
-        $auditService = Audit::$plugin->auditService;
+        $auditRecorder = Audit::$plugin->auditRecorder;
 
         /** @var Plugin $plugin */
         try {
-            $model = $auditService->_getStandardModel();
+            $model = $auditRecorder->getStandardModel();
             $model->event = $event;
             $model->title = $plugin->name;
             $snapshot = [
@@ -46,7 +46,7 @@ class PluginHandler extends Component
             ];
             $model->snapshot = $snapshot;
 
-            return $auditService->_saveRecord($model);
+            return $auditRecorder->saveRecord($model);
         } catch (\Exception $e) {
             Craft::error(
                 Craft::t('audit', 'Error when logging: {error}', ['error' => $e->getMessage()]),

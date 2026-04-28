@@ -25,7 +25,7 @@ use superbig\audit\models\AuditModel;
  * ElementHandler — handles element-related audit events extracted from AuditService.
  *
  * Behavior is preserved verbatim: methods delegate back to AuditService for
- * `_saveRecord`, `_getStandardModel`, and `afterSnapshot` via `Audit::$plugin->auditService`.
+ * `saveRecord`, `getStandardModel`, and `afterSnapshot` via `Audit::$plugin->auditRecorder`.
  *
  * @author    Superbig
  * @package   Audit
@@ -41,7 +41,7 @@ class ElementHandler extends Component
      */
     public function onSaveElement(ElementInterface $element, bool $isNew = false): bool
     {
-        $auditService = Audit::$plugin->auditService;
+        $auditRecorder = Audit::$plugin->auditRecorder;
         $settings = Audit::$plugin->getSettings();
         $title = null;
         $rootElement = ElementHelper::rootElement($element);
@@ -91,7 +91,7 @@ class ElementHandler extends Component
 
         try {
             /** @var Element $element */
-            $model = $auditService->_getStandardModel();
+            $model = $auditRecorder->getStandardModel();
             $model->event = $isNew ? AuditModel::EVENT_CREATED_ELEMENT : AuditModel::EVENT_SAVED_ELEMENT;
             $model->elementId = $element->getId();
             $model->siteId = $element->siteId;
@@ -139,14 +139,14 @@ class ElementHandler extends Component
                 $snapshot['title'] = Html::encode($title);
             }
 
-            $model->snapshot = $auditService->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
+            $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
             $parentId = $this->getParentId($model->elementType);
 
             if (!empty($parentId)) {
                 $model->parentId = $parentId;
             }
 
-            return $auditService->_saveRecord($model);
+            return $auditRecorder->saveRecord($model);
         } catch (\Exception $e) {
             Craft::error(
                 Craft::t('audit', 'Error when logging: {error}', ['error' => $e->getMessage()]),
@@ -164,7 +164,7 @@ class ElementHandler extends Component
      */
     public function onDeleteElement(ElementInterface $element): bool
     {
-        $auditService = Audit::$plugin->auditService;
+        $auditRecorder = Audit::$plugin->auditRecorder;
         $rootElement = ElementHelper::rootElement($element);
         $hasParent = $rootElement->id !== $element->id;
 
@@ -183,7 +183,7 @@ class ElementHandler extends Component
 
         try {
             /** @var Element $element */
-            $model = $auditService->_getStandardModel();
+            $model = $auditRecorder->getStandardModel();
             $model->event = AuditModel::EVENT_DELETED_ELEMENT;
             $model->elementId = $element->getId();
             $model->elementType = get_class($element);
@@ -210,9 +210,9 @@ class ElementHandler extends Component
                 $snapshot['title'] = $element->title;
             }
 
-            $model->snapshot = $auditService->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
+            $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
 
-            return $auditService->_saveRecord($model);
+            return $auditRecorder->saveRecord($model);
         } catch (\Exception $e) {
             Craft::error(
                 Craft::t('audit', 'Error when logging: {error}', ['error' => $e->getMessage()]),
@@ -225,15 +225,15 @@ class ElementHandler extends Component
 
     public function onBeforeResave(ResaveElements $job): bool
     {
-        $auditService = Audit::$plugin->auditService;
+        $auditRecorder = Audit::$plugin->auditRecorder;
 
         try {
-            $model = $auditService->_getStandardModel();
+            $model = $auditRecorder->getStandardModel();
             $model->event = AuditModel::EVENT_RESAVED_ELEMENTS;
             $model->elementType = $job->elementType;
             $model->appendSnapshot('resaveCriteria', $job->criteria);
 
-            $auditService->_saveRecord($model);
+            $auditRecorder->saveRecord($model);
 
             if ($model->id) {
                 $parentIdKey = $this->getParentIdKey($job->elementType);
@@ -271,6 +271,7 @@ class ElementHandler extends Component
     public function onResaveEnd(ResaveElements $job): mixed
     {
         $auditService = Audit::$plugin->auditService;
+        $auditRecorder = Audit::$plugin->auditRecorder;
 
         try {
             $cache = Craft::$app->getCache();
@@ -284,7 +285,7 @@ class ElementHandler extends Component
                 if ($parentEvent) {
                     $parentEvent->title = $subEventCount . ' elements was re-saved';
 
-                    $auditService->_saveRecord($parentEvent);
+                    $auditRecorder->saveRecord($parentEvent);
                 }
 
                 $cache->delete($parentKey);

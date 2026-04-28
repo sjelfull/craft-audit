@@ -17,7 +17,7 @@ it('logs audit event when user logs in', function () {
     \Craft::$app->getUser()->setIdentity($user);
 
     // Manually trigger login event handler
-    Audit::$plugin->auditService->onLogin();
+    Audit::$plugin->userHandler->onLogin();
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::UserLoggedIn->value])
@@ -34,7 +34,7 @@ it('logs audit event when user logs out', function () {
     \Craft::$app->getUser()->setIdentity($user);
 
     // Manually trigger logout event handler
-    Audit::$plugin->auditService->onBeforeLogout();
+    Audit::$plugin->userHandler->onBeforeLogout();
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::UserLoggedOut->value])
@@ -52,7 +52,7 @@ it('does not log user events when disabled', function () {
     \Craft::$app->getUser()->setIdentity($user);
 
     // Try to trigger login
-    $result = Audit::$plugin->auditService->onLogin();
+    $result = Audit::$plugin->userHandler->onLogin();
 
     expect($result)->toBeFalse();
 
@@ -70,7 +70,7 @@ it('captures session ID on login event', function () {
     $user = User::find()->admin()->one();
     \Craft::$app->getUser()->setIdentity($user);
 
-    Audit::$plugin->auditService->onLogin();
+    Audit::$plugin->userHandler->onLogin();
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::UserLoggedIn->value])

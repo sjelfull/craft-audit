@@ -8,8 +8,10 @@ use craft\helpers\Json;
 use superbig\audit\Audit;
 use superbig\audit\enums\AuditEvent;
 use superbig\audit\events\BeforeRecordEvent;
+use superbig\audit\events\SnapshotEvent;
 use superbig\audit\models\AuditModel;
 use superbig\audit\records\AuditRecord;
+use yii\base\Exception;
 
 /**
  * Single entry point for recording audit events.
@@ -22,6 +24,7 @@ use superbig\audit\records\AuditRecord;
 class AuditRecorder extends Component
 {
     public const EVENT_BEFORE_RECORD = 'beforeRecord';
+    public const EVENT_SNAPSHOT = 'snapshot';
 
     /**
      * Record an audit event.
@@ -148,5 +151,118 @@ class AuditRecorder extends Component
                 $model->sessionId = null;
             }
         }
+    }
+
+    /**
+     * @internal Public for use by handler services in services/handlers/. Do not call from outside the plugin.
+     */
+    public function afterSnapshot(AuditModel $auditModel, $snapshot): array
+    {
+        $event = new SnapshotEvent([
+            'audit' => $auditModel,
+            'snapshot' => $snapshot,
+        ]);
+
+        $this->trigger(self::EVENT_SNAPSHOT, $event);
+
+        return $event->snapshot;
+    }
+
+    /**
+     * @internal Public for use by handler services in services/handlers/. Do not call from outside the plugin.
+     */
+    public function getStandardModel(): AuditModel
+    {
+        $app = Craft::$app;
+        $request = $app->getRequest();
+        $model = new AuditModel();
+        $model->siteId = $app->getSites()->currentSite->id;
+
+        if (!$request->isConsoleRequest) {
+            $session = $app->getSession();
+            $model->sessionId = $session->getId();
+            $model->ip = $request->getUserIP();
+            $model->userAgent = $request->getUserAgent();
+
+            if ($identity = $app->getUser()->getIdentity()) {
+                $model->userId = $identity->id;
+
+                $model->snapshot = [
+                    'userId' => $model->userId,
+                ];
+            }
+        }
+
+        return $model;
+    }
+
+    /**
+     * @internal Public for use by handler services in services/handlers/. Do not call from outside the plugin.
+     */
+    public function saveRecord(AuditModel &$model, bool $unique = true): bool
+    {
+        try {
+            if ($model->id) {
+                $record = AuditRecord::findOne($model->id);
+            } else {
+                $record = new AuditRecord();
+            }
+
+            $record->event = $model->event;
+            $record->title = $model->title;
+            $record->parentId = $model->parentId;
+            $record->userId = $model->userId;
+            $record->elementId = $model->elementId;
+            $record->elementType = $model->elementType;
+            $record->ip = $model->ip;
+            $record->userAgent = $model->userAgent;
+            $record->siteId = $model->siteId;
+            $record->snapshot = Json::encode($model->snapshot ?: []);
+            $record->sessionId = $model->sessionId;
+
+            if (!$record->save()) {
+                Craft::error(
+                    Craft::t('audit', 'An error occured when saving audit log record: {error}',
+                        [
+                            'error' => print_r($record->getErrors(), true),
+                        ]),
+                    'audit');
+            }
+
+            $model->id = $record->id;
+
+            return true;
+        } catch (Exception $e) {
+            Craft::error(
+                Craft::t('audit', 'An error occured when saving audit log record: {error}',
+                    [
+                        'error' => $e->getMessage(),
+                    ]),
+                'audit');
+
+            return false;
+        }
+    }
+
+    /**
+     * @internal Public for use by handler services in services/handlers/. Do not call from outside the plugin.
+     */
+    public function catchSaveError(callable $callable)
+    {
+        try {
+            return $callable();
+        } catch (\Exception $e) {
+            $this->logSaveError($e);
+
+            return false;
+        }
+    }
+
+    private function logSaveError(\Exception $e): void
+    {
+        Craft::error(
+            Craft::t('audit', 'Error when logging: {error}', ['error' => $e->getMessage()]),
+            __METHOD__
+        );
     }
 }
