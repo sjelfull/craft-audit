@@ -10,8 +10,6 @@ use craft\base\FieldInterface;
  *
  * A handler knows how to extract a normalized, JSON-serializable value from a Craft field,
  * and declares a short type key used for rendering lookup.
- *
- * @since 4.0.0
  */
 interface FieldHandler
 {

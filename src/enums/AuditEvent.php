@@ -1,10 +1,4 @@
 <?php
-/**
- * Audit plugin for Craft CMS 3.x
- *
- * @link      https://superbig.co
- * @copyright Copyright (c) 2026 Superbig
- */
 
 namespace superbig\audit\enums;
 
@@ -19,8 +13,6 @@ use Craft;
  *
  * New code should prefer this enum over the string constants; the constants
  * remain for backward compatibility and are deprecated.
- *
- * @since 3.0.0
  */
 enum AuditEvent: string
 {

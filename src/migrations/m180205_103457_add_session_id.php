@@ -10,18 +10,12 @@ use craft\db\Migration;
  */
 class m180205_103457_add_session_id extends Migration
 {
-    // Public Properties
-    // =========================================================================
-
     /**
      * @var string The database driver to use
      */
     public $driver;
 
     protected $tableName = '{{%audit_log}}';
-
-    // Public Methods
-    // =========================================================================
 
     /**
      * @inheritdoc

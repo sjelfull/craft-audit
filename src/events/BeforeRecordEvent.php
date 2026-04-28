@@ -11,8 +11,6 @@ use superbig\audit\models\AuditModel;
  * Handlers may:
  *  - Mutate `$model` (e.g., add data to the snapshot, change the title)
  *  - Set `$isValid = false` to prevent the record from being written
- *
- * @since 4.0.0
  */
 class BeforeRecordEvent extends CancelableEvent
 {

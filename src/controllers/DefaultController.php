@@ -1,12 +1,4 @@
 <?php
-/**
- * Audit plugin for Craft CMS 3.x
- *
- * Log adding/updating/deleting of elements
- *
- * @link      https://superbig.co
- * @copyright Copyright (c) 2017 Superbig
- */
 
 namespace superbig\audit\controllers;
 
@@ -20,24 +12,13 @@ use superbig\audit\models\AuditModel;
 use superbig\audit\records\AuditRecord;
 use superbig\audit\web\assets\diff\AuditDiffAsset;
 
-/**
- * @author    Superbig
- * @package   Audit
- * @since     1.0.0
- */
 class DefaultController extends Controller
 {
-    // Protected Properties
-    // =========================================================================
-
     /**
      * @var array<int|string>|bool|int Allows anonymous access to this controller's actions.
      *                                  The actions must be in 'kebab-case'
      */
     protected array|int|bool $allowAnonymous = [];
-
-    // Public Methods
-    // =========================================================================
 
     /**
      * @return mixed

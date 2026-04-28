@@ -1,12 +1,4 @@
 <?php
-/**
- * Audit plugin for Craft CMS 3.x
- *
- * Log adding/updating/deleting of elements
- *
- * @link      https://superbig.co
- * @copyright Copyright (c) 2017 Superbig
- */
 
 namespace superbig\audit;
 
@@ -85,12 +77,6 @@ use yii\web\User;
 use yii\web\UserEvent;
 
 /**
- * Class Audit
- *
- * @author    Superbig
- * @package   Audit
- * @since     1.0.0
- *
  * @property  AuditService          $auditService
  * @property  Audit_GeoService      $geo
  * @property  FieldHandlerRegistry  $fieldHandlerRegistry

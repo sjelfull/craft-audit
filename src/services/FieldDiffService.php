@@ -10,8 +10,6 @@ use superbig\audit\Audit;
 
 /**
  * Field diff service — captures element state and computes diffs.
- *
- * @since 4.0.0
  */
 class FieldDiffService extends Component
 {

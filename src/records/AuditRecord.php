@@ -1,12 +1,4 @@
 <?php
-/**
- * Audit plugin for Craft CMS 3.x
- *
- * Log adding/updating/deleting of elements
- *
- * @link      https://superbig.co
- * @copyright Copyright (c) 2017 Superbig
- */
 
 namespace superbig\audit\records;
 
@@ -14,14 +6,9 @@ use craft\db\ActiveRecord;
 use craft\records\Element;
 use craft\records\User;
 
-use superbig\audit\Audit;
 use yii\db\ActiveQueryInterface;
 
 /**
- * @author    Superbig
- * @package   Audit
- * @since     1.0.0
- *
  * @property integer      $id
  * @property integer      $siteId
  * @property integer|null $userId
@@ -42,9 +29,6 @@ use yii\db\ActiveQueryInterface;
  */
 class AuditRecord extends ActiveRecord
 {
-    // Public Static Methods
-    // =========================================================================
-
     /**
      * @inheritdoc
      */
