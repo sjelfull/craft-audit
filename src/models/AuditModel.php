@@ -35,72 +35,6 @@ use Throwable;
  */
 class AuditModel extends Model
 {
-    /**
-     * String constants for audit event types.
-     *
-     * @deprecated since 3.0.0. Use {@see \superbig\audit\enums\AuditEvent} instead.
-     *             The constants remain as string backing values for backward
-     *             compatibility with third-party consumers and existing DB rows.
-     */
-    public const EVENT_SAVED_ELEMENT = 'saved-element';
-    public const EVENT_RESAVED_ELEMENTS = 'resaved-elements';
-    public const EVENT_CREATED_ELEMENT = 'created-element';
-    public const EVENT_DELETED_ELEMENT = 'deleted-element';
-
-    // Entry Events
-    public const EVENT_ENTRY_CREATED = 'entry-created';
-    public const EVENT_ENTRY_SAVED = 'entry-saved';
-    public const EVENT_ENTRY_DELETED = 'entry-deleted';
-
-    public const EVENT_SAVED_GLOBAL = 'saved-global';
-    public const EVENT_SAVED_DRAFT = 'saved-draft';
-    public const EVENT_CREATED_DRAFT = 'created-draft';
-    public const EVENT_DELETED_DRAFT = 'deleted-draft';
-    public const EVENT_CREATED_ROUTE = 'created-route';
-    public const EVENT_SAVED_ROUTE = 'saved-route';
-    public const EVENT_DELETED_ROUTE = 'deleted-route';
-    public const USER_LOGGED_OUT = 'user-logged-out';
-    public const USER_LOGGED_IN = 'user-logged-in';
-    public const EVENT_PLUGIN_INSTALLED = 'installed-plugin';
-    public const EVENT_PLUGIN_UNINSTALLED = 'uninstalled-plugin';
-    public const EVENT_PLUGIN_DISABLED = 'disabled-plugin';
-    public const EVENT_PLUGIN_ENABLED = 'enabled-plugin';
-
-    // User Security Events
-    public const EVENT_USER_ACTIVATED = 'user-activated';
-    public const EVENT_USER_DEACTIVATED = 'user-deactivated';
-    public const EVENT_USER_SUSPENDED = 'user-suspended';
-    public const EVENT_USER_UNSUSPENDED = 'user-unsuspended';
-    public const EVENT_USER_LOCKED = 'user-locked';
-    public const EVENT_USER_UNLOCKED = 'user-unlocked';
-    public const EVENT_USER_GROUPS_ASSIGNED = 'user-groups-assigned';
-
-    // Permission Events
-    public const EVENT_USER_PERMISSIONS_SAVED = 'user-permissions-saved';
-    public const EVENT_GROUP_PERMISSIONS_SAVED = 'group-permissions-saved';
-    public const EVENT_USER_GROUP_CREATED = 'user-group-created';
-    public const EVENT_USER_GROUP_SAVED = 'user-group-saved';
-    public const EVENT_USER_GROUP_DELETED = 'user-group-deleted';
-
-    // Schema Events
-    public const EVENT_FIELD_CREATED = 'field-created';
-    public const EVENT_FIELD_SAVED = 'field-saved';
-    public const EVENT_FIELD_DELETED = 'field-deleted';
-    public const EVENT_SECTION_CREATED = 'section-created';
-    public const EVENT_SECTION_SAVED = 'section-saved';
-    public const EVENT_SECTION_DELETED = 'section-deleted';
-    public const EVENT_ENTRY_TYPE_CREATED = 'entry-type-created';
-    public const EVENT_ENTRY_TYPE_SAVED = 'entry-type-saved';
-    public const EVENT_ENTRY_TYPE_DELETED = 'entry-type-deleted';
-
-    // Settings Events
-    public const EVENT_SYSTEM_SETTINGS_CHANGED = 'system-settings-changed';
-    public const EVENT_EMAIL_SETTINGS_CHANGED = 'email-settings-changed';
-
-    // Database Events
-    public const EVENT_BACKUP_CREATED = 'backup-created';
-    public const EVENT_BACKUP_RESTORED = 'backup-restored';
-
     public const FLASH_RESAVE_ID = 'auditResaveId';
 
     private static $_users;
@@ -354,7 +288,7 @@ class AuditModel extends Model
             $sectionId = $this->getSnapshotValue('sectionId');
             $sectionName = $this->getSnapshotValue('sectionName');
 
-            if ($sectionId && $this->event !== self::EVENT_SECTION_DELETED) {
+            if ($sectionId && $this->event !== AuditEvent::SectionDeleted->value) {
                 $url = UrlHelper::cpUrl('settings/sections/' . $sectionId);
                 return Template::raw('<a href="' . $url . '">' . $sectionName . '</a>');
             }
@@ -395,9 +329,9 @@ class AuditModel extends Model
     public function isEntryEvent(): bool
     {
         return in_array($this->event, [
-            self::EVENT_ENTRY_CREATED,
-            self::EVENT_ENTRY_SAVED,
-            self::EVENT_ENTRY_DELETED,
+            AuditEvent::EntryCreated->value,
+            AuditEvent::EntrySaved->value,
+            AuditEvent::EntryDeleted->value,
         ]);
     }
 
@@ -407,9 +341,9 @@ class AuditModel extends Model
     public function isSectionEvent(): bool
     {
         return in_array($this->event, [
-            self::EVENT_SECTION_CREATED,
-            self::EVENT_SECTION_SAVED,
-            self::EVENT_SECTION_DELETED,
+            AuditEvent::SectionCreated->value,
+            AuditEvent::SectionSaved->value,
+            AuditEvent::SectionDeleted->value,
         ]);
     }
 
@@ -419,8 +353,8 @@ class AuditModel extends Model
     public function isSettingsEvent(): bool
     {
         return in_array($this->event, [
-            self::EVENT_SYSTEM_SETTINGS_CHANGED,
-            self::EVENT_EMAIL_SETTINGS_CHANGED,
+            AuditEvent::SystemSettingsChanged->value,
+            AuditEvent::EmailSettingsChanged->value,
         ]);
     }
 

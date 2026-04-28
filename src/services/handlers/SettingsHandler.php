@@ -11,7 +11,7 @@ namespace superbig\audit\services\handlers;
 use craft\base\Component;
 use craft\events\ConfigEvent;
 use superbig\audit\Audit;
-use superbig\audit\models\AuditModel;
+use superbig\audit\enums\AuditEvent;
 
 /**
  * SettingsHandler — handles system/email settings change audit events extracted from AuditService.
@@ -33,8 +33,8 @@ class SettingsHandler extends Component
         return $auditRecorder->catchSaveError(function() use ($event, $settingsType, $auditRecorder) {
             $model = $auditRecorder->getStandardModel();
             $model->event = $settingsType === 'system'
-                ? AuditModel::EVENT_SYSTEM_SETTINGS_CHANGED
-                : AuditModel::EVENT_EMAIL_SETTINGS_CHANGED;
+                ? AuditEvent::SystemSettingsChanged->value
+                : AuditEvent::EmailSettingsChanged->value;
             $model->title = ucfirst($settingsType) . ' settings';
             $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, [
                 'settingsType' => $settingsType,

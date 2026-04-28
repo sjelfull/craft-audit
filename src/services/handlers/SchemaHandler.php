@@ -13,7 +13,7 @@ use craft\events\EntryTypeEvent;
 use craft\events\FieldEvent;
 use craft\events\SectionEvent;
 use superbig\audit\Audit;
-use superbig\audit\models\AuditModel;
+use superbig\audit\enums\AuditEvent;
 
 /**
  * SchemaHandler — handles field / section / entry-type audit events extracted from AuditService.
@@ -41,7 +41,7 @@ class SchemaHandler extends Component
             $isNew = $event->isNew;
 
             $model = $auditRecorder->getStandardModel();
-            $model->event = $isNew ? AuditModel::EVENT_FIELD_CREATED : AuditModel::EVENT_FIELD_SAVED;
+            $model->event = $isNew ? AuditEvent::FieldCreated->value : AuditEvent::FieldSaved->value;
             $model->title = $field->name;
             $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, [
                 'fieldId' => $field->id,
@@ -66,7 +66,7 @@ class SchemaHandler extends Component
             $field = $event->field;
 
             $model = $auditRecorder->getStandardModel();
-            $model->event = AuditModel::EVENT_FIELD_DELETED;
+            $model->event = AuditEvent::FieldDeleted->value;
             $model->title = $field->name;
             $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, [
                 'fieldId' => $field->id,
@@ -92,7 +92,7 @@ class SchemaHandler extends Component
             $isNew = $event->isNew;
 
             $model = $auditRecorder->getStandardModel();
-            $model->event = $isNew ? AuditModel::EVENT_SECTION_CREATED : AuditModel::EVENT_SECTION_SAVED;
+            $model->event = $isNew ? AuditEvent::SectionCreated->value : AuditEvent::SectionSaved->value;
             $model->title = $section->name;
             $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, [
                 'sectionId' => $section->id,
@@ -117,7 +117,7 @@ class SchemaHandler extends Component
             $section = $event->section;
 
             $model = $auditRecorder->getStandardModel();
-            $model->event = AuditModel::EVENT_SECTION_DELETED;
+            $model->event = AuditEvent::SectionDeleted->value;
             $model->title = $section->name;
             $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, [
                 'sectionId' => $section->id,
@@ -143,7 +143,7 @@ class SchemaHandler extends Component
             $isNew = $event->isNew;
 
             $model = $auditRecorder->getStandardModel();
-            $model->event = $isNew ? AuditModel::EVENT_ENTRY_TYPE_CREATED : AuditModel::EVENT_ENTRY_TYPE_SAVED;
+            $model->event = $isNew ? AuditEvent::EntryTypeCreated->value : AuditEvent::EntryTypeSaved->value;
             $model->title = $entryType->name;
             $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, [
                 'entryTypeId' => $entryType->id,
@@ -167,7 +167,7 @@ class SchemaHandler extends Component
             $entryType = $event->entryType;
 
             $model = $auditRecorder->getStandardModel();
-            $model->event = AuditModel::EVENT_ENTRY_TYPE_DELETED;
+            $model->event = AuditEvent::EntryTypeDeleted->value;
             $model->title = $entryType->name;
             $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, [
                 'entryTypeId' => $entryType->id,

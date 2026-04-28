@@ -1,13 +1,22 @@
 <?php
 
 use superbig\audit\enums\AuditEvent;
-use superbig\audit\models\AuditModel;
 
-it('has all constants also available as enum cases', function () {
-    // Verify that key legacy string constants have matching enum cases
-    expect(AuditEvent::SavedElement->value)->toBe(AuditModel::EVENT_SAVED_ELEMENT);
-    expect(AuditEvent::EntryCreated->value)->toBe(AuditModel::EVENT_ENTRY_CREATED);
-    expect(AuditEvent::UserLoggedIn->value)->toBe(AuditModel::USER_LOGGED_IN);
+it('has 69 unique kebab-case backing values', function () {
+    $values = array_map(fn ($c) => $c->value, AuditEvent::cases());
+    expect(count($values))->toBe(69);
+    expect(count(array_unique($values)))->toBe(69);
+    foreach ($values as $v) {
+        expect($v)->toMatch('/^[a-z]+(-[a-z]+)*$/');
+    }
+});
+
+it('keeps stable backing values for known events', function () {
+    // Smoke-test a few important values to lock them in
+    expect(AuditEvent::EntrySaved->value)->toBe('entry-saved');
+    expect(AuditEvent::UserLoggedIn->value)->toBe('user-logged-in');
+    expect(AuditEvent::SystemSettingsChanged->value)->toBe('system-settings-changed');
+    expect(AuditEvent::BackupCreated->value)->toBe('backup-created');
 });
 
 it('tryFromString returns null for unknown/empty values', function () {

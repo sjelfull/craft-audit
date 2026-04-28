@@ -19,6 +19,7 @@ use craft\helpers\ElementHelper;
 use craft\helpers\Html;
 use craft\queue\jobs\ResaveElements;
 use superbig\audit\Audit;
+use superbig\audit\enums\AuditEvent;
 use superbig\audit\models\AuditModel;
 
 /**
@@ -92,7 +93,7 @@ class ElementHandler extends Component
         try {
             /** @var Element $element */
             $model = $auditRecorder->getStandardModel();
-            $model->event = $isNew ? AuditModel::EVENT_CREATED_ELEMENT : AuditModel::EVENT_SAVED_ELEMENT;
+            $model->event = $isNew ? AuditEvent::CreatedElement->value : AuditEvent::SavedElement->value;
             $model->elementId = $element->getId();
             $model->siteId = $element->siteId;
             $model->elementType = get_class($element);
@@ -103,12 +104,12 @@ class ElementHandler extends Component
             ];
 
             if (Audit::$craft32 && ($isDraft || $isRevision)) {
-                $model->event = AuditModel::EVENT_SAVED_DRAFT;
+                $model->event = AuditEvent::SavedDraft->value;
             }
 
             if ($element instanceof Entry) {
                 /** @var Entry $element */
-                $model->event = $isNew ? AuditModel::EVENT_ENTRY_CREATED : AuditModel::EVENT_ENTRY_SAVED;
+                $model->event = $isNew ? AuditEvent::EntryCreated->value : AuditEvent::EntrySaved->value;
                 $section = $element->getSection();
                 if ($section) {
                     $snapshot['sectionId'] = $section->id;
@@ -124,7 +125,7 @@ class ElementHandler extends Component
             if ($isGlobal) {
                 /** @var GlobalSet $element */
                 $title = $element->name;
-                $model->event = AuditModel::EVENT_SAVED_GLOBAL;
+                $model->event = AuditEvent::SavedGlobal->value;
             }
 
             if ($element instanceof User) {
@@ -184,7 +185,7 @@ class ElementHandler extends Component
         try {
             /** @var Element $element */
             $model = $auditRecorder->getStandardModel();
-            $model->event = AuditModel::EVENT_DELETED_ELEMENT;
+            $model->event = AuditEvent::DeletedElement->value;
             $model->elementId = $element->getId();
             $model->elementType = get_class($element);
             $model->siteId = $element->siteId;
@@ -196,7 +197,7 @@ class ElementHandler extends Component
 
             if ($element instanceof Entry) {
                 /** @var Entry $element */
-                $model->event = AuditModel::EVENT_ENTRY_DELETED;
+                $model->event = AuditEvent::EntryDeleted->value;
                 $section = $element->getSection();
                 if ($section) {
                     $snapshot['sectionId'] = $section->id;
@@ -229,7 +230,7 @@ class ElementHandler extends Component
 
         try {
             $model = $auditRecorder->getStandardModel();
-            $model->event = AuditModel::EVENT_RESAVED_ELEMENTS;
+            $model->event = AuditEvent::ResavedElements->value;
             $model->elementType = $job->elementType;
             $model->appendSnapshot('resaveCriteria', $job->criteria);
 

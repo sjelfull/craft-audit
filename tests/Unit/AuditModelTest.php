@@ -1,12 +1,13 @@
 <?php
 
+use superbig\audit\enums\AuditEvent;
 use superbig\audit\models\AuditModel;
 use superbig\audit\records\AuditRecord;
 
 it('creates model from record with all fields populated', function () {
     $record = new AuditRecord();
     $record->id = 1;
-    $record->event = AuditModel::EVENT_SAVED_ELEMENT;
+    $record->event = AuditEvent::SavedElement->value;
     $record->title = 'Test Entry';
     $record->userId = 1;
     $record->elementId = 100;
@@ -21,7 +22,7 @@ it('creates model from record with all fields populated', function () {
     $model = AuditModel::createFromRecord($record);
 
     expect($model->id)->toBe(1);
-    expect($model->event)->toBe(AuditModel::EVENT_SAVED_ELEMENT);
+    expect($model->event)->toBe(AuditEvent::SavedElement->value);
     expect($model->title)->toBe('Test Entry');
     expect($model->userId)->toBe(1);
     expect($model->elementId)->toBe(100);
@@ -33,23 +34,9 @@ it('creates model from record with all fields populated', function () {
     expect($model->snapshot)->toBe(['key' => 'value']);
 });
 
-it('has correct event constant values', function () {
-    expect(AuditModel::EVENT_SAVED_ELEMENT)->toBe('saved-element');
-    expect(AuditModel::EVENT_CREATED_ELEMENT)->toBe('created-element');
-    expect(AuditModel::EVENT_DELETED_ELEMENT)->toBe('deleted-element');
-    expect(AuditModel::EVENT_SAVED_GLOBAL)->toBe('saved-global');
-    expect(AuditModel::USER_LOGGED_IN)->toBe('user-logged-in');
-    expect(AuditModel::USER_LOGGED_OUT)->toBe('user-logged-out');
-    expect(AuditModel::EVENT_PLUGIN_ENABLED)->toBe('enabled-plugin');
-    expect(AuditModel::EVENT_PLUGIN_DISABLED)->toBe('disabled-plugin');
-    expect(AuditModel::EVENT_CREATED_ROUTE)->toBe('created-route');
-    expect(AuditModel::EVENT_SAVED_ROUTE)->toBe('saved-route');
-    expect(AuditModel::EVENT_DELETED_ROUTE)->toBe('deleted-route');
-});
-
 it('returns translated event label', function () {
     $model = new AuditModel();
-    $model->event = AuditModel::EVENT_SAVED_ELEMENT;
+    $model->event = AuditEvent::SavedElement->value;
 
     $label = $model->getEventLabel();
 
