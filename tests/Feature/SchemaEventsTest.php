@@ -1,12 +1,10 @@
 <?php
 
 use craft\elements\User;
-use craft\events\EntryTypeEvent;
-use craft\events\FieldEvent;
-use craft\events\SectionEvent;
 use craft\fields\PlainText;
 use craft\models\EntryType;
 use craft\models\Section;
+use craft\models\Section_SiteSettings;
 use superbig\audit\Audit;
 use superbig\audit\enums\AuditEvent;
 use superbig\audit\models\AuditModel;
@@ -14,178 +12,190 @@ use superbig\audit\records\AuditRecord;
 
 beforeEach(function () {
     AuditRecord::deleteAll();
-});
-
-it('logs audit event when field is saved', function () {
     $user = User::find()->admin()->one();
     \Craft::$app->getUser()->setIdentity($user);
+});
 
-    $field = new PlainText();
-    $field->name = 'Test Field';
-    $field->handle = 'testField';
+/**
+ * These tests exercise the real Craft API surface
+ * (\Craft::$app->fields->saveField(), Entries::saveSection() etc.) so that
+ * each assertion validates the full chain: Craft service → event fired →
+ * Audit::initLogEvents() listener → handler service → audit record persisted.
+ *
+ * The Pest bootstrap (tests/Pest.php) calls Audit::initLogEvents() reflectively
+ * because in the test environment Craft is a console request, which the
+ * production code path skips.
+ *
+ * Handles are randomized per test because Craft persists field/section/entry
+ * type rows in project config and the test DB is not reset between cases
+ * within a single suite run.
+ */
+function _schemaTestSuffix(): string
+{
+    return substr(bin2hex(random_bytes(4)), 0, 8);
+}
 
-    $event = new FieldEvent([
-        'field' => $field,
-        'isNew' => true,
+function _buildTestSection(string $nameSuffix, string $handle): Section
+{
+    $primarySite = \Craft::$app->sites->getPrimarySite();
+
+    $entryTypeHandle = 'et' . substr(bin2hex(random_bytes(4)), 0, 8);
+    $entryType = new EntryType();
+    $entryType->name = 'ET ' . $nameSuffix;
+    $entryType->handle = $entryTypeHandle;
+
+    if (!\Craft::$app->entries->saveEntryType($entryType)) {
+        throw new \RuntimeException('Failed to save entry type for test section: ' . print_r($entryType->getErrors(), true));
+    }
+
+    $section = new Section();
+    $section->name = $nameSuffix;
+    $section->handle = $handle;
+    $section->type = Section::TYPE_CHANNEL;
+    $section->setSiteSettings([
+        $primarySite->id => new Section_SiteSettings([
+            'siteId' => $primarySite->id,
+            'enabledByDefault' => true,
+            'hasUrls' => false,
+        ]),
     ]);
-    Audit::$plugin->schemaHandler->onFieldSaved($event);
+    $section->setEntryTypes([$entryType]);
+
+    return $section;
+}
+
+it('logs audit event when field is saved', function () {
+    $suffix = _schemaTestSuffix();
+    $field = new PlainText();
+    $field->name = 'Test Field ' . $suffix;
+    $field->handle = 'testField' . $suffix;
+
+    expect(\Craft::$app->fields->saveField($field))->toBeTrue();
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::FieldCreated->value])
         ->one();
 
     expect($record)->not->toBeNull();
-    expect($record->title)->toBe('Test Field');
+    expect($record->title)->toBe('Test Field ' . $suffix);
 });
 
 it('logs audit event when field is deleted', function () {
-    $user = User::find()->admin()->one();
-    \Craft::$app->getUser()->setIdentity($user);
-
+    $suffix = _schemaTestSuffix();
     $field = new PlainText();
-    $field->name = 'Deleted Field';
-    $field->handle = 'deletedField';
+    $field->name = 'Deleted Field ' . $suffix;
+    $field->handle = 'deletedField' . $suffix;
 
-    $event = new FieldEvent([
-        'field' => $field,
-    ]);
-    Audit::$plugin->schemaHandler->onFieldDeleted($event);
+    expect(\Craft::$app->fields->saveField($field))->toBeTrue();
+
+    AuditRecord::deleteAll();
+
+    \Craft::$app->fields->deleteField($field);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::FieldDeleted->value])
         ->one();
 
     expect($record)->not->toBeNull();
-    expect($record->title)->toBe('Deleted Field');
+    expect($record->title)->toBe('Deleted Field ' . $suffix);
 });
 
 it('logs audit event when section is saved', function () {
-    $user = User::find()->admin()->one();
-    \Craft::$app->getUser()->setIdentity($user);
+    $suffix = _schemaTestSuffix();
+    $section = _buildTestSection('Test Section ' . $suffix, 'testSection' . $suffix);
 
-    $section = new Section();
-    $section->name = 'Test Section';
-    $section->handle = 'testSection';
-    $section->type = Section::TYPE_CHANNEL;
-
-    $event = new SectionEvent([
-        'section' => $section,
-        'isNew' => true,
-    ]);
-    Audit::$plugin->schemaHandler->onSectionSaved($event);
+    expect(\Craft::$app->entries->saveSection($section))->toBeTrue();
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::SectionCreated->value])
         ->one();
 
     expect($record)->not->toBeNull();
-    expect($record->title)->toBe('Test Section');
+    expect($record->title)->toBe('Test Section ' . $suffix);
 });
 
 it('logs audit event when section is deleted', function () {
-    $user = User::find()->admin()->one();
-    \Craft::$app->getUser()->setIdentity($user);
+    $suffix = _schemaTestSuffix();
+    $section = _buildTestSection('Deleted Section ' . $suffix, 'deletedSection' . $suffix);
 
-    $section = new Section();
-    $section->name = 'Deleted Section';
-    $section->handle = 'deletedSection';
+    expect(\Craft::$app->entries->saveSection($section))->toBeTrue();
 
-    $event = new SectionEvent([
-        'section' => $section,
-    ]);
-    Audit::$plugin->schemaHandler->onSectionDeleted($event);
+    AuditRecord::deleteAll();
+
+    \Craft::$app->entries->deleteSectionById($section->id);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::SectionDeleted->value])
         ->one();
 
     expect($record)->not->toBeNull();
-    expect($record->title)->toBe('Deleted Section');
+    expect($record->title)->toBe('Deleted Section ' . $suffix);
 });
 
 it('logs audit event when entry type is saved', function () {
-    $user = User::find()->admin()->one();
-    \Craft::$app->getUser()->setIdentity($user);
-
+    $suffix = _schemaTestSuffix();
     $entryType = new EntryType();
-    $entryType->name = 'Test Entry Type';
-    $entryType->handle = 'testEntryType';
+    $entryType->name = 'Test Entry Type ' . $suffix;
+    $entryType->handle = 'testEntryType' . $suffix;
 
-    $event = new EntryTypeEvent([
-        'entryType' => $entryType,
-        'isNew' => true,
-    ]);
-    Audit::$plugin->schemaHandler->onEntryTypeSaved($event);
+    expect(\Craft::$app->entries->saveEntryType($entryType))->toBeTrue();
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::EntryTypeCreated->value])
         ->one();
 
     expect($record)->not->toBeNull();
-    expect($record->title)->toBe('Test Entry Type');
+    expect($record->title)->toBe('Test Entry Type ' . $suffix);
 });
 
 it('logs audit event when entry type is deleted', function () {
-    $user = User::find()->admin()->one();
-    \Craft::$app->getUser()->setIdentity($user);
-
+    $suffix = _schemaTestSuffix();
     $entryType = new EntryType();
-    $entryType->name = 'Deleted Entry Type';
-    $entryType->handle = 'deletedEntryType';
+    $entryType->name = 'Deleted Entry Type ' . $suffix;
+    $entryType->handle = 'deletedEntryType' . $suffix;
 
-    $event = new EntryTypeEvent([
-        'entryType' => $entryType,
-    ]);
-    Audit::$plugin->schemaHandler->onEntryTypeDeleted($event);
+    expect(\Craft::$app->entries->saveEntryType($entryType))->toBeTrue();
+
+    AuditRecord::deleteAll();
+
+    \Craft::$app->entries->deleteEntryTypeById($entryType->id);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::EntryTypeDeleted->value])
         ->one();
 
     expect($record)->not->toBeNull();
-    expect($record->title)->toBe('Deleted Entry Type');
+    expect($record->title)->toBe('Deleted Entry Type ' . $suffix);
 });
 
 it('does not log schema events when disabled', function () {
     Audit::$plugin->getSettings()->logSchemaEvents = false;
 
-    $user = User::find()->admin()->one();
-    \Craft::$app->getUser()->setIdentity($user);
+    try {
+        $suffix = _schemaTestSuffix();
+        $field = new PlainText();
+        $field->name = 'Disabled Field ' . $suffix;
+        $field->handle = 'disabledField' . $suffix;
 
-    $field = new PlainText();
-    $field->name = 'Test Field';
-    $field->handle = 'testField';
+        expect(\Craft::$app->fields->saveField($field))->toBeTrue();
 
-    $event = new FieldEvent([
-        'field' => $field,
-        'isNew' => true,
-    ]);
-    $result = Audit::$plugin->schemaHandler->onFieldSaved($event);
+        $record = AuditRecord::find()
+            ->where(['event' => AuditEvent::FieldCreated->value])
+            ->one();
 
-    expect($result)->toBeFalse();
-
-    $record = AuditRecord::find()
-        ->where(['event' => AuditEvent::FieldSaved->value])
-        ->one();
-
-    expect($record)->toBeNull();
-
-    Audit::$plugin->getSettings()->logSchemaEvents = true;
+        expect($record)->toBeNull();
+    } finally {
+        Audit::$plugin->getSettings()->logSchemaEvents = true;
+    }
 });
 
 it('captures field details in snapshot', function () {
-    $user = User::find()->admin()->one();
-    \Craft::$app->getUser()->setIdentity($user);
-
+    $suffix = _schemaTestSuffix();
     $field = new PlainText();
-    $field->name = 'Snapshot Test Field';
-    $field->handle = 'snapshotTestField';
+    $field->name = 'Snapshot Test Field ' . $suffix;
+    $field->handle = 'snapshotTestField' . $suffix;
 
-    $event = new FieldEvent([
-        'field' => $field,
-        'isNew' => true,
-    ]);
-    Audit::$plugin->schemaHandler->onFieldSaved($event);
+    expect(\Craft::$app->fields->saveField($field))->toBeTrue();
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::FieldCreated->value])
@@ -195,5 +205,5 @@ it('captures field details in snapshot', function () {
 
     expect($model->snapshot)->toHaveKey('fieldHandle');
     expect($model->snapshot)->toHaveKey('fieldType');
-    expect($model->snapshot['fieldHandle'])->toBe('snapshotTestField');
+    expect($model->snapshot['fieldHandle'])->toBe('snapshotTestField' . $suffix);
 });

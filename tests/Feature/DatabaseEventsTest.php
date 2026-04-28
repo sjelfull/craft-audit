@@ -8,6 +8,20 @@ use superbig\audit\enums\AuditEvent;
 use superbig\audit\models\AuditModel;
 use superbig\audit\records\AuditRecord;
 
+/**
+ * Database backup/restore tests stay handler-direct because:
+ *   - Triggering a real \Craft::$app->db->backup() writes a SQL dump to
+ *     disk and the test runner has no need to verify that path.
+ *   - The Craft backup service has its own internal tests.
+ *   - We just need to verify that BackupHandler::onBackupCreated/Restored
+ *     produce the expected audit record shape given a BackupEvent /
+ *     RestoreEvent payload.
+ *
+ * Wiring (DbConnection::EVENT_AFTER_CREATE_BACKUP / EVENT_AFTER_RESTORE_BACKUP
+ * → BackupHandler) is registered in Audit::initLogEvents() and is exercised
+ * end-to-end in the production code path.
+ */
+
 beforeEach(function () {
     AuditRecord::deleteAll();
 });

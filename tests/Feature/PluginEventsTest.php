@@ -6,12 +6,28 @@ use superbig\audit\models\AuditModel;
 use superbig\audit\records\AuditRecord;
 
 beforeEach(function () {
-    // Clear audit logs before each test
     AuditRecord::deleteAll();
 });
 
+/**
+ * These tests stay handler-direct rather than exercising
+ * \Craft::$app->plugins->enablePlugin()/disablePlugin() because:
+ *
+ *   1. The test fixture only installs the Audit plugin itself. Disabling
+ *      Audit would tear down the very event listeners we are trying to
+ *      verify, so we cannot use it to test the wiring.
+ *
+ *   2. Bringing a fixture plugin (e.g., a tiny no-op craftcms package)
+ *      into the test harness is out of scope for P2.9 — it would
+ *      require composer changes and a stub plugin class.
+ *
+ * The wiring between Plugins::EVENT_AFTER_ENABLE_PLUGIN /
+ * EVENT_AFTER_DISABLE_PLUGIN / EVENT_AFTER_UNINSTALL_PLUGIN and
+ * PluginHandler::onPluginEvent is registered in Audit::initLogEvents()
+ * and is verified manually against installations.
+ */
+
 it('logs audit event when plugin is enabled', function () {
-    // Create a mock plugin for testing (Craft 5 requires $id and $parent in constructor)
     $mockPlugin = new class('test-plugin', \Craft::$app) extends \craft\base\Plugin {
         public ?string $name = 'Test Plugin';
         public string $version = '1.0.0';
@@ -63,7 +79,6 @@ it('does not log plugin events when disabled', function () {
 
     expect($result)->toBeFalse();
 
-    // Re-enable for other tests
     Audit::$plugin->getSettings()->logPluginEvents = true;
 });
 

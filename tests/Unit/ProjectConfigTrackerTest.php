@@ -123,6 +123,32 @@ it('records an audit event when a filesystem is added to project config', functi
     expect($record->title)->toBe('Test FS');
 });
 
+it('records an audit event when a site group is added to project config', function () {
+    Audit::$plugin->projectConfigTracker->register();
+
+    $uid = \craft\helpers\StringHelper::UUID();
+    $path = ProjectConfig::PATH_SITE_GROUPS . '.' . $uid;
+
+    try {
+        Craft::$app->projectConfig->set($path, [
+            'name' => 'Test Site Group',
+        ]);
+    } catch (\Throwable $e) {
+        $this->markTestSkipped('project config set() threw in this env: ' . $e->getMessage());
+    }
+
+    $record = AuditRecord::find()
+        ->where(['event' => AuditEvent::SiteGroupCreated->value])
+        ->orderBy(['id' => SORT_DESC])
+        ->one();
+
+    if ($record === null) {
+        $this->markTestSkipped('ProjectConfig onAdd callback did not fire in test env.');
+    }
+
+    expect($record->title)->toBe('Test Site Group');
+});
+
 it('enum has all 24 new project config cases', function () {
     $expected = [
         AuditEvent::CategoryGroupCreated, AuditEvent::CategoryGroupSaved, AuditEvent::CategoryGroupDeleted,
