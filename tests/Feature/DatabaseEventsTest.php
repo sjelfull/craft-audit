@@ -19,7 +19,7 @@ it('logs audit event when backup is created', function () {
     $event = new BackupEvent([
         'file' => '/path/to/backup/craft-db-backup-2025-01-08.sql',
     ]);
-    Audit::$plugin->auditService->onBackupCreated($event);
+    Audit::$plugin->backupHandler->onBackupCreated($event);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::BackupCreated->value])
@@ -36,7 +36,7 @@ it('logs audit event when backup is restored', function () {
     $event = new RestoreEvent([
         'file' => '/path/to/backup/craft-db-backup-2025-01-08.sql',
     ]);
-    Audit::$plugin->auditService->onBackupRestored($event);
+    Audit::$plugin->backupHandler->onBackupRestored($event);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::BackupRestored->value])
@@ -55,7 +55,7 @@ it('does not log database events when disabled', function () {
     $event = new BackupEvent([
         'file' => '/path/to/backup/test.sql',
     ]);
-    $result = Audit::$plugin->auditService->onBackupCreated($event);
+    $result = Audit::$plugin->backupHandler->onBackupCreated($event);
 
     expect($result)->toBeFalse();
 
@@ -76,7 +76,7 @@ it('captures backup file path in snapshot', function () {
     $event = new BackupEvent([
         'file' => $backupFile,
     ]);
-    Audit::$plugin->auditService->onBackupCreated($event);
+    Audit::$plugin->backupHandler->onBackupCreated($event);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::BackupCreated->value])
@@ -96,7 +96,7 @@ it('captures restore file path in snapshot', function () {
     $event = new RestoreEvent([
         'file' => $restoreFile,
     ]);
-    Audit::$plugin->auditService->onBackupRestored($event);
+    Audit::$plugin->backupHandler->onBackupRestored($event);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::BackupRestored->value])

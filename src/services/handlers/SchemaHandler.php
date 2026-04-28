@@ -19,8 +19,8 @@ use superbig\audit\models\AuditModel;
  * SchemaHandler — handles field / section / entry-type audit events extracted from AuditService.
  *
  * Behavior is preserved verbatim: methods delegate back to AuditService for
- * `_saveRecord`, `_getStandardModel`, `afterSnapshot`, and `catchSaveError`
- * via `Audit::$plugin->auditService`.
+ * `saveRecord`, `getStandardModel`, `afterSnapshot`, and `catchSaveError`
+ * via `Audit::$plugin->auditRecorder`.
  *
  * @author    Superbig
  * @package   Audit
@@ -34,23 +34,23 @@ class SchemaHandler extends Component
             return false;
         }
 
-        $auditService = Audit::$plugin->auditService;
+        $auditRecorder = Audit::$plugin->auditRecorder;
 
-        return $auditService->catchSaveError(function() use ($event, $auditService) {
+        return $auditRecorder->catchSaveError(function() use ($event, $auditRecorder) {
             $field = $event->field;
             $isNew = $event->isNew;
 
-            $model = $auditService->_getStandardModel();
+            $model = $auditRecorder->getStandardModel();
             $model->event = $isNew ? AuditModel::EVENT_FIELD_CREATED : AuditModel::EVENT_FIELD_SAVED;
             $model->title = $field->name;
-            $model->snapshot = $auditService->afterSnapshot($model, array_merge($model->snapshot, [
+            $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, [
                 'fieldId' => $field->id,
                 'fieldName' => $field->name,
                 'fieldHandle' => $field->handle,
                 'fieldType' => get_class($field),
             ]));
 
-            return $auditService->_saveRecord($model);
+            return $auditRecorder->saveRecord($model);
         });
     }
 
@@ -60,22 +60,22 @@ class SchemaHandler extends Component
             return false;
         }
 
-        $auditService = Audit::$plugin->auditService;
+        $auditRecorder = Audit::$plugin->auditRecorder;
 
-        return $auditService->catchSaveError(function() use ($event, $auditService) {
+        return $auditRecorder->catchSaveError(function() use ($event, $auditRecorder) {
             $field = $event->field;
 
-            $model = $auditService->_getStandardModel();
+            $model = $auditRecorder->getStandardModel();
             $model->event = AuditModel::EVENT_FIELD_DELETED;
             $model->title = $field->name;
-            $model->snapshot = $auditService->afterSnapshot($model, array_merge($model->snapshot, [
+            $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, [
                 'fieldId' => $field->id,
                 'fieldName' => $field->name,
                 'fieldHandle' => $field->handle,
                 'fieldType' => get_class($field),
             ]));
 
-            return $auditService->_saveRecord($model);
+            return $auditRecorder->saveRecord($model);
         });
     }
 
@@ -85,23 +85,23 @@ class SchemaHandler extends Component
             return false;
         }
 
-        $auditService = Audit::$plugin->auditService;
+        $auditRecorder = Audit::$plugin->auditRecorder;
 
-        return $auditService->catchSaveError(function() use ($event, $auditService) {
+        return $auditRecorder->catchSaveError(function() use ($event, $auditRecorder) {
             $section = $event->section;
             $isNew = $event->isNew;
 
-            $model = $auditService->_getStandardModel();
+            $model = $auditRecorder->getStandardModel();
             $model->event = $isNew ? AuditModel::EVENT_SECTION_CREATED : AuditModel::EVENT_SECTION_SAVED;
             $model->title = $section->name;
-            $model->snapshot = $auditService->afterSnapshot($model, array_merge($model->snapshot, [
+            $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, [
                 'sectionId' => $section->id,
                 'sectionName' => $section->name,
                 'sectionHandle' => $section->handle,
                 'sectionType' => $section->type,
             ]));
 
-            return $auditService->_saveRecord($model);
+            return $auditRecorder->saveRecord($model);
         });
     }
 
@@ -111,22 +111,22 @@ class SchemaHandler extends Component
             return false;
         }
 
-        $auditService = Audit::$plugin->auditService;
+        $auditRecorder = Audit::$plugin->auditRecorder;
 
-        return $auditService->catchSaveError(function() use ($event, $auditService) {
+        return $auditRecorder->catchSaveError(function() use ($event, $auditRecorder) {
             $section = $event->section;
 
-            $model = $auditService->_getStandardModel();
+            $model = $auditRecorder->getStandardModel();
             $model->event = AuditModel::EVENT_SECTION_DELETED;
             $model->title = $section->name;
-            $model->snapshot = $auditService->afterSnapshot($model, array_merge($model->snapshot, [
+            $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, [
                 'sectionId' => $section->id,
                 'sectionName' => $section->name,
                 'sectionHandle' => $section->handle,
                 'sectionType' => $section->type,
             ]));
 
-            return $auditService->_saveRecord($model);
+            return $auditRecorder->saveRecord($model);
         });
     }
 
@@ -136,22 +136,22 @@ class SchemaHandler extends Component
             return false;
         }
 
-        $auditService = Audit::$plugin->auditService;
+        $auditRecorder = Audit::$plugin->auditRecorder;
 
-        return $auditService->catchSaveError(function() use ($event, $auditService) {
+        return $auditRecorder->catchSaveError(function() use ($event, $auditRecorder) {
             $entryType = $event->entryType;
             $isNew = $event->isNew;
 
-            $model = $auditService->_getStandardModel();
+            $model = $auditRecorder->getStandardModel();
             $model->event = $isNew ? AuditModel::EVENT_ENTRY_TYPE_CREATED : AuditModel::EVENT_ENTRY_TYPE_SAVED;
             $model->title = $entryType->name;
-            $model->snapshot = $auditService->afterSnapshot($model, array_merge($model->snapshot, [
+            $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, [
                 'entryTypeId' => $entryType->id,
                 'entryTypeName' => $entryType->name,
                 'entryTypeHandle' => $entryType->handle,
             ]));
 
-            return $auditService->_saveRecord($model);
+            return $auditRecorder->saveRecord($model);
         });
     }
 
@@ -161,21 +161,21 @@ class SchemaHandler extends Component
             return false;
         }
 
-        $auditService = Audit::$plugin->auditService;
+        $auditRecorder = Audit::$plugin->auditRecorder;
 
-        return $auditService->catchSaveError(function() use ($event, $auditService) {
+        return $auditRecorder->catchSaveError(function() use ($event, $auditRecorder) {
             $entryType = $event->entryType;
 
-            $model = $auditService->_getStandardModel();
+            $model = $auditRecorder->getStandardModel();
             $model->event = AuditModel::EVENT_ENTRY_TYPE_DELETED;
             $model->title = $entryType->name;
-            $model->snapshot = $auditService->afterSnapshot($model, array_merge($model->snapshot, [
+            $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, [
                 'entryTypeId' => $entryType->id,
                 'entryTypeName' => $entryType->name,
                 'entryTypeHandle' => $entryType->handle,
             ]));
 
-            return $auditService->_saveRecord($model);
+            return $auditRecorder->saveRecord($model);
         });
     }
 }

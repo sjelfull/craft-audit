@@ -22,7 +22,7 @@ it('logs audit event when user permissions are saved', function () {
         'userId' => $user->id,
         'permissions' => ['accessCp', 'editEntries'],
     ]);
-    Audit::$plugin->auditService->onUserPermissionsSaved($event);
+    Audit::$plugin->userGroupHandler->onUserPermissionsSaved($event);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::UserPermissionsSaved->value])
@@ -40,7 +40,7 @@ it('logs audit event when group permissions are saved', function () {
         'groupId' => 1,
         'permissions' => ['accessCp', 'editEntries'],
     ]);
-    Audit::$plugin->auditService->onGroupPermissionsSaved($event);
+    Audit::$plugin->userGroupHandler->onGroupPermissionsSaved($event);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::GroupPermissionsSaved->value])
@@ -61,7 +61,7 @@ it('logs audit event when user group is saved', function () {
         'userGroup' => $group,
         'isNew' => true,
     ]);
-    Audit::$plugin->auditService->onUserGroupSaved($event);
+    Audit::$plugin->userGroupHandler->onUserGroupSaved($event);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::UserGroupCreated->value])
@@ -82,7 +82,7 @@ it('logs audit event when user group is deleted', function () {
     $event = new UserGroupEvent([
         'userGroup' => $group,
     ]);
-    Audit::$plugin->auditService->onUserGroupDeleted($event);
+    Audit::$plugin->userGroupHandler->onUserGroupDeleted($event);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::UserGroupDeleted->value])
@@ -102,7 +102,7 @@ it('does not log permission events when disabled', function () {
         'userId' => $user->id,
         'permissions' => ['accessCp'],
     ]);
-    $result = Audit::$plugin->auditService->onUserPermissionsSaved($event);
+    $result = Audit::$plugin->userGroupHandler->onUserPermissionsSaved($event);
 
     expect($result)->toBeFalse();
 
@@ -124,7 +124,7 @@ it('captures permissions in snapshot', function () {
         'userId' => $user->id,
         'permissions' => $permissions,
     ]);
-    Audit::$plugin->auditService->onUserPermissionsSaved($event);
+    Audit::$plugin->userGroupHandler->onUserPermissionsSaved($event);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::UserPermissionsSaved->value])

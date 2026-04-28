@@ -5,7 +5,7 @@ use superbig\audit\Audit;
 use superbig\audit\events\SnapshotEvent;
 use superbig\audit\models\AuditModel;
 use superbig\audit\records\AuditRecord;
-use superbig\audit\services\AuditService;
+use superbig\audit\services\AuditRecorder;
 
 beforeEach(function () {
     AuditRecord::deleteAll();
@@ -16,8 +16,8 @@ it('allows snapshot modification via EVENT_SNAPSHOT', function () {
     $customData = 'custom-test-value-' . uniqid();
 
     \yii\base\Event::on(
-        AuditService::class,
-        AuditService::EVENT_SNAPSHOT,
+        AuditRecorder::class,
+        AuditRecorder::EVENT_SNAPSHOT,
         function (SnapshotEvent $event) use ($customData) {
             $event->snapshot['customField'] = $customData;
         }
@@ -39,7 +39,7 @@ it('allows snapshot modification via EVENT_SNAPSHOT', function () {
 
     // Clean up the event handler
     \yii\base\Event::off(
-        AuditService::class,
-        AuditService::EVENT_SNAPSHOT
+        AuditRecorder::class,
+        AuditRecorder::EVENT_SNAPSHOT
     );
 });

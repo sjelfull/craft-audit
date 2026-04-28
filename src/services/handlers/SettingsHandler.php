@@ -17,8 +17,8 @@ use superbig\audit\models\AuditModel;
  * SettingsHandler — handles system/email settings change audit events extracted from AuditService.
  *
  * Behavior is preserved verbatim: methods delegate back to AuditService for
- * `_saveRecord`, `_getStandardModel`, `afterSnapshot`, and `catchSaveError`
- * via `Audit::$plugin->auditService`.
+ * `saveRecord`, `getStandardModel`, `afterSnapshot`, and `catchSaveError`
+ * via `Audit::$plugin->auditRecorder`.
  *
  * @author    Superbig
  * @package   Audit
@@ -28,22 +28,22 @@ class SettingsHandler extends Component
 {
     public function onSettingsChanged(ConfigEvent $event, string $settingsType): bool
     {
-        $auditService = Audit::$plugin->auditService;
+        $auditRecorder = Audit::$plugin->auditRecorder;
 
-        return $auditService->catchSaveError(function() use ($event, $settingsType, $auditService) {
-            $model = $auditService->_getStandardModel();
+        return $auditRecorder->catchSaveError(function() use ($event, $settingsType, $auditRecorder) {
+            $model = $auditRecorder->getStandardModel();
             $model->event = $settingsType === 'system'
                 ? AuditModel::EVENT_SYSTEM_SETTINGS_CHANGED
                 : AuditModel::EVENT_EMAIL_SETTINGS_CHANGED;
             $model->title = ucfirst($settingsType) . ' settings';
-            $model->snapshot = $auditService->afterSnapshot($model, array_merge($model->snapshot, [
+            $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, [
                 'settingsType' => $settingsType,
                 'path' => $event->path,
                 'oldValue' => $event->oldValue,
                 'newValue' => $event->newValue,
             ]));
 
-            return $auditService->_saveRecord($model);
+            return $auditRecorder->saveRecord($model);
         });
     }
 }
