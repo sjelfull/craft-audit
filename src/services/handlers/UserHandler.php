@@ -13,7 +13,7 @@ use craft\base\Component;
 use craft\elements\User;
 use craft\events\UserEvent;
 use superbig\audit\Audit;
-use superbig\audit\models\AuditModel;
+use superbig\audit\enums\AuditEvent;
 
 /**
  * UserHandler — handles user-login/logout and user-security audit events
@@ -41,7 +41,7 @@ class UserHandler extends Component
 
         try {
             $model = $auditRecorder->getStandardModel();
-            $model->event = AuditModel::USER_LOGGED_IN;
+            $model->event = AuditEvent::UserLoggedIn->value;
 
             return $auditRecorder->saveRecord($model);
         } catch (\Exception $e) {
@@ -67,7 +67,7 @@ class UserHandler extends Component
 
         try {
             $model = $auditRecorder->getStandardModel();
-            $model->event = AuditModel::USER_LOGGED_OUT;
+            $model->event = AuditEvent::UserLoggedOut->value;
 
             return $auditRecorder->saveRecord($model);
         } catch (\Exception $e) {
@@ -91,7 +91,7 @@ class UserHandler extends Component
         return $auditRecorder->catchSaveError(function() use ($event, $auditRecorder) {
             $user = $event->user;
             $model = $auditRecorder->getStandardModel();
-            $model->event = AuditModel::EVENT_USER_ACTIVATED;
+            $model->event = AuditEvent::UserActivated->value;
             $model->title = $user->username;
             $model->elementId = $user->id;
             $model->elementType = User::class;
@@ -116,7 +116,7 @@ class UserHandler extends Component
         return $auditRecorder->catchSaveError(function() use ($event, $auditRecorder) {
             $user = $event->user;
             $model = $auditRecorder->getStandardModel();
-            $model->event = AuditModel::EVENT_USER_DEACTIVATED;
+            $model->event = AuditEvent::UserDeactivated->value;
             $model->title = $user->username;
             $model->elementId = $user->id;
             $model->elementType = User::class;
@@ -141,7 +141,7 @@ class UserHandler extends Component
         return $auditRecorder->catchSaveError(function() use ($event, $auditRecorder) {
             $user = $event->user;
             $model = $auditRecorder->getStandardModel();
-            $model->event = AuditModel::EVENT_USER_SUSPENDED;
+            $model->event = AuditEvent::UserSuspended->value;
             $model->title = $user->username;
             $model->elementId = $user->id;
             $model->elementType = User::class;
@@ -166,7 +166,7 @@ class UserHandler extends Component
         return $auditRecorder->catchSaveError(function() use ($event, $auditRecorder) {
             $user = $event->user;
             $model = $auditRecorder->getStandardModel();
-            $model->event = AuditModel::EVENT_USER_UNSUSPENDED;
+            $model->event = AuditEvent::UserUnsuspended->value;
             $model->title = $user->username;
             $model->elementId = $user->id;
             $model->elementType = User::class;
@@ -191,7 +191,7 @@ class UserHandler extends Component
         return $auditRecorder->catchSaveError(function() use ($event, $auditRecorder) {
             $user = $event->user;
             $model = $auditRecorder->getStandardModel();
-            $model->event = AuditModel::EVENT_USER_LOCKED;
+            $model->event = AuditEvent::UserLocked->value;
             $model->title = $user->username;
             $model->elementId = $user->id;
             $model->elementType = User::class;
@@ -216,7 +216,7 @@ class UserHandler extends Component
         return $auditRecorder->catchSaveError(function() use ($event, $auditRecorder) {
             $user = $event->user;
             $model = $auditRecorder->getStandardModel();
-            $model->event = AuditModel::EVENT_USER_UNLOCKED;
+            $model->event = AuditEvent::UserUnlocked->value;
             $model->title = $user->username;
             $model->elementId = $user->id;
             $model->elementType = User::class;

@@ -12,7 +12,7 @@ use craft\base\Component;
 use craft\events\BackupEvent;
 use craft\events\RestoreEvent;
 use superbig\audit\Audit;
-use superbig\audit\models\AuditModel;
+use superbig\audit\enums\AuditEvent;
 
 /**
  * BackupHandler — handles database backup/restore audit events extracted from AuditService.
@@ -37,7 +37,7 @@ class BackupHandler extends Component
 
         return $auditRecorder->catchSaveError(function() use ($event, $auditRecorder) {
             $model = $auditRecorder->getStandardModel();
-            $model->event = AuditModel::EVENT_BACKUP_CREATED;
+            $model->event = AuditEvent::BackupCreated->value;
             $model->title = basename($event->file);
             $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, [
                 'file' => $event->file,
@@ -58,7 +58,7 @@ class BackupHandler extends Component
 
         return $auditRecorder->catchSaveError(function() use ($event, $auditRecorder) {
             $model = $auditRecorder->getStandardModel();
-            $model->event = AuditModel::EVENT_BACKUP_RESTORED;
+            $model->event = AuditEvent::BackupRestored->value;
             $model->title = basename($event->file);
             $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, [
                 'file' => $event->file,

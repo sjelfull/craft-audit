@@ -44,6 +44,7 @@ use craft\services\UserPermissions;
 use craft\services\Users;
 use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
+use superbig\audit\enums\AuditEvent;
 use superbig\audit\events\RegisterFieldHandlersEvent;
 use superbig\audit\fieldHandlers\handlers\BooleanHandler;
 use superbig\audit\fieldHandlers\handlers\ColorHandler;
@@ -60,7 +61,6 @@ use superbig\audit\fieldHandlers\handlers\SeoHandler;
 use superbig\audit\fieldHandlers\handlers\SuperTableHandler;
 use superbig\audit\fieldHandlers\handlers\TableHandler;
 use superbig\audit\fieldHandlers\handlers\VizyHandler;
-use superbig\audit\models\AuditModel;
 use superbig\audit\models\Settings;
 use superbig\audit\services\Audit_GeoService;
 use superbig\audit\services\AuditRecorder;
@@ -352,21 +352,21 @@ class Audit extends Plugin
                 'class' => Plugins::class,
                 'event' => Plugins::EVENT_AFTER_UNINSTALL_PLUGIN,
                 'handler' => function(PluginEvent $event) {
-                    $this->pluginHandler->onPluginEvent(AuditModel::EVENT_PLUGIN_UNINSTALLED, $event->plugin);
+                    $this->pluginHandler->onPluginEvent(AuditEvent::PluginUninstalled->value, $event->plugin);
                 },
             ],
             [
                 'class' => Plugins::class,
                 'event' => Plugins::EVENT_AFTER_DISABLE_PLUGIN,
                 'handler' => function(PluginEvent $event) {
-                    $this->pluginHandler->onPluginEvent(AuditModel::EVENT_PLUGIN_DISABLED, $event->plugin);
+                    $this->pluginHandler->onPluginEvent(AuditEvent::PluginDisabled->value, $event->plugin);
                 },
             ],
             [
                 'class' => Plugins::class,
                 'event' => Plugins::EVENT_AFTER_ENABLE_PLUGIN,
                 'handler' => function(PluginEvent $event) {
-                    $this->pluginHandler->onPluginEvent(AuditModel::EVENT_PLUGIN_ENABLED, $event->plugin);
+                    $this->pluginHandler->onPluginEvent(AuditEvent::PluginEnabled->value, $event->plugin);
                 },
             ],
             // User Security Events

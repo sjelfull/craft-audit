@@ -16,7 +16,7 @@ use craft\events\UserGroupEvent;
 use craft\events\UserGroupPermissionsEvent;
 use craft\events\UserPermissionsEvent;
 use superbig\audit\Audit;
-use superbig\audit\models\AuditModel;
+use superbig\audit\enums\AuditEvent;
 
 /**
  * UserGroupHandler — handles user-group assignment, user/group permission save,
@@ -52,7 +52,7 @@ class UserGroupHandler extends Component
             }
 
             $model = $auditRecorder->getStandardModel();
-            $model->event = AuditModel::EVENT_USER_GROUPS_ASSIGNED;
+            $model->event = AuditEvent::UserGroupsAssigned->value;
             $model->title = $user->username . ' → ' . implode(', ', $groupNames);
             $model->elementId = $user->id;
             $model->elementType = User::class;
@@ -81,7 +81,7 @@ class UserGroupHandler extends Component
             $permissions = $event->permissions;
 
             $model = $auditRecorder->getStandardModel();
-            $model->event = AuditModel::EVENT_USER_PERMISSIONS_SAVED;
+            $model->event = AuditEvent::UserPermissionsSaved->value;
             $model->title = $user ? $user->username : "User #{$userId}";
             $model->elementId = $userId;
             $model->elementType = User::class;
@@ -109,7 +109,7 @@ class UserGroupHandler extends Component
             $permissions = $event->permissions;
 
             $model = $auditRecorder->getStandardModel();
-            $model->event = AuditModel::EVENT_GROUP_PERMISSIONS_SAVED;
+            $model->event = AuditEvent::GroupPermissionsSaved->value;
             $model->title = $group ? $group->name : "Group #{$groupId}";
             $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, [
                 'groupId' => $groupId,
@@ -134,7 +134,7 @@ class UserGroupHandler extends Component
             $isNew = $event->isNew;
 
             $model = $auditRecorder->getStandardModel();
-            $model->event = $isNew ? AuditModel::EVENT_USER_GROUP_CREATED : AuditModel::EVENT_USER_GROUP_SAVED;
+            $model->event = $isNew ? AuditEvent::UserGroupCreated->value : AuditEvent::UserGroupSaved->value;
             $model->title = $group->name;
             $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, [
                 'groupId' => $group->id,
@@ -158,7 +158,7 @@ class UserGroupHandler extends Component
             $group = $event->userGroup;
 
             $model = $auditRecorder->getStandardModel();
-            $model->event = AuditModel::EVENT_USER_GROUP_DELETED;
+            $model->event = AuditEvent::UserGroupDeleted->value;
             $model->title = $group->name;
             $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, [
                 'groupId' => $group->id,
