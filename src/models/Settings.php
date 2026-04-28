@@ -1,12 +1,4 @@
 <?php
-/**
- * Audit plugin for Craft CMS 3.x
- *
- * Log adding/updating/deleting of elements
- *
- * @link      https://superbig.co
- * @copyright Copyright (c) 2017 Superbig
- */
 
 namespace superbig\audit\models;
 
@@ -15,13 +7,7 @@ use craft\base\Model;
 
 use craft\helpers\App;
 use craft\helpers\FileHelper;
-use superbig\audit\Audit;
 
-/**
- * @author    Superbig
- * @package   Audit
- * @since     1.0.0
- */
 class Settings extends Model
 {
     /**

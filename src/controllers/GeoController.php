@@ -1,12 +1,4 @@
 <?php
-/**
- * Audit plugin for Craft CMS 3.x
- *
- * Log adding/updating/deleting of elements
- *
- * @link      https://superbig.co
- * @copyright Copyright (c) 2017 Superbig
- */
 
 namespace superbig\audit\controllers;
 
@@ -18,17 +10,9 @@ use superbig\audit\jobs\UpdateGeoDbJob;
 use yii\web\HttpException;
 use yii\web\Response;
 
-/**
- * @author    Superbig
- * @package   Audit
- * @since     1.0.0
- */
 class GeoController extends Controller
 {
     protected array|int|bool $allowAnonymous = ['update-database'];
-
-    // Protected Properties
-    // =========================================================================
 
     public function actionStartUpdate(): Response
     {

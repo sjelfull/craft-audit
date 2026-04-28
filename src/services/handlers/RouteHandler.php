@@ -1,10 +1,4 @@
 <?php
-/**
- * Audit plugin for Craft CMS 3.x
- *
- * @link      https://superbig.co
- * @copyright Copyright (c) 2017 Superbig
- */
 
 namespace superbig\audit\services\handlers;
 
@@ -20,10 +14,6 @@ use superbig\audit\helpers\Route;
  * Behavior is preserved verbatim: methods delegate back to AuditService for
  * `saveRecord`, `getStandardModel`, `afterSnapshot`, and `catchSaveError`
  * via `Audit::$plugin->auditRecorder`.
- *
- * @author    Superbig
- * @package   Audit
- * @since     3.x
  */
 class RouteHandler extends Component
 {

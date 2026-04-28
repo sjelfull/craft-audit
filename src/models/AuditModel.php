@@ -1,12 +1,4 @@
 <?php
-/**
- * Audit plugin for Craft CMS 3.x
- *
- * Log adding/updating/deleting of elements
- *
- * @link      https://superbig.co
- * @copyright Copyright (c) 2017 Superbig
- */
 
 namespace superbig\audit\models;
 
@@ -28,11 +20,6 @@ use superbig\audit\enums\AuditEvent;
 use superbig\audit\records\AuditRecord;
 use Throwable;
 
-/**
- * @author    Superbig
- * @package   Audit
- * @since     1.0.0
- */
 class AuditModel extends Model
 {
     public const FLASH_RESAVE_ID = 'auditResaveId';
@@ -189,9 +176,6 @@ class AuditModel extends Model
 
         return $model;
     }
-
-    // Public Methods
-    // =========================================================================
 
     /**
      * @inheritdoc

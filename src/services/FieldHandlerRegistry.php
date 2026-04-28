@@ -10,8 +10,6 @@ use superbig\audit\fieldHandlers\FieldHandler;
 /**
  * Registry of audit field handlers. Handlers are registered via the
  * EVENT_REGISTER_HANDLERS event, and looked up by Craft field class.
- *
- * @since 4.0.0
  */
 class FieldHandlerRegistry extends Component
 {

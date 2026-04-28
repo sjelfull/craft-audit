@@ -1,38 +1,18 @@
 <?php
-/**
- * Audit plugin for Craft CMS 3.x
- *
- * Log adding/updating/deleting of elements
- *
- * @link      https://superbig.co
- * @copyright Copyright (c) 2017 Superbig
- */
 
 namespace superbig\audit\migrations;
 
 use Craft;
 use craft\db\Migration;
-use superbig\audit\Audit;
 
-/**
- * @author    Superbig
- * @package   Audit
- * @since     1.0.0
- */
 class Install extends Migration
 {
-    // Public Properties
-    // =========================================================================
-
     /**
      * @var string The database driver to use
      */
     public $driver;
 
     protected $tableName = '{{%audit_log}}';
-
-    // Public Methods
-    // =========================================================================
 
     /**
      * @inheritdoc
@@ -61,9 +41,6 @@ class Install extends Migration
 
         return true;
     }
-
-    // Protected Methods
-    // =========================================================================
 
     /**
      * @return bool

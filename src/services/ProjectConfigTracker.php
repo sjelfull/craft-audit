@@ -17,8 +17,6 @@ use superbig\audit\enums\AuditEvent;
  * dedicated PHP service events for (filesystems, image transforms, sites, etc.).
  * Each config area gets onAdd / onUpdate / onRemove handlers that route to
  * AuditRecorder with the appropriate AuditEvent case.
- *
- * @since 4.0.0
  */
 class ProjectConfigTracker extends Component
 {

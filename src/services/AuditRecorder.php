@@ -18,8 +18,6 @@ use yii\base\Exception;
  *
  * Unlike the legacy AuditService which has ~30 event-specific methods,
  * AuditRecorder has one `record()` method that handlers call directly.
- *
- * @since 4.0.0
  */
 class AuditRecorder extends Component
 {

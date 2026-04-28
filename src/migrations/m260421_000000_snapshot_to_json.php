@@ -1,10 +1,4 @@
 <?php
-/**
- * Audit plugin for Craft CMS 3.x
- *
- * @link      https://superbig.co
- * @copyright Copyright (c) 2026 Superbig
- */
 
 namespace superbig\audit\migrations;
 

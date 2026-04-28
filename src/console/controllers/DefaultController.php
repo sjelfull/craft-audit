@@ -1,12 +1,4 @@
 <?php
-/**
- * Audit plugin for Craft CMS 3.x
- *
- * Log adding/updating/deleting of elements
- *
- * @link      https://superbig.co
- * @copyright Copyright (c) 2017 Superbig
- */
 
 namespace superbig\audit\console\controllers;
 
@@ -16,19 +8,8 @@ use superbig\audit\Audit;
 use yii\console\Controller;
 use yii\console\ExitCode;
 
-/**
- * @author    Superbig
- * @package   Audit
- * @since     1.0.0
- */
 class DefaultController extends Controller
 {
-    // Protected Properties
-    // =========================================================================
-
-    // Public Methods
-    // =========================================================================
-
     /**
      * Update Geolocation database
      *
