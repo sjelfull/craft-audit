@@ -5,8 +5,18 @@ use superbig\audit\Audit;
 use superbig\audit\enums\AuditEvent;
 use superbig\audit\records\AuditRecord;
 
+/**
+ * Login/logout tests stay handler-direct rather than going through
+ * \Craft::$app->user->login($user, ...) because login flows require a real
+ * web session, CSRF state, and request lifecycle that the Pest console
+ * harness does not provide. Setting an identity is enough to verify
+ * UserHandler::onLogin/onBeforeLogout produce the expected record shape;
+ * the wiring between User::EVENT_AFTER_LOGIN/EVENT_BEFORE_LOGOUT and the
+ * handler is registered in Audit::initLogEvents() and is exercised
+ * end-to-end in the production code path.
+ */
+
 beforeEach(function () {
-    // Clear audit logs before each test
     AuditRecord::deleteAll();
 });
 

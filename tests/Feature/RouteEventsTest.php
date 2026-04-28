@@ -1,41 +1,47 @@
 <?php
 
-use craft\events\RouteEvent;
 use superbig\audit\Audit;
 use superbig\audit\enums\AuditEvent;
 use superbig\audit\models\AuditModel;
 use superbig\audit\records\AuditRecord;
 
 beforeEach(function () {
-    // Clear audit logs before each test
     AuditRecord::deleteAll();
 });
 
-it('logs audit event when route is saved', function () {
-    $event = new RouteEvent([
-        'uriParts' => ['test-route'],
-        'template' => 'test/template',
-        'siteUid' => null,
-    ]);
+/**
+ * Routes go through \Craft::$app->routes->saveRoute()/deleteRouteByUid()
+ * which fire EVENT_AFTER_SAVE_ROUTE / EVENT_BEFORE_DELETE_ROUTE. The plugin's
+ * RouteHandler is wired to those in Audit::initLogEvents(). These tests
+ * exercise the full path: real service call → real event → audit record.
+ */
 
-    Audit::$plugin->routeHandler->onSaveRoute($event);
+it('logs audit event when route is saved', function () {
+    $suffix = bin2hex(random_bytes(4));
+    \Craft::$app->routes->saveRoute(
+        ['test-route-' . $suffix],
+        'test/template/' . $suffix
+    );
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::SavedRoute->value])
+        ->orderBy(['id' => SORT_DESC])
         ->one();
 
     expect($record)->not->toBeNull();
-    expect($record->title)->toContain('test/template');
+    expect($record->title)->toContain('test/template/' . $suffix);
 });
 
 it('logs audit event when route is deleted', function () {
-    $event = new RouteEvent([
-        'uriParts' => ['test-route'],
-        'template' => 'test/template',
-        'siteUid' => null,
-    ]);
+    $suffix = bin2hex(random_bytes(4));
+    $routeUid = \Craft::$app->routes->saveRoute(
+        ['delete-route-' . $suffix],
+        'delete/template/' . $suffix
+    );
 
-    Audit::$plugin->routeHandler->onDeleteRoute($event);
+    AuditRecord::deleteAll();
+
+    \Craft::$app->routes->deleteRouteByUid($routeUid);
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::DeletedRoute->value])
@@ -50,17 +56,17 @@ it('logs audit event when route is deleted', function () {
 });
 
 it('captures site UID in route snapshot', function () {
-    $siteUid = 'test-site-uid-123';
-    $event = new RouteEvent([
-        'uriParts' => ['site-specific-route'],
-        'template' => 'site/template',
-        'siteUid' => $siteUid,
-    ]);
-
-    Audit::$plugin->routeHandler->onSaveRoute($event);
+    $suffix = bin2hex(random_bytes(4));
+    $siteUid = \Craft::$app->sites->getPrimarySite()->uid;
+    \Craft::$app->routes->saveRoute(
+        ['site-route-' . $suffix],
+        'site/template/' . $suffix,
+        $siteUid
+    );
 
     $record = AuditRecord::find()
         ->where(['event' => AuditEvent::SavedRoute->value])
+        ->orderBy(['id' => SORT_DESC])
         ->one();
 
     $model = AuditModel::createFromRecord($record);
