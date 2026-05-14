@@ -127,6 +127,11 @@ enum AuditEvent: string
     case GlobalSetConfigSaved = 'global-set-config-saved';
     case GlobalSetConfigDeleted = 'global-set-config-deleted';
 
+    // ===== Batch lifecycle (P3.1) =====
+    case BatchStarted = 'batch-started';
+    case BatchCompleted = 'batch-completed';
+    case BatchFailed = 'batch-failed';
+
     /**
      * Human-readable, translated label for this event.
      *

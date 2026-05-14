@@ -57,6 +57,7 @@ use superbig\audit\models\Settings;
 use superbig\audit\services\Audit_GeoService;
 use superbig\audit\services\AuditRecorder;
 use superbig\audit\services\AuditService;
+use superbig\audit\services\BatchService;
 use superbig\audit\services\DiffRenderer;
 use superbig\audit\services\FieldDiffService;
 use superbig\audit\services\FieldHandlerRegistry;
@@ -92,6 +93,7 @@ use yii\web\UserEvent;
  * @property  BackupHandler         $backupHandler
  * @property  PluginHandler         $pluginHandler
  * @property  SettingsHandler       $settingsHandler
+ * @property  BatchService          $batch
  * @method  Settings getSettings()
  */
 class Audit extends Plugin
@@ -155,6 +157,7 @@ class Audit extends Plugin
             'backupHandler' => BackupHandler::class,
             'pluginHandler' => PluginHandler::class,
             'settingsHandler' => SettingsHandler::class,
+            'batch' => BatchService::class,
         ]);
 
         $this->registerFieldHandlers();
