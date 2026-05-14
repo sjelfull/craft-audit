@@ -34,7 +34,7 @@ system:
   edition: pro
   live: true
   name: 'Craft Audit'
-  schemaVersion: 5.9.0.8
+  schemaVersion: 5.10.0.0
   timeZone: Europe/Amsterdam
 users:
   allowPublicRegistration: false
