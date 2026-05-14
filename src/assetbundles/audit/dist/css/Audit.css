@@ -169,3 +169,79 @@
 .audit-snapshot-json pre.shiki {
     padding: 5px;
 }
+
+/**
+ * @P3.3 Batch parent rows + indented children
+ *
+ * Top-level batch rows show a chevron toggle that expands/collapses their
+ * child rows inline (children rendered in the same tbody as additional
+ * <tr class="audit-child-row hidden"> rows; JS toggles `.hidden`).
+ *
+ * Uses Craft CP CSS custom properties where available so dark mode comes
+ * for free; falls back to literal colors in older Craft versions.
+ */
+
+tr.audit-batch-parent .audit-batch-toggle {
+    background: none;
+    border: 0;
+    cursor: pointer;
+    padding: 0;
+    margin-right: 8px;
+    color: var(--medium-text-color, #606d7b);
+    transition: transform 0.15s ease;
+    vertical-align: middle;
+}
+
+tr.audit-batch-parent .audit-batch-toggle svg {
+    width: 12px;
+    height: 12px;
+    display: inline-block;
+    transition: transform 0.15s ease;
+}
+
+tr.audit-batch-parent .audit-batch-toggle[aria-expanded="true"] svg {
+    transform: rotate(90deg);
+}
+
+tr.audit-batch-parent .audit-batch-toggle[disabled] {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+tr.audit-batch-parent .audit-batch-meta {
+    color: var(--medium-text-color, #606d7b);
+    font-size: 11px;
+    margin-left: 8px;
+}
+
+tr.audit-batch-parent.audit-batch-running .audit-batch-meta {
+    font-style: italic;
+}
+
+/* Indented child rows */
+tr.audit-child-row {
+    background-color: var(--gray-050, rgba(96, 109, 123, 0.04));
+}
+
+tr.audit-child-row.hidden {
+    display: none;
+}
+
+tr.audit-child-row td.audit-child-indent {
+    padding-left: 32px;
+    border-left: 2px solid var(--hairline-color, #d3dadf);
+}
+
+/* Dark mode fallback for older Craft versions that don't expose the vars */
+@media (prefers-color-scheme: dark) {
+    tr.audit-batch-parent .audit-batch-toggle { color: #8d99a8; }
+    tr.audit-batch-parent .audit-batch-meta { color: #8d99a8; }
+    tr.audit-child-row { background-color: rgba(141, 153, 168, 0.05); }
+    tr.audit-child-row td.audit-child-indent { border-left-color: #475463; }
+}
+
+body.dark tr.audit-batch-parent .audit-batch-toggle { color: #8d99a8; }
+body.dark tr.audit-batch-parent .audit-batch-meta { color: #8d99a8; }
+body.dark tr.audit-child-row { background-color: rgba(141, 153, 168, 0.05); }
+body.dark tr.audit-child-row td.audit-child-indent { border-left-color: #475463; }
+
