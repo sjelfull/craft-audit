@@ -14,7 +14,6 @@ use craft\helpers\Html;
 use craft\queue\jobs\ResaveElements;
 use superbig\audit\Audit;
 use superbig\audit\enums\AuditEvent;
-use superbig\audit\models\AuditModel;
 
 /**
  * ElementHandler — handles element-related audit events extracted from AuditService.
@@ -24,6 +23,17 @@ use superbig\audit\models\AuditModel;
  */
 class ElementHandler extends Component
 {
+    /**
+     * Map of spl_object_id($job) → batchId for in-flight resave jobs.
+     *
+     * Replaces the legacy cache-keyed-by-element-type pattern (FRE-140), which
+     * collided when two queue workers ran the same element type concurrently.
+     * Per-job-instance keys make collisions impossible.
+     *
+     * @var array<int, int>
+     */
+    private array $resaveBatchIds = [];
+
     /**
      * @param ElementInterface $element
      * @param bool $isNew
@@ -131,11 +141,6 @@ class ElementHandler extends Component
             }
 
             $model->snapshot = $auditRecorder->afterSnapshot($model, array_merge($model->snapshot, $snapshot));
-            $parentId = $this->getParentId($model->elementType);
-
-            if (!empty($parentId)) {
-                $model->parentId = $parentId;
-            }
 
             return $auditRecorder->saveRecord($model);
         } catch (\Exception $e) {
@@ -214,26 +219,27 @@ class ElementHandler extends Component
         }
     }
 
+    /**
+     * Opens an audit batch for the resave job. Any audit rows written while
+     * the queue worker processes elements inherit the batch as their parent
+     * via AuditRecorder's auto-attach hook.
+     *
+     * @internal Wired from \superbig\audit\Audit::setupQueueEvents().
+     */
     public function onBeforeResave(ResaveElements $job): bool
     {
-        $auditRecorder = Audit::$plugin->auditRecorder;
-
         try {
-            $model = $auditRecorder->getStandardModel();
-            $model->event = AuditEvent::ResavedElements->value;
-            $model->elementType = $job->elementType;
-            $model->appendSnapshot('resaveCriteria', $job->criteria);
-
-            $auditRecorder->saveRecord($model);
-
-            if ($model->id) {
-                $parentIdKey = $this->getParentIdKey($job->elementType);
-
-                Craft::$app->getCache()->set($parentIdKey, $model->id);
-            }
-        } catch (\Exception $e) {
+            $batchId = Audit::$plugin->batch->open(
+                title: 'Resaving ' . $job->elementType . ' elements',
+                metadata: [
+                    'elementType' => $job->elementType,
+                    'criteria' => $job->criteria,
+                ],
+            );
+            $this->resaveBatchIds[spl_object_id($job)] = $batchId;
+        } catch (\Throwable $e) {
             Craft::error(
-                Craft::t('audit', 'Error when logging: {error}', ['error' => $e->getMessage()]),
+                'Audit: failed to open resave batch — ' . $e->getMessage(),
                 __METHOD__
             );
         }
@@ -242,54 +248,30 @@ class ElementHandler extends Component
     }
 
     /**
-     * @param string $elementType
+     * Closes the batch opened by {@see onBeforeResave()}. Idempotent and safe
+     * to call without a prior open() (e.g., if open() itself failed).
      *
-     * @return mixed
+     * @internal Wired from \superbig\audit\Audit::setupQueueEvents().
      */
-    public function getParentId(string $elementType = ''): mixed
+    public function onResaveEnd(ResaveElements $job, bool $failed = false): mixed
     {
-        $cache = Craft::$app->getCache();
-        $parentId = $cache->get($this->getParentIdKey($elementType));
+        $key = spl_object_id($job);
+        if (!isset($this->resaveBatchIds[$key])) {
+            return true;
+        }
 
-        return $parentId;
-    }
-
-    /**
-     * @param ResaveElements $job
-     *
-     * @return mixed
-     */
-    public function onResaveEnd(ResaveElements $job): mixed
-    {
-        $auditService = Audit::$plugin->auditService;
-        $auditRecorder = Audit::$plugin->auditRecorder;
+        $batchId = $this->resaveBatchIds[$key];
+        unset($this->resaveBatchIds[$key]);
 
         try {
-            $cache = Craft::$app->getCache();
-            $parentKey = $this->getParentIdKey($job->elementType);
-            $parentId = $cache->get($parentKey);
-
-            if ($parentId) {
-                $parentEvent = $auditService->getEventById((int) $parentId);
-                $subEventCount = $auditService->getEventCountByParentId((int) $parentId);
-
-                if ($parentEvent) {
-                    $parentEvent->title = $subEventCount . ' elements was re-saved';
-
-                    $auditRecorder->saveRecord($parentEvent);
-                }
-
-                $cache->delete($parentKey);
-            }
-        } catch (\Exception $e) {
-            Craft::error('Failed to remove resave id: ' . $e->getMessage(), __METHOD__);
+            Audit::$plugin->batch->close($batchId, failed: $failed);
+        } catch (\Throwable $e) {
+            Craft::error(
+                'Audit: failed to close resave batch — ' . $e->getMessage(),
+                __METHOD__
+            );
         }
 
         return true;
-    }
-
-    public function getParentIdKey($elementType = ''): string
-    {
-        return AuditModel::FLASH_RESAVE_ID . ':' . $elementType;
     }
 }

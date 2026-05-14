@@ -208,6 +208,13 @@ class AuditRecorder extends Component
      */
     public function saveRecord(AuditModel &$model, bool $unique = true): bool
     {
+        // Auto-attach to the currently-open batch if no parentId was set explicitly.
+        // Mirrors the same hook in record(); needed because the 8 handler services
+        // still use getStandardModel() + saveRecord() rather than record().
+        if ($model->parentId === null) {
+            $model->parentId = Audit::$plugin->batch->currentBatchId();
+        }
+
         try {
             if ($model->id) {
                 $record = AuditRecord::findOne($model->id);

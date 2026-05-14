@@ -22,8 +22,6 @@ use Throwable;
 
 class AuditModel extends Model
 {
-    public const FLASH_RESAVE_ID = 'auditResaveId';
-
     private static $_users;
 
     /**

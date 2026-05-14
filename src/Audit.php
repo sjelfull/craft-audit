@@ -245,7 +245,7 @@ class Audit extends Plugin
             Queue::EVENT_AFTER_ERROR,
             function(ExecEvent $event) {
                 if ($event->job instanceof ResaveElements) {
-                    $this->elementHandler->onResaveEnd($event->job);
+                    $this->elementHandler->onResaveEnd($event->job, failed: true);
                 }
             }
         );
