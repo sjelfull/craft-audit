@@ -67,4 +67,9 @@ return [
     // Backups
     \superbig\audit\enums\AuditEvent::BackupCreated->value => 'Backup created',
     \superbig\audit\enums\AuditEvent::BackupRestored->value => 'Backup restored',
+
+    // Batch lifecycle
+    \superbig\audit\enums\AuditEvent::BatchStarted->value => 'Batch started',
+    \superbig\audit\enums\AuditEvent::BatchCompleted->value => 'Batch completed',
+    \superbig\audit\enums\AuditEvent::BatchFailed->value => 'Batch failed',
 ];

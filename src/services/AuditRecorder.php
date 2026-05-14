@@ -63,6 +63,15 @@ class AuditRecorder extends Component
             }
         }
 
+        // Auto-attach to the currently-open batch if no parentId override was provided.
+        // Note: when BatchService::open() calls record() to create the batch row itself,
+        // it hasn't pushed onto the stack yet — so currentBatchId() returns null (or the
+        // outer batch's id for nested batches, in which case it's already supplied via
+        // overrides above). This prevents a batch row from auto-attaching to itself.
+        if ($model->parentId === null) {
+            $model->parentId = Audit::$plugin->batch->currentBatchId();
+        }
+
         // Fire BeforeRecord event — allows mutation / cancellation
         $beforeEvent = new BeforeRecordEvent(['model' => $model]);
         $this->trigger(self::EVENT_BEFORE_RECORD, $beforeEvent);
