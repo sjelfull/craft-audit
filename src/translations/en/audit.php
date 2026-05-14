@@ -72,4 +72,14 @@ return [
     \superbig\audit\enums\AuditEvent::BatchStarted->value => 'Batch started',
     \superbig\audit\enums\AuditEvent::BatchCompleted->value => 'Batch completed',
     \superbig\audit\enums\AuditEvent::BatchFailed->value => 'Batch failed',
+
+    // Batch UI (P3.3)
+    'Expand batch' => 'Expand batch',
+    'Collapse batch' => 'Collapse batch',
+    'No child rows in this batch' => 'No child rows in this batch',
+    'child row' => 'child row',
+    'child rows' => 'child rows',
+    'completed' => 'completed',
+    'failed' => 'failed',
+    'running' => 'running',
 ];
