@@ -59,6 +59,7 @@ use superbig\audit\services\AuditRecorder;
 use superbig\audit\services\AuditService;
 use superbig\audit\services\BatchService;
 use superbig\audit\services\DiffRenderer;
+use superbig\audit\services\FeedMeListener;
 use superbig\audit\services\FieldDiffService;
 use superbig\audit\services\FieldHandlerRegistry;
 use superbig\audit\services\handlers\BackupHandler;
@@ -94,6 +95,7 @@ use yii\web\UserEvent;
  * @property  PluginHandler         $pluginHandler
  * @property  SettingsHandler       $settingsHandler
  * @property  BatchService          $batch
+ * @property  FeedMeListener        $feedMeListener
  * @method  Settings getSettings()
  */
 class Audit extends Plugin
@@ -158,7 +160,14 @@ class Audit extends Plugin
             'pluginHandler' => PluginHandler::class,
             'settingsHandler' => SettingsHandler::class,
             'batch' => BatchService::class,
+            'feedMeListener' => FeedMeListener::class,
         ]);
+
+        // Eagerly initialize the Feed Me listener — its init() registers an
+        // EVENT_AFTER_LOAD_PLUGINS handler that wires up Feed Me's process
+        // events. Yii lazy-loads components on first access, so we touch it
+        // here to force boot.
+        $this->get('feedMeListener');
 
         $this->registerFieldHandlers();
         $this->projectConfigTracker->register();
