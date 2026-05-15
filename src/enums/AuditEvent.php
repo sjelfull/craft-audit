@@ -85,7 +85,7 @@ enum AuditEvent: string
     case BackupCreated = 'backup-created';
     case BackupRestored = 'backup-restored';
 
-    // ===== Project Config Events (Branch 4) =====
+    // Project Config events (Branch 4)
 
     // Category Groups
     case CategoryGroupCreated = 'category-group-created';
@@ -127,7 +127,7 @@ enum AuditEvent: string
     case GlobalSetConfigSaved = 'global-set-config-saved';
     case GlobalSetConfigDeleted = 'global-set-config-deleted';
 
-    // ===== Batch lifecycle (P3.1) =====
+    // Batch lifecycle (P3.1)
     case BatchStarted = 'batch-started';
     case BatchCompleted = 'batch-completed';
     case BatchFailed = 'batch-failed';
