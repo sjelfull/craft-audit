@@ -146,9 +146,19 @@ class AuditModel extends Model
         $snapshot = $record->snapshot;
 
         try {
-            $model->snapshot = $snapshot ? Json::decode($snapshot, true) : [];
-
-            if (!is_array($model->snapshot)) {
+            // After the FRE-239 fix, Craft AR auto-decodes JSON columns, so
+            // $record->snapshot is already an array. Legacy rows wrote a
+            // doubly-encoded string into the column — handle that defensively.
+            if (is_array($snapshot)) {
+                $model->snapshot = $snapshot;
+            } elseif (is_string($snapshot) && $snapshot !== '') {
+                $decoded = Json::decode($snapshot, true);
+                // Legacy double-encoded: first decode returns a string.
+                if (is_string($decoded)) {
+                    $decoded = Json::decode($decoded, true);
+                }
+                $model->snapshot = is_array($decoded) ? $decoded : [];
+            } else {
                 $model->snapshot = [];
             }
         } catch (Throwable $e) {
@@ -162,10 +172,16 @@ class AuditModel extends Model
 
         $model->request = $record->request;
         try {
-            $model->changedFields = $record->changedFields
-                ? (Json::decode($record->changedFields, true) ?: [])
-                : [];
-            if (!is_array($model->changedFields)) {
+            $cf = $record->changedFields;
+            if (is_array($cf)) {
+                $model->changedFields = $cf;
+            } elseif (is_string($cf) && $cf !== '') {
+                $decoded = Json::decode($cf, true);
+                if (is_string($decoded)) {
+                    $decoded = Json::decode($decoded, true);
+                }
+                $model->changedFields = is_array($decoded) ? $decoded : [];
+            } else {
                 $model->changedFields = [];
             }
         } catch (Throwable) {

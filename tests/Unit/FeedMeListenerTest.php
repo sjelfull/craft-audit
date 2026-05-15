@@ -102,7 +102,7 @@ it('opens a batch when onBeforeProcessFeed is called', function () {
     expect($parent->title)->toBe('Feed Me: Products');
     expect($parent->event)->toBe(AuditEvent::BatchStarted->value);
 
-    $snapshot = json_decode($parent->snapshot, true);
+    $snapshot = audit_snapshot($parent);
     expect($snapshot['metadata']['source'])->toBe('feed-me');
     expect($snapshot['metadata']['feedId'])->toBe(42);
     expect($snapshot['metadata']['elementType'])->toBe('craft\elements\Entry');
@@ -212,6 +212,6 @@ it('survives a feed close mid-batch via the cache (pagination case)', function (
     $parent = AuditRecord::findOne($batchId);
     expect($parent->event)->toBe(AuditEvent::BatchCompleted->value);
 
-    $snapshot = json_decode($parent->snapshot, true);
+    $snapshot = audit_snapshot($parent);
     expect($snapshot['childCount'])->toBe(1);
 });

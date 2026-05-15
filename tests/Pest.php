@@ -37,6 +37,38 @@ function _audit_register_listeners_for_tests(): void
     $registered = true;
 }
 
+/**
+ * Decode the snapshot column of an AuditRecord robustly.
+ *
+ * After FRE-239 the snapshot column is single-encoded native JSON, so Craft's
+ * AR auto-decodes it to an array on read. Legacy doubly-encoded rows
+ * (and any test that hand-crafts a string into the column) still need
+ * json_decode. This helper covers both.
+ */
+function audit_snapshot($record): array
+{
+    return audit_decode_json_column($record->snapshot);
+}
+
+/**
+ * Same defensive decode for changedFields and location columns.
+ */
+function audit_decode_json_column(mixed $raw): array
+{
+    if (is_array($raw)) {
+        return $raw;
+    }
+    if (!is_string($raw) || $raw === '') {
+        return [];
+    }
+    $decoded = json_decode($raw, true);
+    // Legacy doubly-encoded rows decode to a string first.
+    if (is_string($decoded)) {
+        $decoded = json_decode($decoded, true);
+    }
+    return is_array($decoded) ? $decoded : [];
+}
+
 uses()
     ->beforeEach(function () {
         _audit_register_listeners_for_tests();

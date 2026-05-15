@@ -136,7 +136,7 @@ it(
         expect($parent->event)->toBe(AuditEvent::BatchStarted->value);
 
         // Snapshot carries the metadata our handler put there.
-        $snapshot = json_decode($parent->snapshot, true);
+        $snapshot = audit_snapshot($parent);
         expect($snapshot['metadata']['source'])->toBe('feed-me');
         expect($snapshot['metadata']['feedId'])->toBe(1001);
 
@@ -179,7 +179,7 @@ it('closes the Audit batch and auto-attaches children when Feed Me triggers EVEN
     // Parent row reflects the close and child count.
     $parent = AuditRecord::findOne($batchId);
     expect($parent->event)->toBe(AuditEvent::BatchCompleted->value);
-    $snapshot = json_decode($parent->snapshot, true);
+    $snapshot = audit_snapshot($parent);
     expect($snapshot['childCount'])->toBe(1);
 });
 
@@ -296,17 +296,12 @@ it('completes a real CSV import end-to-end: entries created, batch opened, child
     // Batch lifecycle should have completed
     expect(Audit::$plugin->batch->currentBatchId())->toBeNull();
 
-    // Find the batch parent row. The snapshot column stores JSON as text and
-    // is JSON-encoded a second time on write (a known Audit quirk), so we
-    // match in PHP by decoded metadata.feedId rather than SQL LIKE — that
-    // pattern is fragile against the double-encoding.
+    // Find the batch parent row. Now that snapshot is stored as native JSON,
+    // we can iterate and match in PHP via the helper — clean and portable.
     $batchParent = null;
     $snapshot = null;
     foreach (AuditRecord::find()->where(['event' => AuditEvent::BatchCompleted->value])->all() as $candidate) {
-        $decoded = json_decode($candidate->snapshot, true);
-        if (is_string($decoded)) {
-            $decoded = json_decode($decoded, true);
-        }
+        $decoded = audit_snapshot($candidate);
         if (is_array($decoded) && ($decoded['metadata']['feedId'] ?? null) === $feed->id) {
             $batchParent = $candidate;
             $snapshot = $decoded;

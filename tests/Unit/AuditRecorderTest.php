@@ -165,11 +165,12 @@ it('persists request source and changedFields', function () {
 
     expect($model)->not->toBeNull();
     expect($model->request)->not->toBeNull();
-    expect($model->changedFields)->toBe($changed);
+    expect($model->changedFields)->toEqual($changed);
 
     $record = AuditRecord::findOne($model->id);
     expect($record->request)->not->toBeNull();
     expect($record->changedFields)->not->toBeNull();
-    $decoded = json_decode($record->changedFields, true);
-    expect($decoded)->toBe($changed);
+    $decoded = audit_decode_json_column($record->changedFields);
+    // toEqual not toBe — Postgres JSONB may reorder keys on retrieval.
+    expect($decoded)->toEqual($changed);
 });

@@ -33,7 +33,7 @@ it('stores snapshot as JSON on disk', function () {
     );
 
     $record = AuditRecord::findOne($model->id);
-    $decoded = json_decode($record->snapshot, true);
+    $decoded = audit_snapshot($record);
     expect($decoded)->toBe(['nested' => ['array' => [1, 2, 3]]]);
 });
 
@@ -50,8 +50,9 @@ it('stores changedFields separately when provided', function () {
 
     $record = AuditRecord::findOne($model->id);
     expect($record->changedFields)->not->toBeNull();
-    $decoded = json_decode($record->changedFields, true);
-    expect($decoded)->toBe($diff);
+    $decoded = audit_decode_json_column($record->changedFields);
+    // toEqual not toBe — Postgres JSONB may reorder keys on retrieval.
+    expect($decoded)->toEqual($diff);
 });
 
 it('detects request source as one of the known values', function () {

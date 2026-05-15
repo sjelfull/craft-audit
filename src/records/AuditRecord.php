@@ -21,11 +21,11 @@ use yii\db\ActiveQueryInterface;
  * @property \DateTime    $dateUpdated
  * @property string       $ip
  * @property string       $userAgent
- * @property string|null  $snapshot     JSON-encoded snapshot payload (as stored in the DB; decoded lazily by {@see \superbig\audit\models\AuditModel::createFromRecord()}).
+ * @property array|string|null $snapshot      JSON column. Reads return an array (Craft AR auto-decodes); writes accept arrays. String is the legacy doubly-encoded form (still readable defensively via {@see \superbig\audit\models\AuditModel::createFromRecord()}).
  * @property string|null  $sessionId
- * @property string|null  $location     JSON-encoded geolocation payload.
- * @property string|null  $changedFields JSON-encoded field diffs
- * @property string|null  $request      Request source: 'cp', 'site', 'console', 'yaml'
+ * @property array|string|null $location      JSON column. Same shape semantics as $snapshot.
+ * @property array|string|null $changedFields JSON column. Same shape semantics as $snapshot.
+ * @property string|null  $request           Request source: 'cp', 'site', 'console', 'yaml'
  */
 class AuditRecord extends ActiveRecord
 {

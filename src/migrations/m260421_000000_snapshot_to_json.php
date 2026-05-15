@@ -83,16 +83,16 @@ class m260421_000000_snapshot_to_json extends Migration
                     }
 
                     $this->update($table, [
-                        'snapshot_new' => Json::encode($data),
+                        'snapshot_new' => $data,
                     ], ['id' => $row['id']]);
                     $migrated++;
                 } catch (\Throwable $e) {
                     $this->update($table, [
-                        'snapshot_new' => Json::encode([
+                        'snapshot_new' => [
                             '_migrationError' => true,
                             '_message' => $e->getMessage(),
                             '_rawPreview' => substr((string) $snapshot, 0, 200),
-                        ]),
+                        ],
                     ], ['id' => $row['id']]);
                     $failed++;
                 }
@@ -126,11 +126,11 @@ class m260421_000000_snapshot_to_json extends Migration
                 try {
                     $decoded = Json::decodeIfJson($loc);
                     $this->update($table, [
-                        'location_new' => Json::encode(is_array($decoded) ? $decoded : ['raw' => $loc]),
+                        'location_new' => is_array($decoded) ? $decoded : ['raw' => $loc],
                     ], ['id' => $row['id']]);
                 } catch (\Throwable) {
                     $this->update($table, [
-                        'location_new' => Json::encode(['raw' => (string) $loc]),
+                        'location_new' => ['raw' => (string) $loc],
                     ], ['id' => $row['id']]);
                 }
             }
