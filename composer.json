@@ -30,6 +30,7 @@
     },
     "require-dev": {
         "craftcms/ecs": "dev-main",
+        "craftcms/feed-me": "^6.0",
         "craftcms/phpstan": "dev-main",
         "craftcms/rector": "dev-main",
         "markhuot/craft-pest-core": "^3.0"

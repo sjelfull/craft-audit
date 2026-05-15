@@ -47,12 +47,40 @@ class FeedMeListener extends Component
     private const CACHE_TTL = 86400;
 
     /**
+     * Has THIS PROCESS already attached the EVENT_AFTER_LOAD_PLUGINS deferred
+     * registration? Static (not per-instance) because Yii's `Event::on` writes
+     * to a global static handler registry — registering once per instance is
+     * not the same as registering once per process. pest's `InstallsCraft`
+     * resets and recreates the plugin instance between tests; without this
+     * static guard, each new instance would stack another deferred-registration
+     * callback on the Plugins class (and another pair of Process listeners
+     * once Feed Me loads). After N tests, a single feed import would open N
+     * Audit batches.
+     */
+    private static bool $bootstrapped = false;
+
+    /**
+     * Has THIS PROCESS already registered Process listeners? Same reasoning
+     * as $bootstrapped — static, not per-instance, because Yii's handler
+     * registry is global.
+     */
+    private static bool $registered = false;
+
+    /**
      * Defers listener registration until {@see Plugins::EVENT_AFTER_LOAD_PLUGINS}
      * so Feed Me's classes are guaranteed to be available before we probe for them.
+     *
+     * Idempotent per-process — safe to construct multiple instances; only the
+     * first one (per PHP process) attaches the deferred-registration callback.
      */
     public function init(): void
     {
         parent::init();
+
+        if (self::$bootstrapped) {
+            return;
+        }
+        self::$bootstrapped = true;
 
         Event::on(
             Plugins::class,
@@ -77,9 +105,16 @@ class FeedMeListener extends Component
 
     /**
      * Register the BEFORE/AFTER listeners on Feed Me's Process service class.
+     *
+     * Idempotent per-process.
      */
     protected function register(): void
     {
+        if (self::$registered) {
+            return;
+        }
+        self::$registered = true;
+
         Event::on(
             self::FEED_ME_PROCESS_CLASS,
             self::EVENT_BEFORE_PROCESS_FEED,
