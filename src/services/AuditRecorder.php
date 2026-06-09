@@ -91,9 +91,9 @@ class AuditRecorder extends Component
         $record->title = $model->title;
         $record->ip = $model->ip;
         $record->userAgent = $model->userAgent;
-        $record->location = $model->location ? Json::encode($model->location) : null;
-        $record->snapshot = Json::encode($model->snapshot ?: []);
-        $record->changedFields = !empty($model->changedFields) ? Json::encode($model->changedFields) : null;
+        $record->location = $model->location ?: null;
+        $record->snapshot = $model->snapshot ?: [];
+        $record->changedFields = !empty($model->changedFields) ? $model->changedFields : null;
         $record->request = $model->request;
 
         if (!$record->save()) {
@@ -231,7 +231,7 @@ class AuditRecorder extends Component
             $record->ip = $model->ip;
             $record->userAgent = $model->userAgent;
             $record->siteId = $model->siteId;
-            $record->snapshot = Json::encode($model->snapshot ?: []);
+            $record->snapshot = $model->snapshot ?: [];
             $record->sessionId = $model->sessionId;
 
             if (!$record->save()) {

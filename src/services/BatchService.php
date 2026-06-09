@@ -195,8 +195,17 @@ class BatchService extends Component
             return;
         }
 
-        $decoded = Json::decodeIfJson($parentRecord->snapshot);
-        $snapshot = is_array($decoded) ? $decoded : [];
+        $raw = $parentRecord->snapshot;
+        if (is_array($raw)) {
+            $snapshot = $raw;
+        } else {
+            // Legacy compat for doubly-encoded string rows.
+            $decoded = Json::decodeIfJson($raw);
+            if (is_string($decoded)) {
+                $decoded = Json::decodeIfJson($decoded);
+            }
+            $snapshot = is_array($decoded) ? $decoded : [];
+        }
 
         $state = $failed ? 'failed' : 'completed';
         $snapshot['state'] = $state;
@@ -208,7 +217,7 @@ class BatchService extends Component
         $parentRecord->event = $failed
             ? AuditEvent::BatchFailed->value
             : AuditEvent::BatchCompleted->value;
-        $parentRecord->snapshot = Json::encode($snapshot);
+        $parentRecord->snapshot = $snapshot;
         $parentRecord->save(false);
 
         $this->trigger(self::EVENT_BATCH_ENDED, new BatchEndedEvent([

@@ -28,7 +28,7 @@ it('run() executes the callback, returns its value, and persists one parent row 
     expect($parent->event)->toBe(AuditEvent::BatchCompleted->value);
     expect($parent->title)->toBe('Happy path batch');
 
-    $snapshot = json_decode($parent->snapshot, true);
+    $snapshot = audit_snapshot($parent);
     expect($snapshot['state'])->toBe('completed');
     expect($snapshot['childCount'])->toBe(0);
 });
@@ -79,7 +79,7 @@ it('run() with exception marks batch as failed and re-throws', function () {
     expect($parent)->not->toBeNull();
     expect($parent->event)->toBe(AuditEvent::BatchFailed->value);
 
-    $snapshot = json_decode($parent->snapshot, true);
+    $snapshot = audit_snapshot($parent);
     expect($snapshot['state'])->toBe('failed');
 });
 
@@ -186,7 +186,7 @@ it('close() populates childCount and durationMs in the parent snapshot', functio
     $batch->close($id);
 
     $parent = AuditRecord::findOne($id);
-    $snapshot = json_decode($parent->snapshot, true);
+    $snapshot = audit_snapshot($parent);
 
     expect($snapshot['childCount'])->toBe(3);
     expect($snapshot['durationMs'])->toBeInt();
@@ -202,8 +202,9 @@ it('close() carries the supplied summary into the snapshot', function () {
     $batch->close($id, summary: ['processed' => 42, 'errors' => 0]);
 
     $parent = AuditRecord::findOne($id);
-    $snapshot = json_decode($parent->snapshot, true);
-    expect($snapshot['summary'])->toBe(['processed' => 42, 'errors' => 0]);
+    $snapshot = audit_snapshot($parent);
+    // toEqual not toBe — Postgres JSONB may reorder keys on retrieval.
+    expect($snapshot['summary'])->toEqual(['processed' => 42, 'errors' => 0]);
 });
 
 it('EVENT_BATCH_STARTED fires with batchId, title, and metadata', function () {

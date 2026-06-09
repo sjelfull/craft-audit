@@ -93,7 +93,7 @@ it('onResaveEnd closes the batch — parent row is marked completed with childCo
     $parent = AuditRecord::findOne($batchId);
     expect($parent->event)->toBe(AuditEvent::BatchCompleted->value);
 
-    $snapshot = json_decode($parent->snapshot, true);
+    $snapshot = audit_snapshot($parent);
     expect($snapshot['state'])->toBe('completed');
     expect($snapshot['childCount'])->toBe(2);
 });
@@ -111,7 +111,7 @@ it('onResaveEnd(failed: true) closes the batch with state=failed', function () {
     $parent = AuditRecord::findOne($batchId);
     expect($parent->event)->toBe(AuditEvent::BatchFailed->value);
 
-    $snapshot = json_decode($parent->snapshot, true);
+    $snapshot = audit_snapshot($parent);
     expect($snapshot['state'])->toBe('failed');
 });
 
@@ -178,8 +178,8 @@ it('concurrent resave jobs of the same element type do not collide (FRE-140 regr
     // The important thing for FRE-140 is that childA and childB attached to
     // the *correct* parent above; the childCount values are a bonus check on
     // nested-batch accounting.
-    expect(json_decode($parentA->snapshot, true)['childCount'])->toBe(2);
-    expect(json_decode($parentB->snapshot, true)['childCount'])->toBe(1);
+    expect(audit_snapshot($parentA)['childCount'])->toBe(2);
+    expect(audit_snapshot($parentB)['childCount'])->toBe(1);
 });
 
 it('onResaveEnd is idempotent — calling it twice is a safe no-op', function () {
