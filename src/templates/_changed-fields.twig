@@ -11,13 +11,16 @@
  */
 #}
 
-{% if changedFields is defined and changedFields|length %}
+{% set fields = changedFields ?? [] %}
+{% set labels = fieldMap ?? [] %}
+
+{% if fields %}
     <div class="audit-changed-fields">
         <h2>{{ "Changed fields"|t('audit') }}</h2>
         <table class="fullwidth data borderless">
             <tbody>
-            {% for handle, change in changedFields %}
-                {% set fieldName = fieldMap[handle].name ?? handle %}
+            {% for handle, change in fields %}
+                {% set fieldName = labels[handle].name ?? handle %}
                 <tr class="audit-changed-field" data-handle="{{ handle }}">
                     <td class="light" style="width: 25%; vertical-align: top;">
                         <strong>{{ fieldName }}</strong>

@@ -8,7 +8,6 @@
  * assert the right classes/handles/labels land in the HTML.
  */
 
-use Craft;
 use craft\web\View;
 use superbig\audit\models\AuditModel;
 
@@ -18,7 +17,7 @@ use superbig\audit\models\AuditModel;
  */
 function _renderChangedFields(array $changedFields, array $fieldMap = []): string
 {
-    $view = Craft::$app->getView();
+    $view = \Craft::$app->getView();
     $oldMode = $view->getTemplateMode();
     $view->setTemplateMode(View::TEMPLATE_MODE_CP);
     try {

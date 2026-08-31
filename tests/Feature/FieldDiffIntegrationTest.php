@@ -1,11 +1,29 @@
 <?php
 
-use markhuot\craftpest\factories\Entry;
+use craft\elements\Entry as EntryElement;
+use DateTime;
 use superbig\audit\Audit;
 
+/**
+ * In-memory Entry for captureState tests. Avoids craftpest Entry::factory()
+ * which creates random section/entry-type handles that can collide across
+ * the suite (seen as flaky "Handle … has already been taken" on PHP 8.4 +
+ * Postgres). captureState only needs element attribute accessors.
+ */
+function _auditCaptureStateEntry(): EntryElement
+{
+    $entry = new EntryElement();
+    $entry->title = 'Capture state fixture';
+    $entry->slug = 'capture-state-fixture';
+    $entry->enabled = true;
+    $entry->postDate = new DateTime('2026-01-15 12:00:00');
+    $entry->expiryDate = new DateTime('2026-12-31 23:59:59');
+
+    return $entry;
+}
+
 it('captures an entry state with native attributes', function () {
-    $entry = Entry::factory()->create();
-    $state = Audit::$plugin->fieldDiffService->captureState($entry);
+    $state = Audit::$plugin->fieldDiffService->captureState(_auditCaptureStateEntry());
 
     expect($state)->toHaveKey('_title');
     expect($state)->toHaveKey('_slug');
@@ -57,9 +75,10 @@ it('detects newly-added fields in a diff', function () {
 });
 
 it('captures entry postDate and expiryDate', function () {
-    $entry = Entry::factory()->create();
-    $state = Audit::$plugin->fieldDiffService->captureState($entry);
+    $state = Audit::$plugin->fieldDiffService->captureState(_auditCaptureStateEntry());
 
     expect($state)->toHaveKey('_postDate');
     expect($state)->toHaveKey('_expiryDate');
+    expect($state['_postDate']['value'])->toBe('2026-01-15 12:00:00');
+    expect($state['_expiryDate']['value'])->toBe('2026-12-31 23:59:59');
 });
