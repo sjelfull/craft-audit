@@ -32,7 +32,6 @@
                     }
                 })
                 .catch(function (error) {
-                    debugger
                     Craft.cp.displayError(error.response?.data?.message || 'An error occurred');
                     self.$start.prop('disabled', false);
                 });

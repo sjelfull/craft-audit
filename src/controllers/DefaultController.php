@@ -70,6 +70,7 @@ class DefaultController extends Controller
             'settings' => Audit::$plugin->getSettings(),
             'log' => $log,
             'logsInSession' => $logsInSession,
+            'fieldMap' => $log->getFieldMap(),
         ]);
     }
 
