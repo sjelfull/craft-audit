@@ -109,7 +109,7 @@ class Audit extends Plugin
     public static $craft33 = false;
     public static $craft34 = false;
     public static $craft37 = false;
-    public string $schemaVersion = '1.0.3';
+    public string $schemaVersion = '1.1.0';
 
     /**
      * Determine whether our table schema exists or not; this is needed because

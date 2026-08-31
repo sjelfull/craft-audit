@@ -49,7 +49,7 @@ Every row in `audit_log` has the same four groups of data. This is what makes Au
 
 **Request context.** Where and how it happened. `ip`, `userAgent`, `location` (JSON-encoded GeoIP payload, when MaxMind credentials are configured), and `request` — one of `cp`, `site`, `console`, or `yaml`. This is the block that separates Audit from the Craft log. The Craft log tells you `webuser` saved an entry. Audit tells you `webuser` saved an entry from `94.228.41.12` in Oslo via a console job.
 
-**Subject.** What changed. `elementId`, `elementType`, `event` (the kebab-case string, e.g. `entry-saved`), `title` (human-readable label), and `parentId` for grouped records — currently used by the `ResaveElements` job to collapse thousands of children under one summary row.
+**Subject.** What changed. `elementId`, `elementType`, `event` (the kebab-case string, e.g. `entry-saved`), `title` (human-readable label), and `parentId` for grouped records — used by `BatchService` for `ResaveElements`, Feed Me imports, and any custom batch.
 
 **Snapshot and changed fields.** The payload. `snapshot` is the full element state as JSON, built by the relevant handler. For entry saves, the snapshot includes `content` (Craft's `getSerializedFieldValues()` output), `sectionName`, `elementTypeLabel`, and a title. For project config events, it includes the config path and the raw `newValue`/`oldValue`. `changedFields` is a per-field diff, produced by `FieldDiffService` from the registered field handlers — what changed, handler-typed, rendered later by `DiffRenderer`.
 
@@ -74,7 +74,7 @@ This is the question support tickets keep asking. The short version:
 ### Not fired
 
 - **Element propagation saves.** Audit detects these via `$element->propagating` and skips. A multi-site entry save emits one save per site; only the initial one is recorded.
-- **Resave-job children.** `$element->resaving` is also short-circuited in `ElementHandler::onSaveElement()`. The parent `ResaveElements` job gets one summary row via `onBeforeResave` / `onResaveEnd`; the individual element saves are skipped. Feed Me is a different story — see the roadmap below.
+- **Resave-job children.** `$element->resaving` is also short-circuited in `ElementHandler::onSaveElement()`. The parent `ResaveElements` job gets one summary row via `BatchService`; individual element saves during a resave are skipped (or attached as batch children when recorded through the batch path).
 - **Revisions.** `ElementHelper::rootElement()` walks to the canonical element. If it's a revision, Audit returns early — revisions are Craft's immutable history, separately addressable.
 - **Drafts.** Skipped by default. Enable `logDraftEvents` in plugin settings if you need them.
 - **Child elements.** Matrix blocks, Neo blocks, and other nested elements. Audit records the root save (the parent entry), and the child content lands inside its `snapshot.content`. You don't get a separate row per block. Enable `logChildElementEvents` if you want per-child rows.
@@ -87,22 +87,19 @@ The "not fired" list is explicit because "why isn't X in my audit log?" is a rec
 Four hooks cover most extension needs. Each one is documented on its own page.
 
 - **Cancel or mutate records before they save.** Use `BeforeRecordEvent`. Fires on every record, carries the full model, cancellable. See [how to filter records](../how-to/filter-records.md).
-- **Register a field handler for a custom field type.** Listen for `FieldHandlerRegistry::EVENT_REGISTER_HANDLERS` and add your handler class to `$event->handlers`. See `docs/how-to/handle-custom-fields.md` (lands in P3.2).
-- **Record your own events from a third-party plugin.** Call `Audit::$plugin->auditRecorder->record()` directly. The first argument is an `AuditEvent` enum case or a string; the backing strings match the legacy `AuditModel::EVENT_*` constants, so anything written against v2 keeps working. See `docs/how-to/record-custom-events.md` (lands in P3.2).
-- **Query or export records.** The `audit_log` table is indexed on `(dateCreated, event)`, `(userId, dateCreated)`, and the individual columns `userId`, `elementId`, `sessionId`, `parentId`, `dateCreated`, `siteId`, and `event`. Use standard Craft query builder or raw SQL. See `docs/reference/services.md` (lands in P3.1).
+- **Register a field handler for a custom field type.** Listen for `FieldHandlerRegistry::EVENT_REGISTER_HANDLERS` and add your handler class to `$event->handlers`.
+- **Record your own events from a third-party plugin.** Call `Audit::$plugin->auditRecorder->record()` directly. The first argument is an `AuditEvent` enum case or a string; the backing strings match the historical kebab-case event values, so anything written against earlier versions keeps working.
+- **Query or export records.** The `audit_log` table is indexed on `(dateCreated, event)`, `(userId, dateCreated)`, and the individual columns `userId`, `elementId`, `sessionId`, `parentId`, `dateCreated`, `siteId`, and `event`. Use standard Craft query builder or raw SQL.
 
-## What's on the roadmap (and what it means for you)
+## Batching and related work
 
-Audit records every write individually. That's the right default for compliance, and the wrong default for operators who run nightly imports. The plugin's known gaps — and the work planned to close them — are worth knowing about now.
-
-**Batch grouping.** Today, only `ResaveElements` gets batch treatment (one parent summary row, child rows with `parent_id` set). Feed Me, custom import scripts, and plugin-driven save loops produce one row per element. The plan is a first-class `EVENT_BATCH_STARTED` / `EVENT_BATCH_ENDED` API plus a generalized `parent_id` mechanism, so any code path — your own imports included — can bracket a batch and collapse its output in the UI. Tracking in the [batch-processing analysis](../../analysis/batch-processing-strategies.md); in progress.
+**Batch grouping.** `BatchService` groups bulk operations under a parent summary row with child rows linked via `parent_id`. `ResaveElements` queue jobs and Feed Me feed imports are batched automatically. Other code can call `BatchService` directly (`EVENT_BATCH_STARTED` / `EVENT_BATCH_ENDED`).
 
 **Queue-backed recording.** Currently the audit write is synchronous — every save blocks on the INSERT. For high-volume installs that's a noticeable tax on response time. A queue-backed mode is planned: `AuditRecorder::record()` would build the model, fire `BeforeRecordEvent`, and push a job instead of writing directly. Fidelity preserved, response time reclaimed. Planned, not in flight.
 
-Until both ship, the interim workaround for batch noise is `BeforeRecordEvent`. It's not as clean as grouping — the listener still runs per record — but it's the escape hatch available today. See [how to filter records](../how-to/filter-records.md).
+Until queue-backed recording ships, the interim workaround for high-volume noise is `BeforeRecordEvent` (cancel or filter) or opening an explicit batch. See [how to filter records](../how-to/filter-records.md).
 
 ## Related
 
 - [How to filter records](../how-to/filter-records.md) — drop, transform, or tag records with `BeforeRecordEvent`.
-- `docs/reference/events.md` — every event type, with example payloads. Lands in P3.1.
-- [Batch processing strategies](../../analysis/batch-processing-strategies.md) — the roadmap in detail.
+- [Getting started](../getting-started.md) — install and first record.

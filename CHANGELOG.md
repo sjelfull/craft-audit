@@ -4,6 +4,37 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 5.0.0 - 2026-08-31
+
+> {warning} This release requires Craft CMS 5.5+ and PHP 8.2+. After upgrading, run Craft’s migrations (`php craft migrate/all` or via the Control Panel) so the audit log schema is updated (snapshot/location → JSON, new columns and indexes).
+
+### Added
+- Craft 5.5+ support ([#82](https://github.com/sjelfull/craft-audit/pull/82))
+- `AuditEvent` enum as the canonical list of tracked event types (kebab-case values preserved for existing rows)
+- Field handlers for native and common third-party fields, with per-field diffs in the CP detail view
+- Project config tracking for filesystems, volumes, image transforms, sites, site groups, category groups, tag groups, and global set config
+- CP UI improvements: field-level diffs and expandable batch children in the audit log index
+- `BatchService` for grouping bulk operations (parent summary + child rows)
+- Automatic batching for `ResaveElements` queue jobs and Feed Me feed imports
+- `AuditRecorder` as the single persistence entry point, with `BeforeRecordEvent` / `SnapshotEvent` extension hooks
+- Handler services (`ElementHandler`, `UserHandler`, `UserGroupHandler`, `SchemaHandler`, `RouteHandler`, `BackupHandler`, `PluginHandler`, `SettingsHandler`)
+- Performance indexes and JSON columns for `snapshot` / `location`, plus `changedFields` and `request` columns
+- Docs: getting started, events-and-recording concepts, and how-to filter records
+- CI: PHP 8.2 / 8.3 / 8.4 matrix on the `v3` branch; expanded Pest coverage
+
+### Changed
+- Requires PHP `^8.2` and `craftcms/cms` `^5.5`
+- Plugin `schemaVersion` bumped to `1.1.0` (runs pending migrations on upgrade from 3.x)
+- Event wiring moved from `AuditService` onto dedicated handler services
+- Snapshot storage migrated from serialized/base64 text to JSON
+
+### Removed
+- Deprecated `AuditModel::EVENT_*` / `USER_*` string constants (use `AuditEvent` or the kebab-case backing strings)
+- Deprecated `AuditService` event-recording delegators (use `AuditRecorder::record()`)
+
+### Fixed
+- Snapshot column double-JSON-encoding (FRE-239)
+
 ## 3.0.3 - 2024-01-31
 
 ### Fixed

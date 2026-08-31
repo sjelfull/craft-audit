@@ -21,8 +21,6 @@ If applicable, add screenshots or videos to help explain your problem.
 
 **Additional info**
 - Craft CMS version:
-- Craft Commerce version:
-- Vipps for Craft Commerce version:
 - PHP version:
 - Database driver & version:
 - Plugins & versions:
