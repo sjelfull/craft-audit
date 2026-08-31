@@ -29,7 +29,7 @@ plugins:
   audit:
     edition: standard
     enabled: true
-    schemaVersion: 1.0.3
+    schemaVersion: 1.1.0
 system:
   edition: pro
   live: true

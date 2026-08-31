@@ -65,7 +65,7 @@ The body field now renders as a line-by-line diff: removed lines in red, added l
 
 The snapshot still holds the full `getSerializedFieldValues()` output for the entry. The diff is derived data on top, rendered by `DiffRenderer`. You get both: the per-field view for the UI, and the raw JSON for anything else you want to do with it.
 
-If you have a custom field type, Audit doesn't know about it yet — it falls back to a plain-text diff of the serialized value. You can register a handler for it. See `docs/how-to/handle-custom-fields.md` (lands in P3.2).
+If you have a custom field type, Audit doesn't know about it yet — it falls back to a plain-text diff of the serialized value. You can register a handler via `FieldHandlerRegistry::EVENT_REGISTER_HANDLERS`.
 
 ## What Audit records automatically
 
@@ -80,10 +80,10 @@ Out of the box, with no config:
 - Console commands and YAML config applies (labeled `console` or `yaml` in the `request` field)
 - Database backups created and restored
 
-The full list lives in the `AuditEvent` enum — 69 cases, grouped by area.
+The full list lives in the `AuditEvent` enum — 72 cases, grouped by area.
 
 ## What's next
 
 - Need to know when a record gets filtered out or what the full lifecycle looks like? See [Events and recording](concepts/events-and-recording.md).
 - Want to drop records you don't care about (console jobs, service accounts, specific event types)? See [How to filter records](how-to/filter-records.md).
-- Want to record events from your own plugin? See `docs/how-to/record-custom-events.md`. Lands in P3.2.
+- Want to record events from your own plugin? Call `Audit::$plugin->auditRecorder->record()` with an `AuditEvent` case or kebab-case string.

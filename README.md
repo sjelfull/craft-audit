@@ -146,160 +146,144 @@ return [
 
 ## Tracked Events
 
-Here's the full list of events Audit captures:
+Event types are defined by the `AuditEvent` enum (`src/enums/AuditEvent.php`). Values stored in the database are kebab-case strings (e.g. `entry-saved`). Prefer `AuditEvent::EntrySaved` (or `->value`) in new code.
 
 ### Content Events
 
-| Event | Constant | Description |
-|-------|----------|-------------|
-| Entry created | `EVENT_ENTRY_CREATED` | New entry saved for the first time |
-| Entry saved | `EVENT_ENTRY_SAVED` | Existing entry updated |
-| Entry deleted | `EVENT_ENTRY_DELETED` | Entry removed |
-| Element created | `EVENT_CREATED_ELEMENT` | Any element (asset, user, etc.) created |
-| Element saved | `EVENT_SAVED_ELEMENT` | Any element updated |
-| Element deleted | `EVENT_DELETED_ELEMENT` | Any element removed |
-| Global set saved | `EVENT_SAVED_GLOBAL` | Global set content updated |
-| Draft created | `EVENT_CREATED_DRAFT` | New draft created |
-| Draft saved | `EVENT_SAVED_DRAFT` | Draft updated |
-| Draft deleted | `EVENT_DELETED_DRAFT` | Draft removed |
-| Elements resaved | `EVENT_RESAVED_ELEMENTS` | Bulk resave operation |
+| Event | Value | Description |
+|-------|-------|-------------|
+| Entry created | `entry-created` | New entry saved for the first time |
+| Entry saved | `entry-saved` | Existing entry updated |
+| Entry deleted | `entry-deleted` | Entry removed |
+| Element created | `created-element` | Any element (asset, user, etc.) created |
+| Element saved | `saved-element` | Any element updated |
+| Element deleted | `deleted-element` | Any element removed |
+| Global set saved | `saved-global` | Global set content updated |
+| Draft created | `created-draft` | New draft created |
+| Draft saved | `saved-draft` | Draft updated |
+| Draft deleted | `deleted-draft` | Draft removed |
+| Elements resaved | `resaved-elements` | Bulk resave operation (batch parent) |
 
 ### User Events
 
-| Event | Constant | Description |
-|-------|----------|-------------|
-| User logged in | `USER_LOGGED_IN` | Successful login |
-| User logged out | `USER_LOGGED_OUT` | Logout |
-| User activated | `EVENT_USER_ACTIVATED` | Account activated |
-| User deactivated | `EVENT_USER_DEACTIVATED` | Account deactivated |
-| User suspended | `EVENT_USER_SUSPENDED` | Account suspended |
-| User unsuspended | `EVENT_USER_UNSUSPENDED` | Suspension lifted |
-| User locked | `EVENT_USER_LOCKED` | Account locked (too many failed logins) |
-| User unlocked | `EVENT_USER_UNLOCKED` | Account unlocked |
-| Groups assigned | `EVENT_USER_GROUPS_ASSIGNED` | User assigned to groups |
+| Event | Value | Description |
+|-------|-------|-------------|
+| User logged in | `user-logged-in` | Successful login |
+| User logged out | `user-logged-out` | Logout |
+| User activated | `user-activated` | Account activated |
+| User deactivated | `user-deactivated` | Account deactivated |
+| User suspended | `user-suspended` | Account suspended |
+| User unsuspended | `user-unsuspended` | Suspension lifted |
+| User locked | `user-locked` | Account locked (too many failed logins) |
+| User unlocked | `user-unlocked` | Account unlocked |
+| Groups assigned | `user-groups-assigned` | User assigned to groups |
 
 ### Permission Events
 
-| Event | Constant | Description |
-|-------|----------|-------------|
-| User permissions saved | `EVENT_USER_PERMISSIONS_SAVED` | Individual user permissions changed |
-| Group permissions saved | `EVENT_GROUP_PERMISSIONS_SAVED` | Group-level permissions changed |
-| User group created | `EVENT_USER_GROUP_CREATED` | New user group |
-| User group saved | `EVENT_USER_GROUP_SAVED` | User group updated |
-| User group deleted | `EVENT_USER_GROUP_DELETED` | User group removed |
+| Event | Value | Description |
+|-------|-------|-------------|
+| User permissions saved | `user-permissions-saved` | Individual user permissions changed |
+| Group permissions saved | `group-permissions-saved` | Group-level permissions changed |
+| User group created | `user-group-created` | New user group |
+| User group saved | `user-group-saved` | User group updated |
+| User group deleted | `user-group-deleted` | User group removed |
 
 ### Schema Events
 
-| Event | Constant | Description |
-|-------|----------|-------------|
-| Field created | `EVENT_FIELD_CREATED` | New field added |
-| Field saved | `EVENT_FIELD_SAVED` | Field settings updated |
-| Field deleted | `EVENT_FIELD_DELETED` | Field removed |
-| Section created | `EVENT_SECTION_CREATED` | New section added |
-| Section saved | `EVENT_SECTION_SAVED` | Section settings updated |
-| Section deleted | `EVENT_SECTION_DELETED` | Section removed |
-| Entry type created | `EVENT_ENTRY_TYPE_CREATED` | New entry type added |
-| Entry type saved | `EVENT_ENTRY_TYPE_SAVED` | Entry type updated |
-| Entry type deleted | `EVENT_ENTRY_TYPE_DELETED` | Entry type removed |
+| Event | Value | Description |
+|-------|-------|-------------|
+| Field created | `field-created` | New field added |
+| Field saved | `field-saved` | Field settings updated |
+| Field deleted | `field-deleted` | Field removed |
+| Section created | `section-created` | New section added |
+| Section saved | `section-saved` | Section settings updated |
+| Section deleted | `section-deleted` | Section removed |
+| Entry type created | `entry-type-created` | New entry type added |
+| Entry type saved | `entry-type-saved` | Entry type updated |
+| Entry type deleted | `entry-type-deleted` | Entry type removed |
 
-### System Events
+### Project Config Events
 
-| Event | Constant | Description |
-|-------|----------|-------------|
-| Plugin installed | `EVENT_PLUGIN_INSTALLED` | Plugin installed |
-| Plugin uninstalled | `EVENT_PLUGIN_UNINSTALLED` | Plugin removed |
-| Plugin enabled | `EVENT_PLUGIN_ENABLED` | Plugin activated |
-| Plugin disabled | `EVENT_PLUGIN_DISABLED` | Plugin deactivated |
-| Route created | `EVENT_CREATED_ROUTE` | URL route added |
-| Route saved | `EVENT_SAVED_ROUTE` | URL route updated |
-| Route deleted | `EVENT_DELETED_ROUTE` | URL route removed |
-| Backup created | `EVENT_BACKUP_CREATED` | Database backup made |
-| Backup restored | `EVENT_BACKUP_RESTORED` | Database backup restored |
-| System settings changed | `EVENT_SYSTEM_SETTINGS_CHANGED` | System config updated |
-| Email settings changed | `EVENT_EMAIL_SETTINGS_CHANGED` | Email config updated |
+| Event | Value | Description |
+|-------|-------|-------------|
+| Category / tag groups | `category-group-*`, `tag-group-*` | Create, save, delete |
+| Filesystems / volumes | `filesystem-*`, `volume-*` | Create, save, delete |
+| Image transforms | `image-transform-*` | Create, save, delete |
+| Sites / site groups | `site-*`, `site-group-*` | Create, save, delete |
+| Global set config | `global-set-config-*` | Create, save, delete |
+
+### System & Batch Events
+
+| Event | Value | Description |
+|-------|-------|-------------|
+| Plugin installed | `installed-plugin` | Plugin installed |
+| Plugin uninstalled | `uninstalled-plugin` | Plugin removed |
+| Plugin enabled | `enabled-plugin` | Plugin activated |
+| Plugin disabled | `disabled-plugin` | Plugin deactivated |
+| Route created | `created-route` | URL route added |
+| Route saved | `saved-route` | URL route updated |
+| Route deleted | `deleted-route` | URL route removed |
+| Backup created | `backup-created` | Database backup made |
+| Backup restored | `backup-restored` | Database backup restored |
+| System settings changed | `system-settings-changed` | System config updated |
+| Email settings changed | `email-settings-changed` | Email config updated |
+| Batch started | `batch-started` | Bulk operation opened |
+| Batch completed | `batch-completed` | Bulk operation finished |
+| Batch failed | `batch-failed` | Bulk operation failed |
 
 ---
 
 ## Extending Audit
 
-Audit exposes events that let other plugins and modules hook into the logging pipeline. All events follow Craft's standard patterns — `CancelableEvent` for before hooks, `Event` for after hooks.
+Audit exposes a small set of Yii events on the recording pipeline. Prefer these over listening to Craft element events yourself when you only need to filter or enrich audit rows.
 
 ### Events Reference
 
 | Event | Class | Cancelable | Description |
 |-------|-------|:----------:|-------------|
-| `EVENT_DEFINE_SHOULD_LOG` | `AuditService` | — | Early filter — skip logging before model is built |
-| `EVENT_BEFORE_LOG` | `AuditService` | ✓ | Modify or cancel an audit entry before save |
-| `EVENT_AFTER_LOG` | `AuditService` | — | React after an entry is saved (notifications, sync) |
-| `EVENT_SNAPSHOT` | `AuditService` | — | Modify snapshot data attached to an entry |
-| `EVENT_REGISTER_EVENT_TYPES` | `AuditService` | — | Register custom event types with labels and categories |
-| `EVENT_BEFORE_DRIVER_WRITE` | `DriverManager` | ✓ | Transform or skip data per-driver (e.g., redact PII) |
-| `EVENT_AFTER_DRIVER_WRITE` | `DriverManager` | — | Monitor driver health and write performance |
-| `EVENT_DEFINE_AUDIT_QUERY` | `AuditService` | — | Modify CP audit log queries |
-| `EVENT_BEFORE_PRUNE_LOGS` | `AuditService` | ✓ | Custom retention policies before pruning |
-| `EVENT_AFTER_PRUNE_LOGS` | `AuditService` | — | React after logs are pruned |
+| `EVENT_BEFORE_RECORD` | `AuditRecorder` | ✓ | Modify or cancel a row before it is saved |
+| `EVENT_SNAPSHOT` | `AuditRecorder` | — | Modify snapshot data attached to a row |
+| `EVENT_REGISTER_HANDLERS` | `FieldHandlerRegistry` | — | Register custom field diff handlers |
+| `EVENT_BATCH_STARTED` | `BatchService` | — | React when a batch opens |
+| `EVENT_BATCH_ENDED` | `BatchService` | — | React when a batch completes or fails |
 
-> For full event class definitions and advanced usage, see [docs/events.md](docs/events.md).
+> Concepts and recipes: [docs/concepts/events-and-recording.md](docs/concepts/events-and-recording.md) and [docs/how-to/filter-records.md](docs/how-to/filter-records.md).
 
-### Cancel Logging for Specific Conditions
+### Cancel or Filter Logging
 
-Use `EVENT_BEFORE_LOG` to cancel or modify entries before they're saved:
+Use `EVENT_BEFORE_RECORD` to cancel or modify entries before they're saved:
 
 ```php
-use superbig\audit\services\AuditService;
-use superbig\audit\events\BeforeLogEvent;
+use superbig\audit\events\BeforeRecordEvent;
+use superbig\audit\services\AuditRecorder;
+use yii\base\Event;
 
 Event::on(
-    AuditService::class,
-    AuditService::EVENT_BEFORE_LOG,
-    function(BeforeLogEvent $event) {
+    AuditRecorder::class,
+    AuditRecorder::EVENT_BEFORE_RECORD,
+    function (BeforeRecordEvent $event) {
         // Skip audit for bot traffic
-        if (str_contains($event->audit->userAgent ?? '', 'Googlebot')) {
+        if (str_contains($event->model->userAgent ?? '', 'Googlebot')) {
             $event->isValid = false;
         }
     }
 );
 ```
 
-### Register Custom Event Types
-
-Let your plugin's events show up with proper labels in the Audit CP:
-
-```php
-use superbig\audit\services\AuditService;
-use superbig\audit\events\RegisterEventTypesEvent;
-
-Event::on(
-    AuditService::class,
-    AuditService::EVENT_REGISTER_EVENT_TYPES,
-    function(RegisterEventTypesEvent $event) {
-        $event->eventTypes['order-completed'] = [
-            'label' => 'Order completed',
-            'category' => 'Commerce',
-        ];
-        $event->eventTypes['payment-received'] = [
-            'label' => 'Payment received',
-            'category' => 'Commerce',
-        ];
-    }
-);
-```
-
 ### Filter by Element Type
 
-Use `EVENT_DEFINE_SHOULD_LOG` for cheap, early filtering — before the audit model is even built:
-
 ```php
-use superbig\audit\services\AuditService;
-use superbig\audit\events\ShouldLogEvent;
+use craft\elements\Asset;
+use superbig\audit\events\BeforeRecordEvent;
+use superbig\audit\services\AuditRecorder;
+use yii\base\Event;
 
 Event::on(
-    AuditService::class,
-    AuditService::EVENT_DEFINE_SHOULD_LOG,
-    function(ShouldLogEvent $event) {
-        // Never log Asset saves
-        if ($event->element instanceof \craft\elements\Asset) {
-            $event->shouldLog = false;
+    AuditRecorder::class,
+    AuditRecorder::EVENT_BEFORE_RECORD,
+    function (BeforeRecordEvent $event) {
+        if ($event->model->elementType === Asset::class) {
+            $event->isValid = false;
         }
     }
 );
@@ -310,15 +294,28 @@ Event::on(
 Use `EVENT_SNAPSHOT` to add custom data to audit log snapshots:
 
 ```php
-use superbig\audit\services\AuditService;
 use superbig\audit\events\SnapshotEvent;
+use superbig\audit\services\AuditRecorder;
+use yii\base\Event;
 
 Event::on(
-    AuditService::class,
-    AuditService::EVENT_SNAPSHOT,
-    function(SnapshotEvent $event) {
+    AuditRecorder::class,
+    AuditRecorder::EVENT_SNAPSHOT,
+    function (SnapshotEvent $event) {
         $event->snapshot['customField'] = 'custom value';
     }
+);
+```
+
+### Record Custom Events
+
+```php
+use superbig\audit\Audit;
+
+Audit::$plugin->auditRecorder->record(
+    'order-completed', // or an AuditEvent case
+    title: 'Order #1234',
+    snapshot: ['orderId' => 1234],
 );
 ```
 
@@ -349,12 +346,13 @@ Access audit data in your Twig templates:
 
 ## Upgrading
 
-### From Craft 4 (Audit 2.x/3.x) to Craft 5
+### From Craft 4 (Audit 3.x) to Craft 5 (Audit 5.0.0)
 
-- **PHP 8.2+** is now required
-- Run `composer update superbig/craft-audit` after upgrading Craft
-- All existing audit data is preserved — no migration needed
-- Event naming is more semantic in v5 (e.g., `entry-created` for entries vs. generic `created-element`)
+- **Craft CMS 5.5+** and **PHP 8.2+** are required
+- Run `composer require superbig/craft-audit:^5.0` (or `composer update superbig/craft-audit`) after upgrading Craft
+- Run migrations (`php craft migrate/all` or **Utilities → Migrations**). This converts `snapshot` / `location` to JSON, adds `changedFields` and `request`, and creates new indexes. Existing audit rows are preserved.
+- Prefer `AuditEvent` enum cases (or kebab-case strings such as `entry-created`) instead of the removed `AuditModel::EVENT_*` constants
+- Extension hooks live on `AuditRecorder` (`EVENT_BEFORE_RECORD`, `EVENT_SNAPSHOT`), not the old `AuditService::EVENT_BEFORE_LOG` / `EVENT_DEFINE_SHOULD_LOG` names from earlier drafts
 
 ---
 

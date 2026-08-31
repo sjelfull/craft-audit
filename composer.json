@@ -10,7 +10,7 @@
         "audit"
     ],
     "support": {
-        "docs": "https://github.com/sjelfull/craft-audit/blob/v1/README.md",
+        "docs": "https://github.com/sjelfull/craft-audit/blob/v3/README.md",
         "issues": "https://github.com/sjelfull/craft-audit/issues"
     },
     "license": "MIT",
@@ -65,7 +65,7 @@
         "handle": "audit",
         "hasCpSettings": true,
         "hasCpSection": true,
-        "changelogUrl": "https://raw.githubusercontent.com/sjelfull/craft-audit/v1/CHANGELOG.md",
+        "changelogUrl": "https://raw.githubusercontent.com/sjelfull/craft-audit/v3/CHANGELOG.md",
         "class": "superbig\\audit\\Audit"
     }
 }
