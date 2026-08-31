@@ -6,7 +6,7 @@
 {% do view.registerAssetBundle("superbig\\audit\\assetbundles\\audit\\AuditAsset") %}
 {% do view.registerAssetBundle("superbig\\audit\\assetbundles\\indexcpsection\\IndexCPSectionAsset") %}
 
-{% set docsUrl = "https://github.com/sjelfull/audit/blob/master/README.md" %}
+{% set docsUrl = "https://github.com/sjelfull/craft-audit/blob/v3/README.md" %}
 
 {% set title = "Audit Details" %}
 
@@ -66,6 +66,11 @@
                 </tbody>
             </table>
 
+            {% include 'audit/_changed-fields' with {
+                changedFields: log.changedFields,
+                fieldMap: fieldMap ?? log.getFieldMap()
+            } only %}
+
             <h2>Snapshot</h2>
             {{ log.getSnapshotTable() }}
 
@@ -74,18 +79,6 @@
                 id: 'js-snapshotJson',
                 class: 'audit-snapshot-json'
             }) }}
-
-            {% set content = log.getSnapshotValue('content') %}
-            {% if content %}
-                <table class="fullwidth data borderless">
-                    <tbody>
-                    {% for handle,fieldContent in content %}
-                        {% set fieldName = fieldMap[handle]['name'] ?? handle %}
-                        {% set fieldConfig = fieldMap[handle] ?? null %}
-                    {% endfor %}
-                    </tbody>
-                </table>
-            {% endif %}
         </div>
     </div>
 

@@ -1,0 +1,39 @@
+{#
+/**
+ * Changed-fields pane — extracted as a partial so it can be rendered in
+ * isolation (template tests use Craft::$app->view->renderTemplate()).
+ *
+ * Expects:
+ *   - changedFields: array handle => { handler, from, to, ... }
+ *   - fieldMap: array handle => { name: string } (optional; falls back to handle)
+ *
+ * Dispatches each change through audit/_diff/index.twig.
+ */
+#}
+
+{% set fields = changedFields ?? [] %}
+{% set labels = fieldMap ?? [] %}
+
+{% if fields %}
+    <div class="audit-changed-fields">
+        <h2>{{ "Changed fields"|t('audit') }}</h2>
+        <table class="fullwidth data borderless">
+            <tbody>
+            {% for handle, change in fields %}
+                {% set fieldName = labels[handle].name ?? handle %}
+                <tr class="audit-changed-field" data-handle="{{ handle }}">
+                    <td class="light" style="width: 25%; vertical-align: top;">
+                        <strong>{{ fieldName }}</strong>
+                        {% if handle != fieldName %}
+                            <div class="light code" style="font-size: 11px;">{{ handle }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% include 'audit/_diff/index.twig' with { change: change } only %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}

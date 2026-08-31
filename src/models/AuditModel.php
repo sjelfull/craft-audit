@@ -434,6 +434,43 @@ class AuditModel extends Model
     }
 
     /**
+     * Build a handle → { name } map for the changed-fields details UI.
+     *
+     * Native attributes (`_title`, `_slug`, …) get translated Craft labels.
+     * Custom fields resolve via the Fields service when still installed;
+     * otherwise the handle is used as the display name (deleted fields,
+     * project-config keys, etc.).
+     *
+     * @return array<string, array{name: string}>
+     */
+    public function getFieldMap(): array
+    {
+        $nativeLabels = [
+            '_title' => Craft::t('app', 'Title'),
+            '_slug' => Craft::t('app', 'Slug'),
+            '_status' => Craft::t('app', 'Status'),
+            '_enabled' => Craft::t('app', 'Enabled'),
+            '_postDate' => Craft::t('app', 'Post Date'),
+            '_expiryDate' => Craft::t('app', 'Expiry Date'),
+        ];
+
+        $fields = Craft::$app->getFields();
+        $map = [];
+
+        foreach (array_keys($this->changedFields) as $handle) {
+            if (isset($nativeLabels[$handle])) {
+                $map[$handle] = ['name' => $nativeLabels[$handle]];
+                continue;
+            }
+
+            $field = $fields->getFieldByHandle($handle);
+            $map[$handle] = ['name' => $field ? $field->name : (string) $handle];
+        }
+
+        return $map;
+    }
+
+    /**
      * @return string
      */
     public function getCpEditUrl()
