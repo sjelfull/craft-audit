@@ -320,7 +320,7 @@ class Audit extends Plugin
                 'class' => Elements::class,
                 'event' => Elements::EVENT_AFTER_SAVE_ELEMENT,
                 'handler' => function(ElementEvent $event) {
-                    $isNew = $event->sender->firstSave ?? $event->isNew;
+                    $isNew = $event->element->firstSave || $event->isNew;
                     $this->elementHandler->onSaveElement($event->element, $isNew);
                 },
             ],
