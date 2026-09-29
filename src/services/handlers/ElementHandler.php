@@ -65,8 +65,11 @@ class ElementHandler extends Component
         $hasNoDirtyAttributes = Audit::$craft34 ? empty($element->getDirtyAttributes()) : false;
         $hasNoDirtyFields = Audit::$craft34 ? empty($element->getDirtyFields()) : false;
 
-        // Skip save if all of these is true
-        if (!$settings->logDraftEvents && $hasNoDirtyAttributes && $hasNoDirtyFields && !$isGlobal) {
+        // Skip save if all of these is true. Never skip a create: Craft 5's CP
+        // autosaves the unpublished draft as the user types, so by the time
+        // "Create entry" applies the draft, its fields are already clean —
+        // without this exception every CP-created entry would go unlogged.
+        if (!$isNew && !$settings->logDraftEvents && $hasNoDirtyAttributes && $hasNoDirtyFields && !$isGlobal) {
             return false;
         }
 
