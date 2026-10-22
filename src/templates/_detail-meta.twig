@@ -1,0 +1,52 @@
+{#
+ # Sidebar of a log entry.
+ #
+ # Expects:
+ #   - log: AuditModel
+ #   - settings: Settings
+ #}
+{% set element = log.getElement() %}
+{% set user = log.getUser() %}
+{% set agent = log.userAgent ? log.getAgent() : null %}
+{% set location = settings.enabledGeolocation ? log.getGeolocation() : null %}
+
+{% macro row(label, value) %}
+    {% if value is not empty %}
+        <div class="data">
+            <h5 class="heading">{{ label }}</h5>
+            <div class="value">{{ value|raw }}</div>
+        </div>
+    {% endif %}
+{% endmacro %}
+
+{% import _self as meta %}
+
+<div class="meta read-only audit-meta">
+    {{ meta.row('Event'|t('audit'), tag('span', { class: ['audit-event', 'audit-event--' ~ log.getTone()], text: log.getEventLabel() })) }}
+    {{ meta.row('Date'|t('app'), log.getFormattedDate('medium')|e) }}
+    {{ meta.row('User'|t('app'), user ? elementChip(user) : ('Guest or system'|t('audit')|e)) }}
+    {% if log.impersonatorId %}
+        {{ meta.row('Impersonated by'|t('audit'), log.getImpersonator() ? elementChip(log.getImpersonator()) : ('#' ~ log.impersonatorId)|e) }}
+    {% endif %}
+    {% if element %}
+        {{ meta.row(log.getElementLabel() ?? 'Element'|t('audit'), elementChip(element)) }}
+    {% elseif log.getElementLabel() %}
+        {{ meta.row('Type'|t('app'), log.getElementLabel()|e) }}
+    {% endif %}
+    {{ meta.row('Site'|t('app'), (log.getSite().name ?? '')|e) }}
+</div>
+
+<div class="meta read-only audit-meta">
+    {{ meta.row('IP address'|t('audit'), log.ip ? tag('a', { href: cpUrl('audit', { search: log.ip }), text: log.ip, class: 'code' }) : null) }}
+    {% if location %}
+        {{ meta.row('Location'|t('audit'), ([location.city.name ?? null, location.country.name ?? null]|filter|join(', '))|e) }}
+    {% endif %}
+    {{ meta.row('Browser'|t('audit'), agent ? tag('span', { text: [agent.browser, agent.version]|filter|join(' ') ~ (agent.platform ? ' · ' ~ agent.platform : ''), title: log.userAgent }) : null) }}
+    {{ meta.row('Source'|t('audit'), log.request ? (log.request|upper|e) : null) }}
+    {% if log.sessionId %}
+        {{ meta.row('Session'|t('audit'), tag('a', { href: cpUrl('audit', { sessionId: log.sessionId }), text: 'All events in session'|t('audit') })) }}
+    {% endif %}
+    {% if element %}
+        {{ meta.row('History'|t('audit'), tag('a', { href: cpUrl('audit', { elementId: element.id }), text: 'All events for this item'|t('audit') })) }}
+    {% endif %}
+</div>

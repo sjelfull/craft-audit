@@ -232,3 +232,113 @@ tr.audit-child-row td.audit-cell--event {
 a.audit-event:hover {
     filter: brightness(0.96);
 }
+
+/* Detail */
+.audit-detail__header {
+    display: none;
+    margin-bottom: 20px;
+}
+
+.so-content .audit-detail__header {
+    display: block;
+}
+
+.audit-detail__header h1 {
+    margin: 8px 0 4px;
+    font-size: 18px;
+}
+
+.audit-detail__section + .audit-detail__section {
+    margin-top: 24px;
+}
+
+.audit-detail__section h2 {
+    margin-bottom: 10px;
+}
+
+.audit-changed-fields {
+    border: 1px solid var(--hairline-color, #e3e5e8);
+    border-radius: var(--large-border-radius, 5px);
+    overflow: hidden;
+}
+
+.audit-changed-field {
+    display: grid;
+    grid-template-columns: minmax(110px, 22%) minmax(0, 1fr);
+}
+
+.audit-changed-field + .audit-changed-field {
+    border-top: 1px solid var(--hairline-color, #e3e5e8);
+}
+
+.audit-changed-field__label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 12px;
+    background: var(--gray-050, #f3f7fc);
+    border-inline-end: 1px solid var(--hairline-color, #e3e5e8);
+}
+
+.audit-changed-field__diff {
+    padding: 10px 12px;
+    min-width: 0;
+    overflow-x: auto;
+}
+
+.audit-event-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.audit-event-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    border-top: 1px solid var(--hairline-color, #e3e5e8);
+}
+
+.audit-event-list li:first-child {
+    border-top: 0;
+}
+
+.audit-event-list li.is-current {
+    font-weight: 600;
+}
+
+.audit-event-list__title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.audit-detail__snapshot summary {
+    cursor: pointer;
+    list-style: revert;
+}
+
+.audit-detail__snapshot summary h2 {
+    display: inline;
+}
+
+.audit-detail__snapshot[open] summary {
+    margin-bottom: 10px;
+}
+
+.audit-snapshot-json {
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: var(--large-border-radius, 5px);
+    background: var(--gray-050, #f3f7fc);
+    font-size: 12px;
+    overflow-x: auto;
+    white-space: pre;
+}
+
+.audit-meta + .audit-meta {
+    margin-top: 14px;
+}
