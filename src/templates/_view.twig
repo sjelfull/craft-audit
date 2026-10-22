@@ -31,6 +31,12 @@
                             {{ log.getUserLink() }}
                         </td>
                     </tr>
+                    {% if log.impersonatorId %}
+                        <tr>
+                            <td><strong>{{ 'Impersonated by'|t('audit') }}</strong></td>
+                            <td>{{ log.getImpersonatorLink() }}</td>
+                        </tr>
+                    {% endif %}
                     <tr>
                         <td><strong>Date</strong></td>
                         <td>

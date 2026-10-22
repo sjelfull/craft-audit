@@ -12,6 +12,7 @@ use yii\db\ActiveQueryInterface;
  * @property integer      $id
  * @property integer      $siteId
  * @property integer|null $userId
+ * @property integer|null $impersonatorId
  * @property integer|null $parentId
  * @property integer|null $elementId
  * @property string|null  $elementType

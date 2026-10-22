@@ -2,10 +2,10 @@
 
 use superbig\audit\enums\AuditEvent;
 
-it('has 72 unique kebab-case backing values', function () {
+it('has 80 unique kebab-case backing values', function () {
     $values = array_map(fn ($c) => $c->value, AuditEvent::cases());
-    expect(count($values))->toBe(72);
-    expect(count(array_unique($values)))->toBe(72);
+    expect(count($values))->toBe(80);
+    expect(count(array_unique($values)))->toBe(80);
     foreach ($values as $v) {
         expect($v)->toMatch('/^[a-z]+(-[a-z]+)*$/');
     }
@@ -31,9 +31,9 @@ it('tryFromString resolves existing events', function () {
     expect(AuditEvent::tryFromString('saved-element'))->toBe(AuditEvent::SavedElement);
 });
 
-it('has 72 total cases (45 original + 24 project config + 3 batch lifecycle)', function () {
+it('has 80 total cases (45 original + 24 project config + 3 batch lifecycle + 8 security)', function () {
     $count = count(AuditEvent::cases());
-    expect($count)->toBe(72);
+    expect($count)->toBe(80);
 });
 
 it('returns a translated label for each case', function () {

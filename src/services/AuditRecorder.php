@@ -5,6 +5,7 @@ namespace superbig\audit\services;
 use Craft;
 use craft\base\Component;
 use craft\helpers\Json;
+use craft\helpers\Session as SessionHelper;
 use superbig\audit\Audit;
 use superbig\audit\enums\AuditEvent;
 use superbig\audit\events\BeforeRecordEvent;
@@ -84,6 +85,7 @@ class AuditRecorder extends Component
         $record->siteId = $model->siteId;
         $record->sessionId = $model->sessionId;
         $record->userId = $model->userId;
+        $record->impersonatorId = $model->impersonatorId;
         $record->elementId = $model->elementId;
         $record->elementType = $model->elementType;
         $record->parentId = $model->parentId;
@@ -140,6 +142,7 @@ class AuditRecorder extends Component
         $user = Craft::$app->user->getIdentity();
         if ($user !== null) {
             $model->userId = $user->id;
+            $model->impersonatorId = $this->impersonatorId($user->id);
         }
 
         $request = Craft::$app->getRequest();
@@ -158,6 +161,20 @@ class AuditRecorder extends Component
                 $model->sessionId = null;
             }
         }
+    }
+
+    /**
+     * The real user behind an impersonated session, read from the session so it costs no query.
+     */
+    public function impersonatorId(?int $identityId): ?int
+    {
+        try {
+            $id = (int)SessionHelper::get(Craft::$app->getUser()->impersonatorIdParam) ?: null;
+        } catch (\Throwable) {
+            return null;
+        }
+
+        return $id !== null && $id !== $identityId ? $id : null;
     }
 
     /**
@@ -193,6 +210,7 @@ class AuditRecorder extends Component
 
             if ($identity = $app->getUser()->getIdentity()) {
                 $model->userId = $identity->id;
+                $model->impersonatorId = $this->impersonatorId($identity->id);
 
                 $model->snapshot = [
                     'userId' => $model->userId,
@@ -226,6 +244,7 @@ class AuditRecorder extends Component
             $record->title = $model->title;
             $record->parentId = $model->parentId;
             $record->userId = $model->userId;
+            $record->impersonatorId = $model->impersonatorId;
             $record->elementId = $model->elementId;
             $record->elementType = $model->elementType;
             $record->ip = $model->ip;
@@ -233,6 +252,7 @@ class AuditRecorder extends Component
             $record->siteId = $model->siteId;
             $record->snapshot = $model->snapshot ?: [];
             $record->sessionId = $model->sessionId;
+            $record->changedFields = !empty($model->changedFields) ? $model->changedFields : null;
 
             if (!$record->save()) {
                 Craft::error(

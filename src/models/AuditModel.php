@@ -9,6 +9,7 @@ use craft\elements\Asset;
 use craft\elements\User;
 use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
+use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
@@ -48,6 +49,11 @@ class AuditModel extends Model
      * @var integer|null
      */
     public $userId = null;
+
+    /**
+     * The signed-in user behind an impersonated session.
+     */
+    public ?int $impersonatorId = null;
 
     /**
      * @var integer|null
@@ -134,6 +140,7 @@ class AuditModel extends Model
         $model->eventEnum = AuditEvent::tryFromString($record->event);
         $model->title = $record->title;
         $model->userId = $record->userId;
+        $model->impersonatorId = $record->impersonatorId;
         $model->elementId = $record->elementId;
         $model->parentId = $record->parentId;
         $model->elementType = $record->elementType;
@@ -377,11 +384,32 @@ class AuditModel extends Model
      */
     public function getUser()
     {
-        if ($this->userId && !isset(self::$_users[$this->userId])) {
-            self::$_users[$this->userId] = Craft::$app->getUsers()->getUserById($this->userId);
+        return self::loadUser($this->userId);
+    }
+
+    public function getImpersonator(): ?User
+    {
+        return self::loadUser($this->impersonatorId);
+    }
+
+    public function getImpersonatorLink(): ?\Twig\Markup
+    {
+        $user = $this->getImpersonator();
+
+        if (!$user) {
+            return null;
         }
 
-        return self::$_users[$this->userId] ?? null;
+        return Template::raw('<a href="' . $user->getCpEditUrl() . '">' . Html::encode($user->fullName ?: $user->username) . '</a>');
+    }
+
+    private static function loadUser(?int $id): ?User
+    {
+        if ($id && !isset(self::$_users[$id])) {
+            self::$_users[$id] = Craft::$app->getUsers()->getUserById($id);
+        }
+
+        return $id ? (self::$_users[$id] ?? null) : null;
     }
 
     /**

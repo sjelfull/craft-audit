@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## Unreleased
 
+### Added
+- Failed logins are now logged with the attempted username and Craft’s reason
+- Impersonation is now logged, and every row written while impersonating names both the impersonated user and the impersonator
+- Password and email changes are now logged
+- Setting up and removing two-step verification and passkeys is now logged
+
 ### Fixed
 - Entries created in the control panel are now logged as created when their draft is applied, instead of as saved or not at all ([#126](https://github.com/sjelfull/craft-audit/pull/126))
 

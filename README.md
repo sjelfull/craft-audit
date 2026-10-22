@@ -89,9 +89,9 @@ This file supports [multi-environment config](https://craftcms.com/docs/5.x/conf
 | `logChildElementEvents` | Child element changes (e.g., Matrix blocks) | `false` |
 | `logDraftEvents` | Draft creation and saves | `false` |
 | `logPluginEvents` | Plugin install, uninstall, enable, disable | `true` |
-| `logUserEvents` | Login, logout | `true` |
+| `logUserEvents` | Login, logout, failed logins (with the reason), impersonation | `true` |
 | `logRouteEvents` | Route create, save, delete | `true` |
-| `logUserSecurityEvents` | Account activate, deactivate, suspend, lock | `true` |
+| `logUserSecurityEvents` | Account activate, deactivate, suspend, lock; password and email changes; two-step verification and passkey setup and removal | `true` |
 | `logPermissionEvents` | User/group permission changes | `true` |
 | `logSchemaEvents` | Field, section, entry type changes | `true` |
 | `logDatabaseEvents` | Database backup and restore | `true` |
