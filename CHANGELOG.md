@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+
+### Fixed
+- Entries created in the control panel are now logged as created when their draft is applied, instead of as saved or not at all ([#126](https://github.com/sjelfull/craft-audit/pull/126))
+
 ## 3.0.3 - 2024-01-31
 
 ### Fixed
