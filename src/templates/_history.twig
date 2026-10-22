@@ -1,0 +1,62 @@
+{#
+ # An element's audit events, newest first, shown as a page or in a slideout. Each event opens its details.
+ #
+ # Expects:
+ #   - element: ElementInterface|null (null once the element is deleted)
+ #   - title: string
+ #   - logs: AuditModel[]
+ #   - total: int
+ #   - logUrl: string
+ #}
+{% set multiSite = craft.app.isMultiSite %}
+
+<div class="audit-detail audit-history">
+    <header class="audit-detail__header">
+        <h1>{{ 'History'|t('audit') }}</h1>
+        <p class="light">
+            {%- if element -%}
+                {{ elementChip(element, { showStatus: false, attributes: { class: ['chromeless'] } }) }}
+            {%- else -%}
+                {{ title }}
+            {%- endif -%}
+        </p>
+    </header>
+
+    {% if logs %}
+        <ol class="audit-history__list">
+            {% for log in logs %}
+                {% set user = log.getUser() %}
+                {% set changed = log.getFieldMap()|map(f => f.name) %}
+                <li class="audit-history__item" data-audit-log="{{ log.id }}">
+                    <div class="audit-history__head">
+                        <a href="{{ log.getCpEditUrl() }}" class="audit-event audit-event--{{ log.getTone() }}" data-audit-open>{{ log.getEventLabel() }}</a>
+                        <span class="audit-history__user">
+                            {{- user ? (user.fullName ?: user.username) : 'Guest or system'|t('audit') -}}
+                            {%- if log.impersonatorId and log.getImpersonator() %}
+                                <span class="light">{{ 'via {name}'|t('audit', { name: log.getImpersonator().fullName ?: log.getImpersonator().username }) }}</span>
+                            {%- endif -%}
+                        </span>
+                        <time class="light smalltext" datetime="{{ log.dateCreated|atom }}" title="{{ log.getFormattedDate('medium') }}">{{ log.getRelativeDate() }}</time>
+                    </div>
+                    {% if changed|length or (multiSite and log.getSite()) %}
+                        <div class="audit-history__meta smalltext light">
+                            {%- if multiSite and log.getSite() %}{{ log.getSite().name }}{% if changed|length %} · {% endif %}{% endif -%}
+                            {%- if changed|length %}{{ changed|slice(0, 5)|join(', ') }}{% if changed|length > 5 %} {{ '+{count} more'|t('audit', { count: changed|length - 5 }) }}{% endif %}{% endif -%}
+                        </div>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ol>
+        <p class="audit-history__footer">
+            <a href="{{ logUrl }}">
+                {{- total > logs|length
+                    ? 'Show all {count} in the log'|t('audit', { count: total })
+                    : 'Open in the log'|t('audit') -}}
+            </a>
+        </p>
+    {% else %}
+        <div class="zilch">
+            <p>{{ 'No events recorded for this item yet.'|t('audit') }}</p>
+        </div>
+    {% endif %}
+</div>

@@ -20,6 +20,8 @@ Audit automatically logs actions performed by authenticated users:
 
 No configuration required — install the plugin and logging starts immediately.
 
+Every element's action menu (the ⋯ button on its edit screen) gets a **History** item that lists that element's events in a slideout, for anyone with the *View audit logs* permission.
+
 ## Requirements
 
 - Craft CMS 5.5+
@@ -328,7 +330,7 @@ Audit registers two permissions you can assign to user groups:
 
 | Permission | Handle | Description |
 |-----------|--------|-------------|
-| View audit logs | `audit-view-logs` | Access the Audit CP section |
+| View audit logs | `audit-view-logs` | Access the Audit CP section and element History |
 | Clear old logs | `audit-clear-logs` | Prune old log entries |
 
 ### Template Variables

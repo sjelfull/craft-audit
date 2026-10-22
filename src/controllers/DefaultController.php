@@ -24,6 +24,8 @@ class DefaultController extends Controller
      */
     protected array|int|bool $allowAnonymous = [];
 
+    private const HISTORY_LIMIT = 50;
+
     public function actionIndex(): Response
     {
         $this->requirePermission(Audit::PERMISSION_VIEW_LOGS);
@@ -87,6 +89,36 @@ class DefaultController extends Controller
             ->addCrumb(Craft::t('audit', 'Audit'), UrlHelper::cpUrl('audit'))
             ->contentTemplate('audit/_detail', $variables)
             ->metaSidebarTemplate('audit/_detail-meta', $variables);
+    }
+
+    public function actionHistory(int $elementId, ?int $siteId = null): Response
+    {
+        $this->requirePermission(Audit::PERMISSION_VIEW_LOGS);
+
+        $query = AuditRecord::find()->where(['elementId' => $elementId]);
+        $total = (int)$query->count();
+        /** @var AuditRecord[] $records */
+        $records = $query->orderBy(['dateCreated' => SORT_DESC, 'id' => SORT_DESC])->with('user')->limit(self::HISTORY_LIMIT)->all();
+        $logs = array_map(fn(AuditRecord $record) => AuditModel::createFromRecord($record), $records);
+
+        $element = Craft::$app->getElements()->getElementById($elementId, null, $siteId ?? '*');
+        $title = $element ? (string)$element : (($logs[0] ?? null)?->getDisplayTitle() ?? '');
+        $logUrl = UrlHelper::cpUrl('audit', ['elementId' => $elementId]);
+
+        $this->getView()->registerAssetBundle(IndexCPSectionAsset::class);
+
+        return $this->asCpScreen()
+            ->title($title !== '' ? Craft::t('audit', 'History: {title}', ['title' => $title]) : Craft::t('audit', 'History'))
+            ->docTitle(Craft::t('audit', 'History'))
+            ->editUrl($logUrl)
+            ->addCrumb(Craft::t('audit', 'Audit'), UrlHelper::cpUrl('audit'))
+            ->contentTemplate('audit/_history', [
+                'element' => $element,
+                'title' => $title,
+                'logs' => $logs,
+                'total' => $total,
+                'logUrl' => $logUrl,
+            ]);
     }
 
     public function actionPruneLogs()

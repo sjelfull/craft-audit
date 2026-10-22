@@ -4,6 +4,7 @@ namespace superbig\audit;
 
 use Craft;
 
+use craft\base\Element;
 use craft\base\Plugin;
 use craft\console\Application as ConsoleApplication;
 use craft\controllers\AuthController;
@@ -59,6 +60,7 @@ use superbig\audit\fieldHandlers\handlers\SeoHandler;
 use superbig\audit\fieldHandlers\handlers\SuperTableHandler;
 use superbig\audit\fieldHandlers\handlers\TableHandler;
 use superbig\audit\fieldHandlers\handlers\VizyHandler;
+use superbig\audit\helpers\ElementHistory;
 use superbig\audit\models\Settings;
 use superbig\audit\services\Audit_GeoService;
 use superbig\audit\services\AuditRecorder;
@@ -232,6 +234,12 @@ class Audit extends Plugin
             }
         );
 
+        Event::on(
+            Element::class,
+            Element::EVENT_DEFINE_ACTION_MENU_ITEMS,
+            $this->guard([ElementHistory::class, 'addMenuItem'])
+        );
+
         $this->setupRouteEvents();
         $this->setupPermissions();
     }
@@ -288,6 +296,7 @@ class Audit extends Plugin
             function(RegisterUrlRulesEvent $event) {
                 $event->rules['audit'] = 'audit/default/index';
                 $event->rules['audit/log/<id:\d+>'] = 'audit/default/details';
+                $event->rules['audit/history/<elementId:\d+>'] = 'audit/default/history';
                 $event->rules['audit/prune-logs'] = 'audit/default/prune-logs';
             }
         );
