@@ -151,6 +151,61 @@ enum AuditEvent: string
         return Craft::t('audit', $this->value);
     }
 
+    public function kind(): AuditEventKind
+    {
+        return match ($this) {
+            self::SavedElement, self::ResavedElements, self::CreatedElement, self::DeletedElement,
+            self::EntryCreated, self::EntrySaved, self::EntryDeleted, self::SavedGlobal,
+            self::SavedDraft, self::CreatedDraft, self::DeletedDraft => AuditEventKind::Content,
+
+            self::UserLoggedIn, self::UserLoggedOut, self::UserLoginFailed, self::UserImpersonated,
+            self::UserPasswordChanged, self::UserEmailChanged, self::UserMfaEnabled, self::UserMfaDisabled,
+            self::UserPasskeyAdded, self::UserPasskeyRemoved => AuditEventKind::Security,
+
+            self::UserActivated, self::UserDeactivated, self::UserSuspended, self::UserUnsuspended,
+            self::UserLocked, self::UserUnlocked, self::UserGroupsAssigned => AuditEventKind::Users,
+
+            self::UserPermissionsSaved, self::GroupPermissionsSaved, self::UserGroupCreated,
+            self::UserGroupSaved, self::UserGroupDeleted => AuditEventKind::Permissions,
+
+            self::FieldCreated, self::FieldSaved, self::FieldDeleted,
+            self::SectionCreated, self::SectionSaved, self::SectionDeleted,
+            self::EntryTypeCreated, self::EntryTypeSaved, self::EntryTypeDeleted,
+            self::CategoryGroupCreated, self::CategoryGroupSaved, self::CategoryGroupDeleted,
+            self::TagGroupCreated, self::TagGroupSaved, self::TagGroupDeleted,
+            self::FilesystemCreated, self::FilesystemSaved, self::FilesystemDeleted,
+            self::ImageTransformCreated, self::ImageTransformSaved, self::ImageTransformDeleted,
+            self::SiteCreated, self::SiteSaved, self::SiteDeleted,
+            self::SiteGroupCreated, self::SiteGroupSaved, self::SiteGroupDeleted,
+            self::VolumeCreated, self::VolumeSaved, self::VolumeDeleted,
+            self::GlobalSetConfigCreated, self::GlobalSetConfigSaved, self::GlobalSetConfigDeleted => AuditEventKind::Schema,
+
+            self::SystemSettingsChanged, self::EmailSettingsChanged,
+            self::CreatedRoute, self::SavedRoute, self::DeletedRoute => AuditEventKind::Settings,
+
+            self::PluginInstalled, self::PluginUninstalled, self::PluginEnabled, self::PluginDisabled => AuditEventKind::Plugins,
+
+            self::BackupCreated, self::BackupRestored => AuditEventKind::Database,
+
+            self::BatchStarted, self::BatchCompleted, self::BatchFailed => AuditEventKind::Batches,
+        };
+    }
+
+    /**
+     * Colour hint for the CP: 'positive', 'negative', 'warning' or 'neutral'.
+     */
+    public function tone(): string
+    {
+        $words = explode('-', $this->value);
+
+        return match (true) {
+            (bool)array_intersect($words, ['failed', 'impersonated', 'locked', 'suspended']) => 'warning',
+            (bool)array_intersect($words, ['deleted', 'uninstalled', 'removed', 'disabled', 'deactivated']) => 'negative',
+            (bool)array_intersect($words, ['created', 'installed', 'added', 'enabled', 'activated', 'restored']) => 'positive',
+            default => 'neutral',
+        };
+    }
+
     /**
      * Safe cast from a nullable string to the enum.
      *

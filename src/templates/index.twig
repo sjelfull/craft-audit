@@ -1,13 +1,12 @@
 {% extends "_layouts/cp" %}
-{% import "_includes/forms" as forms %}
 
 {% do view.registerAssetBundle("superbig\\audit\\assetbundles\\audit\\AuditAsset") %}
 {% do view.registerAssetBundle("superbig\\audit\\assetbundles\\indexcpsection\\IndexCPSectionAsset") %}
+{% do view.registerAssetBundle("superbig\\audit\\web\\assets\\diff\\AuditDiffAsset") %}
 
-{% set docsUrl = "https://github.com/sjelfull/audit/blob/master/README.md" %}
-{% set title = "Audit" %}
-{% set pluginCpUrl = url('audit') %}
-{% set iconUrl = view.getAssetManager().getPublishedUrl('@superbig/audit/assetbundles/indexcpsection/dist', true) ~ '/img/Index-icon.svg' %}
+{% do view.registerTranslations('audit', ['From', 'To']) %}
+
+{% set title = "Audit"|t('audit') %}
 
 {% block actionButton %}
     {% if currentUser.can('audit-clear-logs') %}
@@ -18,15 +17,8 @@
 {% endblock %}
 
 {% block content %}
-    {% if logs %}
-        {% include "audit/_table" %}
-    {% else %}
-        <p>No log entries.</p>
-    {% endif %}
-{% endblock %}
-
-{% block footer %}
-    {% if logs %}
-            {% include '_includes/pagination' with { pageInfo: pageInfo } %}
-    {% endif %}
+    {% include "audit/_filters" %}
+    <div id="audit-results" aria-live="polite">
+        {% include "audit/_results" %}
+    </div>
 {% endblock %}
