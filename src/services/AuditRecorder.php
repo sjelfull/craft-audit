@@ -43,6 +43,11 @@ class AuditRecorder extends Component
     private array $pending = [];
 
     /**
+     * @var callable[] Run once the pending rows are written.
+     */
+    private array $afterWrites = [];
+
+    /**
      * @var array<int, true> Connections whose transaction events are being followed.
      */
     private array $listening = [];
@@ -141,6 +146,31 @@ class AuditRecorder extends Component
         return count(array_filter($this->pending, fn(AuditRecord $record) => (int)$record->parentId === $parentId));
     }
 
+    /**
+     * Runs a callback now, or once the outermost transaction commits and its rows are written.
+     * Dropped if the transaction rolls back.
+     */
+    public function afterWrites(callable $callback): void
+    {
+        $db = $this->getDb();
+        if (!$this->writeAfterCommit || $db->getTransaction() === null) {
+            $this->run($callback);
+            return;
+        }
+
+        $this->listen($db);
+        $this->afterWrites[] = $callback;
+    }
+
+    private function run(callable $callback): void
+    {
+        try {
+            $callback();
+        } catch (\Throwable $e) {
+            $this->fail('Could not finish writing the audit log', $e);
+        }
+    }
+
     public function getDb(): Connection
     {
         return $this->db ?? Craft::$app->getDb();
@@ -154,6 +184,7 @@ class AuditRecorder extends Component
     private function write(AuditRecord $record, bool $writeNow = false): bool
     {
         try {
+            Audit::$plugin->privacy->scrubRecord($record);
             $now = Db::prepareDateForDb(DateTimeHelper::now());
             $record->dateCreated ??= $now;
             $record->dateUpdated ??= $now;
@@ -205,9 +236,14 @@ class AuditRecorder extends Component
                     $this->fail('Could not write an audit row', $e);
                 }
             }
+
+            $callbacks = $this->afterWrites;
+            $this->afterWrites = [];
+            array_walk($callbacks, fn(callable $callback) => $this->run($callback));
         });
         $db->on(Connection::EVENT_ROLLBACK_TRANSACTION, function() {
             $this->pending = [];
+            $this->afterWrites = [];
         });
     }
 
@@ -225,8 +261,9 @@ class AuditRecorder extends Component
         $record->title = $model->title;
         $record->ip = $model->ip;
         $record->userAgent = $model->userAgent;
-        $record->snapshot = $model->snapshot ?: [];
-        $record->changedFields = !empty($model->changedFields) ? $model->changedFields : null;
+        $privacy = Audit::$plugin->privacy;
+        $record->snapshot = $model->snapshot ? $privacy->redactSnapshot($model->snapshot) : [];
+        $record->changedFields = !empty($model->changedFields) ? $privacy->redactChanges($model->changedFields) : null;
 
         return $record;
     }

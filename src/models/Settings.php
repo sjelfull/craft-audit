@@ -59,6 +59,19 @@ class Settings extends Model
     public $maxmindLicenseKey = '';
     public $ignoredSections = [];
 
+    /**
+     * Field handles and attribute names whose values are replaced with a marker in snapshots and diffs
+     * before rows are saved. One per line or comma-separated when given as a string.
+     *
+     * @var string[]|string
+     */
+    public array|string $redact = [];
+
+    /**
+     * Remove a user's details from the log when the user is deleted.
+     */
+    public bool $anonymiseDeletedUsers = true;
+
     public function init(): void
     {
         parent::init();
@@ -77,7 +90,27 @@ class Settings extends Model
             ['enabled', 'boolean'],
             ['enabledGeolocation', 'boolean'],
             ['pruneDays', 'integer'],
+            ['redact', 'filter', 'filter' => fn($value) => self::parseHandles($value)],
+            ['anonymiseDeletedUsers', 'boolean'],
         ]);
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getRedactedHandles(): array
+    {
+        return self::parseHandles($this->redact);
+    }
+
+    /**
+     * @return string[]
+     */
+    private static function parseHandles(mixed $value): array
+    {
+        $handles = is_array($value) ? $value : preg_split('/[\s,]+/', (string)$value);
+
+        return array_values(array_unique(array_filter(array_map(fn($handle) => trim((string)$handle), $handles))));
     }
 
     public function getCountryDownloadUrl()
