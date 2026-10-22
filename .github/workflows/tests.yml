@@ -99,6 +99,9 @@ jobs:
           cp -r ./vendor/markhuot/craft-pest-core/stubs/config/app.php ./config/app.php
           cp -r ./vendor/markhuot/craft-pest-core/stubs/config/general.php ./config/general.php
           cp -r ./stubs/project/* ./config/project/
+          # Craft refuses to install when project.yaml's schema version doesn't match the installed release.
+          SCHEMA=$(php -r 'require "vendor/autoload.php"; echo (require "vendor/craftcms/cms/src/config/app.php")["schemaVersion"];')
+          sed -i "s/^  schemaVersion: .*/  schemaVersion: $SCHEMA/" ./config/project/project.yaml
 
       - name: Run test suite
         run: ./vendor/bin/pest
