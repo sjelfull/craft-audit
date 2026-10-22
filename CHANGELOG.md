@@ -14,6 +14,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - Element saves now record which fields changed, with their before and after values, and new elements record their starting values
 - The log can be filtered by kind of event, event, user, element type, site and date range, and searched by title, user name or IP address. Filters apply as you change them and are kept in the URL, so a filtered view can be bookmarked or shared
 - Elements have a History item in their action menu that lists their audit events in a slideout, newest first, each opening its full details. It appears on entries, assets, users, categories, Commerce products and every other element type, for anyone who can view the audit log
+- A new “Redacted fields” setting lists field handles or attributes whose values are never stored. Snapshots and diffs keep a marker showing the field changed, without its values. `./craft audit/default/redact` applies the setting to rows already in the log
+- When a user is deleted, their rows are now anonymised: their name and details are removed from rows about them, and their IP address, browser, location and session from rows they made. The rows themselves are kept. This can be turned off with the new “Anonymise deleted users” setting
+- `./craft audit/default/anonymise-user <id|username|email>` anonymises a user's rows on demand
 
 ### Changed
 - Log entries now open in a slideout over the log. It shows the changed fields as diffs, the rows in a batch, other events from the same session, and links to everything in that session or for that item. The full page shows the same details, so entries can still be linked to

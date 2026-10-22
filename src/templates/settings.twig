@@ -92,6 +92,27 @@
 
 <hr>
 
+<h2>Privacy</h2>
+
+{{ forms.textareaField({
+    name: 'redact',
+    label: 'Redacted fields',
+    instructions: 'Field handles or attributes whose values are never stored, one per line. The log still records that they changed. Run `./craft audit/default/redact` to apply this to existing rows.',
+    value: settings.getRedactedHandles()|join("\n"),
+    rows: 4,
+    class: 'code',
+    placeholder: "email\nphone",
+}) }}
+
+{{ forms.lightswitchField({
+    name: 'anonymiseDeletedUsers',
+    label: 'Anonymise deleted users',
+    instructions: 'When a user is deleted, remove their name, details, IP address, browser and location from the log. Their rows are kept.',
+    on: settings.anonymiseDeletedUsers,
+}) }}
+
+<hr>
+
 <h2>Geolocation</h2>
 
 {{ forms.booleanMenuField({

@@ -20,8 +20,8 @@ use yii\db\ActiveQueryInterface;
  * @property string       $event
  * @property \DateTime    $dateCreated
  * @property \DateTime    $dateUpdated
- * @property string       $ip
- * @property string       $userAgent
+ * @property string|null  $ip
+ * @property string|null  $userAgent
  * @property array|string|null $snapshot      JSON column. Reads return an array (Craft AR auto-decodes); writes accept arrays. String is the legacy doubly-encoded form (still readable defensively via {@see \superbig\audit\models\AuditModel::createFromRecord()}).
  * @property string|null  $sessionId
  * @property array|string|null $location      JSON column. Same shape semantics as $snapshot.

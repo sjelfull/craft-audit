@@ -98,6 +98,32 @@ it('never throws when the database write fails', function () {
     expect($entry->id)->not->toBeNull();
 });
 
+it('runs follow-up work after the rows held for a transaction are written', function () {
+    $seen = null;
+    $transaction = $this->secondDb->beginTransaction();
+    $this->recorder->record('custom-event', $this->marker);
+    $this->recorder->afterWrites(function() use (&$seen) {
+        $seen = _committedRows($this->secondDb, $this->marker);
+    });
+
+    expect($seen)->toBeNull();
+
+    $transaction->commit();
+
+    expect($seen)->toBe(1);
+});
+
+it('drops follow-up work when the transaction rolls back', function () {
+    $ran = false;
+    $transaction = $this->secondDb->beginTransaction();
+    $this->recorder->afterWrites(function() use (&$ran) {
+        $ran = true;
+    });
+    $transaction->rollBack();
+
+    expect($ran)->toBeFalse();
+});
+
 it('never throws into an element save when a listener fails', function () {
     $this->recorder->db = null;
     $this->recorder->writeAfterCommit = false;

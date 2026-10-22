@@ -78,6 +78,7 @@ use superbig\audit\services\handlers\SchemaHandler;
 use superbig\audit\services\handlers\SettingsHandler;
 use superbig\audit\services\handlers\UserGroupHandler;
 use superbig\audit\services\handlers\UserHandler;
+use superbig\audit\services\Privacy;
 use superbig\audit\services\ProjectConfigTracker;
 
 use superbig\audit\variables\AuditVariable;
@@ -108,6 +109,7 @@ use yii\web\UserEvent;
  * @property  SettingsHandler       $settingsHandler
  * @property  BatchService          $batch
  * @property  FeedMeListener        $feedMeListener
+ * @property  Privacy               $privacy
  * @method  Settings getSettings()
  */
 class Audit extends Plugin
@@ -175,6 +177,7 @@ class Audit extends Plugin
             'settingsHandler' => SettingsHandler::class,
             'batch' => BatchService::class,
             'feedMeListener' => FeedMeListener::class,
+            'privacy' => Privacy::class,
         ]);
 
         // Eagerly initialize the Feed Me listener — its init() registers an
@@ -232,6 +235,17 @@ class Audit extends Plugin
                 $variable = $event->sender;
                 $variable->set('audit', AuditVariable::class);
             }
+        );
+
+        Event::on(
+            Elements::class,
+            Elements::EVENT_BEFORE_DELETE_ELEMENT,
+            $this->guard(fn(ElementEvent $event) => $this->privacy->onBeforeDeleteElement($event))
+        );
+        Event::on(
+            Elements::class,
+            Elements::EVENT_AFTER_DELETE_ELEMENT,
+            $this->guard(fn(ElementEvent $event) => $this->privacy->onAfterDeleteElement($event))
         );
 
         Event::on(

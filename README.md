@@ -73,6 +73,11 @@ return [
     // Auto-prune on admin CP requests
     'pruneRecordsOnAdminRequests' => false,
 
+    // Privacy: field handles or attributes whose values are never stored,
+    // and whether to anonymise a user's rows when the user is deleted
+    'redact'                => ['phone', 'email'],
+    'anonymiseDeletedUsers' => true,
+
     // Geolocation (requires MaxMind license)
     'enabledGeolocation' => true,
     'maxmindAccountId'   => '',
@@ -82,6 +87,12 @@ return [
 ```
 
 This file supports [multi-environment config](https://craftcms.com/docs/5.x/configure.html#multi-environment-configs), so you can have different settings per environment.
+
+### Privacy
+
+Values of fields and attributes listed in `redact` are replaced with `[redacted]` in snapshots before a row is saved, at any depth (including inside Matrix and other nested fields). Diffs for those fields record that they changed, without their values.
+
+When a user is deleted, Audit anonymises their rows unless `anonymiseDeletedUsers` is off. Rows about the user lose the title, snapshot and diff, and rows the user made lose their IP address, browser, location and session. Rows are kept, so counts and timelines stay intact.
 
 ### Event Categories
 
@@ -101,6 +112,23 @@ This file supports [multi-environment config](https://craftcms.com/docs/5.x/conf
 ---
 
 ## Console Commands
+
+### Anonymise a User
+
+Remove a user's details from the log. This works for users who are already deleted if you pass their ID:
+
+```bash
+./craft audit/default/anonymise-user 42
+./craft audit/default/anonymise-user maria@example.com
+```
+
+### Redact Existing Rows
+
+Apply the `redact` setting to rows that were logged before it was set:
+
+```bash
+./craft audit/default/redact
+```
 
 ### Prune Old Logs
 
