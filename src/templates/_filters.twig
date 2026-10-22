@@ -1,0 +1,74 @@
+{#
+ # Expects:
+ #   - filter: LogFilter
+ #   - options: AuditService::getFilterOptions()
+ #}
+{% import "_includes/forms" as forms %}
+
+{% set panelFilters = ['kind', 'event', 'userId', 'elementType', 'siteId'] %}
+{% set panelCount = panelFilters|filter(p => attribute(filter, p) is not null)|length %}
+
+<form id="audit-filters" class="audit-toolbar" method="get" action="{{ cpUrl('audit') }}" role="search">
+    {% for hidden in ['elementId', 'sessionId'] %}
+        {% if attribute(filter, hidden) is not null %}
+            {{ hiddenInput(hidden, attribute(filter, hidden)) }}
+        {% endif %}
+    {% endfor %}
+
+    <div class="audit-toolbar__search texticon">
+        <span class="texticon-icon search icon" aria-hidden="true"></span>
+        <input type="search" name="search" class="text fullwidth clearable" value="{{ filter.search }}"
+               placeholder="{{ 'Search titles, users and IPs'|t('audit') }}"
+               aria-label="{{ 'Search'|t('app') }}" autocomplete="off">
+    </div>
+
+    <div class="audit-toolbar__dates" data-audit-dates>
+        {{ forms.date({
+            id: 'audit-from',
+            name: 'from',
+            value: filter.fromDate,
+            placeholder: 'From'|t('audit'),
+        }) }}
+        <span class="light" aria-hidden="true">–</span>
+        {{ forms.date({
+            id: 'audit-to',
+            name: 'to',
+            value: filter.toDate,
+            placeholder: 'To'|t('audit'),
+        }) }}
+    </div>
+
+    <button type="button" class="btn audit-toolbar__filters-btn" aria-controls="audit-filter-menu" aria-expanded="false" data-audit-filter-trigger>
+        <span class="cp-icon small" aria-hidden="true">{{ iconSvg('sliders') }}</span>
+        <span>{{ 'Filters'|t('audit') }}</span>
+        <span class="audit-toolbar__count{{ panelCount ? '' : ' hidden' }}" data-audit-filter-count>{{ panelCount }}</span>
+    </button>
+
+    <div id="audit-filter-menu" class="menu menu--disclosure audit-filter-menu">
+        <div class="audit-filter-grid">
+            {% set rows = [
+                { name: 'kind', label: 'Kind'|t('audit'), options: options.kinds, any: 'All kinds'|t('audit') },
+                { name: 'event', label: 'Event'|t('audit'), options: options.events, any: 'All events'|t('audit') },
+                { name: 'userId', label: 'User'|t('app'), options: options.users, any: 'Anyone'|t('audit') },
+                { name: 'elementType', label: 'Element type'|t('audit'), options: options.elementTypes, any: 'All types'|t('audit') },
+                { name: 'siteId', label: 'Site'|t('app'), options: options.sites, any: 'All sites'|t('audit') },
+            ] %}
+            {% for row in rows %}
+                <label class="audit-filter-grid__label" for="audit-filter-{{ row.name }}">{{ row.label }}</label>
+                <div class="audit-filter-grid__control">
+                    {{ forms.select({
+                        id: 'audit-filter-' ~ row.name,
+                        name: row.name,
+                        options: [{ label: row.any, value: '' }]|merge(row.options),
+                        value: attribute(filter, row.name),
+                        class: 'fullwidth',
+                    }) }}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <a href="{{ cpUrl('audit') }}" class="btn audit-toolbar__reset{{ filter.isActive() ? '' : ' hidden' }}" data-audit-reset>{{ 'Reset'|t('app') }}</a>
+
+    <noscript><button type="submit" class="btn">{{ 'Apply'|t('app') }}</button></noscript>
+</form>

@@ -1,0 +1,34 @@
+{#
+ # The part of the log screen that is replaced when filters change.
+ #
+ # Expects:
+ #   - logs: AuditModel[]
+ #   - pageInfo: Paginate
+ #   - filter: LogFilter
+ #}
+{% set chips = filter.getActiveFilters() %}
+
+{% if chips %}
+    <ul class="audit-chips" aria-label="{{ 'Active filters'|t('audit') }}">
+        {% for chip in chips %}
+            <li>
+                <a class="audit-chip" href="{{ chip.removeUrl }}" data-audit-remove="{{ chip.param }}"
+                   title="{{ 'Remove filter'|t('audit') }}">
+                    <span class="light">{{ chip.label }}:</span> {{ chip.value }}
+                    <span class="audit-chip__remove" aria-hidden="true">×</span>
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+{% if logs %}
+    {% include "audit/_table" %}
+    <div class="audit-results__footer">
+        {% include '_includes/pagination' with { pageInfo: pageInfo, itemLabel: 'event'|t('audit'), itemsLabel: 'events'|t('audit') } %}
+    </div>
+{% else %}
+    <div class="zilch audit-results__empty">
+        <p>{{ filter.isActive() ? 'No events match these filters.'|t('audit') : 'No log entries.'|t('audit') }}</p>
+    </div>
+{% endif %}

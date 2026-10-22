@@ -12,8 +12,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - Password and email changes are now logged
 - Setting up and removing two-step verification and passkeys is now logged
 - Element saves now record which fields changed, with their before and after values, and new elements record their starting values
+- The log can be filtered by kind of event, event, user, element type, site and date range, and searched by title, user name or IP address. Filters apply as you change them and are kept in the URL, so a filtered view can be bookmarked or shared
 
 ### Changed
+- The log table has been redesigned: events are colour-coded by what happened, users and elements show as Craft chips, element rows list the fields that changed, and dates are shown relative to now
 - Log rows recorded inside a database transaction are now written only once it commits, so a rolled-back save no longer leaves a row behind
 
 ### Fixed

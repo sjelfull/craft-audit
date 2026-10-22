@@ -18,6 +18,7 @@ use craft\models\Site;
 use DateTime;
 use superbig\audit\Audit;
 use superbig\audit\enums\AuditEvent;
+use superbig\audit\enums\AuditEventKind;
 use superbig\audit\records\AuditRecord;
 use Throwable;
 
@@ -459,6 +460,66 @@ class AuditModel extends Model
     public function getSnapshotValue($key)
     {
         return ArrayHelper::getValue($this->snapshot, $key);
+    }
+
+    /**
+     * Display names for the changed fields, falling back to the handle for fields that no longer exist.
+     *
+     * @return array<string, array{name: string}>
+     */
+    public function getFieldMap(): array
+    {
+        $nativeLabels = [
+            '_title' => Craft::t('app', 'Title'),
+            '_slug' => Craft::t('app', 'Slug'),
+            '_status' => Craft::t('app', 'Status'),
+            '_enabled' => Craft::t('app', 'Enabled'),
+            '_postDate' => Craft::t('app', 'Post Date'),
+            '_expiryDate' => Craft::t('app', 'Expiry Date'),
+        ];
+
+        $fields = Craft::$app->getFields();
+        $map = [];
+
+        foreach (array_keys($this->changedFields) as $handle) {
+            $name = $nativeLabels[$handle] ?? $fields->getFieldByHandle((string)$handle)?->name;
+            $map[$handle] = ['name' => $name ?? (string)$handle];
+        }
+
+        return $map;
+    }
+
+    /**
+     * The title as plain text. Some handlers store it HTML-encoded, so it's decoded here and escaped on output.
+     */
+    public function getDisplayTitle(): string
+    {
+        return Html::decode((string)$this->title);
+    }
+
+    public function getTone(): string
+    {
+        return $this->eventEnum?->tone() ?? 'neutral';
+    }
+
+    public function getIsBatch(): bool
+    {
+        return $this->eventEnum?->kind() === AuditEventKind::Batches;
+    }
+
+    public function getRelativeDate(): string
+    {
+        if (!$this->dateCreated) {
+            return '';
+        }
+
+        $date = DateTimeHelper::toDateTime($this->dateCreated);
+
+        $formatter = Craft::$app->getFormatter();
+
+        return DateTimeHelper::isWithinLast($date, '7 days')
+            ? $formatter->asRelativeTime($date)
+            : $formatter->asDate($date, 'medium');
     }
 
     /**

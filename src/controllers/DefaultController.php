@@ -9,8 +9,10 @@ use craft\helpers\UrlHelper;
 use craft\web\Controller;
 use superbig\audit\Audit;
 use superbig\audit\models\AuditModel;
+use superbig\audit\models\LogFilter;
 use superbig\audit\records\AuditRecord;
 use superbig\audit\web\assets\diff\AuditDiffAsset;
+use yii\web\Response;
 
 class DefaultController extends Controller
 {
@@ -20,43 +22,41 @@ class DefaultController extends Controller
      */
     protected array|int|bool $allowAnonymous = [];
 
-    /**
-     * @return mixed
-     */
-    public function actionIndex()
+    public function actionIndex(): Response
     {
         $this->requirePermission(Audit::PERMISSION_VIEW_LOGS);
 
-        Craft::$app->view->registerAssetBundle(AuditDiffAsset::class);
+        $request = Craft::$app->getRequest();
+        $filter = LogFilter::fromRequest($request);
 
-        $itemsPerPage = 100;
         $query = AuditRecord::find()
-                               ->orderBy('dateCreated desc')
-                               ->with('user')
-                               ->limit($itemsPerPage)
-                               ->where(['parentId' => null]);
-        $models = [];
-        $paginate = Template::paginateCriteria($query);
-        list($pageInfo, $records) = $paginate;
+            ->orderBy(['dateCreated' => SORT_DESC, 'id' => SORT_DESC])
+            ->with('user')
+            ->limit(100);
+        $filter->apply($query);
 
-        if ($records) {
-            foreach ($records as $record) {
-                $models[] = AuditModel::createFromRecord($record);
-            }
+        [$pageInfo, $records] = Template::paginateCriteria($query);
+        $logs = array_map(fn(AuditRecord $record) => AuditModel::createFromRecord($record), $records);
+
+        $variables = [
+            'logs' => $logs,
+            'pageInfo' => $pageInfo,
+            'filter' => $filter,
+        ];
+
+        if ($request->getAcceptsJson()) {
+            return $this->asJson([
+                'html' => $this->getView()->renderTemplate('audit/_results', $variables),
+                'url' => $filter->url(),
+            ]);
         }
 
-        return $this->renderTemplate('audit/index', [
-            'logs' => $models,
-            'pageInfo' => $pageInfo,
+        return $this->renderTemplate('audit/index', $variables + [
+            'options' => Audit::$plugin->auditService->getFilterOptions(),
         ]);
     }
 
-    /**
-     * @param int $id
-     *
-     * @return mixed
-     */
-    public function actionDetails(int $id)
+    public function actionDetails(int $id): Response
     {
         $this->requirePermission(Audit::PERMISSION_VIEW_LOGS);
 

@@ -103,7 +103,7 @@ it('renders child rows as hidden tr.audit-child-row with data-parent matching th
 
     // All 3 children appear, each as audit-child-row hidden with data-parent=batchId
     $count = preg_match_all(
-        '/<tr class="audit-child-row hidden" data-parent="' . preg_quote((string) $batchId, '/') . '">/',
+        '/<tr[^>]*class="[^"]*audit-child-row hidden[^"]*"[^>]*data-parent="' . preg_quote((string) $batchId, '/') . '"/',
         $html
     );
     expect($count)->toBe(3);
@@ -178,12 +178,12 @@ it('renders a nested batch as a child row of the outer batch (depth-1)', functio
     $html = _renderAuditTable();
 
     // Outer is the only top-level row (inner is a child of outer)
-    $topLevelMatches = preg_match_all('/<tr class="audit-batch-parent[^"]*"/', $html);
+    $topLevelMatches = preg_match_all('/<tr[^>]*class="[^"]*audit-batch-parent[^"]*"/', $html);
     expect($topLevelMatches)->toBe(1);
 
     // Inner batch's row appears as a child row of the outer
     expect($html)->toMatch(
-        '/<tr class="audit-child-row hidden" data-parent="' . preg_quote((string) $outerId, '/') . '">/'
+        '/<tr[^>]*class="[^"]*audit-child-row hidden[^"]*"[^>]*data-parent="' . preg_quote((string) $outerId, '/') . '"/'
     );
     expect($html)->toContain('Inner batch');
 });
@@ -207,8 +207,8 @@ it('mixed: non-batches + a batch with 2 children render 3 top-level rows + 2 chi
 
     $html = _renderAuditTable();
 
-    $batchParents = preg_match_all('/<tr class="audit-batch-parent[^"]*"/', $html);
-    $childRows = preg_match_all('/<tr class="audit-child-row hidden"/', $html);
+    $batchParents = preg_match_all('/<tr[^>]*class="[^"]*audit-batch-parent[^"]*"/', $html);
+    $childRows = preg_match_all('/<tr[^>]*class="[^"]*audit-child-row hidden[^"]*"/', $html);
 
     expect($batchParents)->toBe(1);
     expect($childRows)->toBe(2);

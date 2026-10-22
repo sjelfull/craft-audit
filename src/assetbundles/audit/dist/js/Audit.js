@@ -46,60 +46,27 @@
 })(window, Craft, jQuery);
 
 /**
- * @P3.3 Batch row expand/collapse
- *
- * Each <button class="audit-batch-toggle"> toggles `.hidden` on
- * <tr.audit-child-row[data-parent=<id>]> rows. Plain JS (no jQuery)
- * so it doesn't depend on the Craft jQuery bundle being ready.
+ * Batch rows expand and collapse their child rows. Delegated, so rows loaded by the filters work too.
  */
 (function () {
     'use strict';
 
-    function init() {
-        var toggles = document.querySelectorAll('.audit-batch-toggle');
-        toggles.forEach(function (toggle) {
-            // Skip disabled toggles — empty batches have nothing to expand.
-            if (toggle.disabled) {
-                return;
-            }
-            toggle.addEventListener('click', onToggle);
-        });
-    }
-
-    function onToggle(event) {
+    document.addEventListener('click', function (event) {
+        var btn = event.target.closest && event.target.closest('.audit-batch-toggle');
+        if (!btn || btn.disabled) {
+            return;
+        }
         event.preventDefault();
-        var btn = event.currentTarget;
-        var controls = btn.getAttribute('aria-controls') || '';
-        var batchId = controls.replace(/^batch-/, '');
-        var expanded = btn.getAttribute('aria-expanded') === 'true';
-        var next = !expanded;
+        event.stopPropagation();
+
+        var batchId = (btn.getAttribute('aria-controls') || '').replace(/^batch-/, '');
+        var next = btn.getAttribute('aria-expanded') !== 'true';
 
         btn.setAttribute('aria-expanded', next ? 'true' : 'false');
-        btn.setAttribute(
-            'aria-label',
-            (next ? 'Collapse batch' : 'Expand batch')
-        );
+        btn.setAttribute('aria-label', next ? 'Collapse batch' : 'Expand batch');
 
-        var selector = 'tr.audit-child-row[data-parent="' + cssEscape(batchId) + '"]';
-        var children = document.querySelectorAll(selector);
-        children.forEach(function (row) {
+        document.querySelectorAll('tr.audit-child-row[data-parent="' + CSS.escape(batchId) + '"]').forEach(function (row) {
             row.classList.toggle('hidden', !next);
         });
-    }
-
-    function cssEscape(str) {
-        if (window.CSS && window.CSS.escape) {
-            return window.CSS.escape(str);
-        }
-        return String(str).replace(/[^a-zA-Z0-9_-]/g, function (c) {
-            return '\\' + c;
-        });
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
+    });
 })();
-

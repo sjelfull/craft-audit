@@ -2,13 +2,17 @@
 
 namespace superbig\audit\services;
 
+use Craft;
 use craft\base\Component;
 use craft\base\ElementInterface;
+use craft\elements\User;
 use craft\helpers\Template;
 
 use DateTime;
 use superbig\audit\Audit;
+use superbig\audit\enums\AuditEventKind;
 use superbig\audit\models\AuditModel;
+use superbig\audit\models\LogFilter;
 use superbig\audit\records\AuditRecord;
 
 class AuditService extends Component
@@ -32,6 +36,58 @@ class AuditService extends Component
         $elementType = get_class($element);
 
         return $this->getEventsByAttributes(['elementId' => $elementId, 'elementType' => $elementType]);
+    }
+
+    /**
+     * Choices for the log filters, limited to values that appear in the log.
+     *
+     * @return array{kinds: array, events: array, users: array, elementTypes: array, sites: array}
+     */
+    public function getFilterOptions(): array
+    {
+        $distinct = fn(string $column) => AuditRecord::find()
+            ->select($column)
+            ->distinct()
+            ->where(['not', [$column => null]])
+            ->column();
+
+        $loggedEvents = array_flip($distinct('event'));
+        $events = [];
+        $kinds = [];
+
+        foreach (AuditEventKind::cases() as $kind) {
+            $options = [];
+
+            foreach ($kind->events() as $event) {
+                if (isset($loggedEvents[$event->value])) {
+                    $options[] = ['label' => $event->label(), 'value' => $event->value];
+                }
+            }
+
+            if ($options) {
+                $kinds[] = ['label' => $kind->label(), 'value' => $kind->value];
+                $events[] = ['optgroup' => $kind->label()];
+                array_push($events, ...$options);
+            }
+        }
+
+        $users = [];
+        $userIds = $distinct('userId');
+        if ($userIds) {
+            foreach (User::find()->id($userIds)->status(null)->orderBy(['fullName' => SORT_ASC, 'username' => SORT_ASC])->all() as $user) {
+                $users[] = ['label' => $user->fullName ?: $user->username, 'value' => $user->id];
+            }
+        }
+
+        $elementTypes = array_map(fn(string $class) => [
+            'label' => LogFilter::elementTypeLabel($class),
+            'value' => $class,
+        ], $distinct('elementType'));
+        usort($elementTypes, fn($a, $b) => strcmp($a['label'], $b['label']));
+
+        $sites = array_map(fn($site) => ['label' => $site->getName(), 'value' => $site->id], Craft::$app->getSites()->getAllSites());
+
+        return compact('kinds', 'events', 'users', 'elementTypes', 'sites');
     }
 
     /**

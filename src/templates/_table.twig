@@ -1,135 +1,125 @@
 {#
-/**
- * Audit plugin for Craft CMS
- *
- * Audit log index table — extracted as a partial so it can be rendered
- * in isolation (template tests use Craft::$app->view->renderTemplate()).
- *
- * Expects:
- *   - logs: AuditModel[] (top-level rows; controller filters parentId is null)
- *
- * Renders a single <table> with one <tbody>. Batch parent rows carry
- * `audit-batch-parent` + `data-audit-batch="<id>"` and a toggle button.
- * Their children render as additional <tr class="audit-child-row hidden">
- * rows immediately after, sharing the same tbody (HTML5-valid, simpler
- * CSS than nested tbodies). JS toggles `.hidden` on click of the toggle.
- *
- * v1 limitation: child rows are themselves rendered as flat rows even if
- * a child is itself a batch parent (nested batches show their toggle but
- * grandchildren aren't expanded — depth-1 only). Acceptable for v1; deeper
- * trees go into the detail view.
- */
-#}
+ # The log table. Batch parents carry `audit-batch-parent` and a toggle; their children follow as
+ # hidden `audit-child-row` rows in the same tbody (one level deep, deeper trees are in the detail view).
+ #
+ # Expects:
+ #   - logs: AuditModel[]
+ #}
 
-<table class="data fullwidth">
-    <thead>
-    <tr>
-        <th class="audit-column--event">Event</th>
-        <th class="audit-column--element">Type</th>
-        <th>Site</th>
-        <th>Title</th>
-        <th>User</th>
-        <th>IP</th>
-        <th>Date</th>
-        <th class="thin"></th>
+{% import _self as table %}
+
+{% macro row(log, attrs = {}, eventPrefix = '', meta = null) %}
+    {% set element = log.getElement() %}
+    {% set user = log.getUser() %}
+    {% set fieldMap = log.getFieldMap() %}
+    {% set changed = fieldMap|map(f => f.name) %}
+    <tr {{ attr({
+        'data-audit-log': log.id,
+        class: ['audit-row'],
+    }|merge(attrs, true)) }}>
+        <td class="audit-cell--event">
+            {{ eventPrefix|raw }}
+            <a href="{{ log.getCpEditUrl() }}" class="audit-event audit-event--{{ log.getTone() }}" data-audit-open>{{ log.getEventLabel() }}</a>
+        </td>
+        <td class="audit-cell--item">
+            <div class="audit-item">
+                {% if element %}
+                    {{ elementChip(element, { showStatus: false, attributes: { class: ['chromeless'] } }) }}
+                {% elseif log.title %}
+                    <span class="audit-item__title">{{ log.displayTitle }}</span>
+                {% else %}
+                    <span class="light" aria-hidden="true">–</span>
+                {% endif %}
+                <div class="audit-item__meta smalltext light">
+                    {%- if meta is not null -%}
+                        {{ meta }}
+                    {%- else -%}
+                        {{- log.getElementLabel() -}}
+                        {%- if changed|length %} · {{ changed|slice(0, 3)|join(', ') }}{% if changed|length > 3 %} {{ '+{count} more'|t('audit', { count: changed|length - 3 }) }}{% endif %}{% endif -%}
+                    {%- endif -%}
+                </div>
+            </div>
+        </td>
+        <td class="audit-cell--user">
+            {% if user %}
+                {{ elementChip(user, { showStatus: false, attributes: { class: ['chromeless'] } }) }}
+                {% if log.impersonatorId and log.getImpersonator() %}
+                    <div class="smalltext light">{{ 'via {name}'|t('audit', { name: log.getImpersonator().fullName ?: log.getImpersonator().username }) }}</div>
+                {% endif %}
+            {% else %}
+                <span class="light">{{ 'Guest or system'|t('audit') }}</span>
+            {% endif %}
+            {% if log.ip %}<div class="smalltext light code">{{ log.ip }}</div>{% endif %}
+        </td>
+        <td class="audit-cell--site">{{ log.getSite().name ?? '' }}</td>
+        <td class="audit-cell--date">
+            <time datetime="{{ log.dateCreated|atom }}" title="{{ log.getFormattedDate('medium') }}">{{ log.getRelativeDate() }}</time>
+        </td>
+        <td class="thin audit-cell--open">
+            <a href="{{ log.getCpEditUrl() }}" class="audit-open" data-audit-open aria-label="{{ 'View details'|t('audit') }}" title="{{ 'View details'|t('audit') }}">
+                <span class="cp-icon small" aria-hidden="true">{{ iconSvg('chevron-right') }}</span>
+            </a>
+        </td>
     </tr>
-    </thead>
-    <tbody>
-    {% for log in logs %}
-        {% set isBatch = log.eventEnum and log.eventEnum.value starts with 'batch-' %}
-        {% if isBatch %}
-            {% set snapshot = log.snapshot ?? {} %}
-            {% set state = snapshot.state ?? 'running' %}
-            {% set childCount = snapshot.childCount ?? null %}
-            {% set durationMs = snapshot.durationMs ?? null %}
-            {% set children = log.children ?? [] %}
-            {# Prefer snapshot childCount (cheap, no DB read); fall back to
-               counting the lazy-loaded children. #}
-            {% set effectiveCount = childCount is not null ? childCount : (children|length) %}
-            {% set hasChildren = effectiveCount > 0 %}
-            {% set toggleLabel = hasChildren ? 'Expand batch'|t('audit') : 'No child rows in this batch'|t('audit') %}
-            <tr class="audit-batch-parent{% if state == 'running' %} audit-batch-running{% endif %}"
-                data-audit-batch="{{ log.id }}">
-                <td>
+{% endmacro %}
+
+<div class="tableview audit-table-wrapper">
+    <table class="data fullwidth audit-table">
+        <thead>
+        <tr>
+            <th scope="col">{{ 'Event'|t('audit') }}</th>
+            <th scope="col">{{ 'Item'|t('audit') }}</th>
+            <th scope="col">{{ 'User'|t('app') }}</th>
+            <th scope="col">{{ 'Site'|t('app') }}</th>
+            <th scope="col">{{ 'When'|t('audit') }}</th>
+            <th scope="col" class="thin"><span class="visually-hidden">{{ 'Details'|t('audit') }}</span></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for log in logs %}
+            {% if log.getIsBatch() and not log.parentId %}
+                {% set snapshot = log.snapshot ?? {} %}
+                {% set state = snapshot.state ?? 'running' %}
+                {% set children = log.children ?? [] %}
+                {% set effectiveCount = snapshot.childCount ?? (children|length) %}
+                {% set hasChildren = effectiveCount > 0 %}
+                {% set toggle %}
                     <button type="button"
                             class="audit-batch-toggle"
                             aria-expanded="false"
                             aria-controls="batch-{{ log.id }}"
-                            aria-label="{{ toggleLabel }}"
+                            aria-label="{{ hasChildren ? 'Expand batch'|t('audit') : 'No child rows in this batch'|t('audit') }}"
                             {% if not hasChildren %}disabled{% endif %}>
                         <svg viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                             <path d="M4 2 L8 6 L4 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </button>
-                    <span class="audit-index__event-label">{{ log.getEventLabel() }}</span>
-                </td>
-                <td class="audit-column--element">{{ log.getElementLabel() }}</td>
-                <td class="thin">
-                    {% if log.getSite() %}
-                        <a href="{{ cpUrl('settings/sites/' ~ log.getSite().id) }}">{{ log.getSite().name }}</a>
-                    {% endif %}
-                </td>
-                <td>
-                    {{ log.getElementLink() ?: log.title }}
-                    <span class="audit-batch-meta">
-                        {%- if effectiveCount == 0 -%}
-                            {{ 'No child rows in this batch'|t('audit') }}
-                        {%- elseif effectiveCount == 1 -%}
-                            1 {{ 'child row'|t('audit') }}
-                        {%- else -%}
-                            {{ effectiveCount }} {{ 'child rows'|t('audit') }}
-                        {%- endif -%}
-                        {%- if durationMs is not null %} · {{ (durationMs / 1000)|number_format(1) }}s{% endif -%}
-                        {%- if state %} · {{ state|t('audit') }}{% endif -%}
-                    </span>
-                </td>
-                <td>{{ log.getUserLink() }}</td>
-                <td>{{ log.ip }}</td>
-                <td>{{ log.formattedDate }}</td>
-                <td>
-                    <a href="{{ log.getCpEditUrl() }}">&rarr;</a>
-                </td>
-            </tr>
-            {% if hasChildren %}
-                {% for child in children %}
-                    <tr class="audit-child-row hidden" data-parent="{{ log.id }}">
-                        <td class="audit-child-indent">
-                            <span class="audit-index__event-label">{{ child.getEventLabel() }}</span>
-                        </td>
-                        <td class="audit-column--element">{{ child.getElementLabel() }}</td>
-                        <td class="thin">
-                            {% if child.getSite() %}
-                                <a href="{{ cpUrl('settings/sites/' ~ child.getSite().id) }}">{{ child.getSite().name }}</a>
-                            {% endif %}
-                        </td>
-                        <td>{{ child.getElementLink() ?: child.title }}</td>
-                        <td>{{ child.getUserLink() }}</td>
-                        <td>{{ child.ip }}</td>
-                        <td>{{ child.formattedDate }}</td>
-                        <td>
-                            <a href="{{ child.getCpEditUrl() }}">&rarr;</a>
-                        </td>
-                    </tr>
-                {% endfor %}
+                {% endset %}
+                {% set durationMs = snapshot.durationMs ?? null %}
+                {% set meta -%}
+                    {%- if effectiveCount == 0 -%}
+                        {{ 'No child rows in this batch'|t('audit') }}
+                    {%- elseif effectiveCount == 1 -%}
+                        1 {{ 'child row'|t('audit') }}
+                    {%- else -%}
+                        {{ effectiveCount }} {{ 'child rows'|t('audit') }}
+                    {%- endif -%}
+                    {%- if durationMs is not null %} · {{ (durationMs / 1000)|number_format(1) }}s{% endif -%}
+                    {%- if state %} · {{ state|t('audit') }}{% endif -%}
+                {%- endset %}
+                {{ table.row(log, {
+                    class: ['audit-batch-parent']|merge(state == 'running' ? ['audit-batch-running'] : []),
+                    'data-audit-batch': log.id,
+                }, toggle, meta) }}
+                {% if hasChildren %}
+                    {% for child in children %}
+                        {{ table.row(child, { class: ['audit-child-row', 'hidden'], 'data-parent': log.id }) }}
+                    {% endfor %}
+                {% endif %}
+            {% else %}
+                {{ table.row(log) }}
             {% endif %}
-        {% else %}
-            <tr>
-                <td><span class="audit-index__event-label">{{ log.getEventLabel() }}</span></td>
-                <td class="audit-column--element">{{ log.getElementLabel() }}</td>
-                <td class="thin">
-                    {% if log.getSite() %}
-                        <a href="{{ cpUrl('settings/sites/' ~ log.getSite().id) }}">{{ log.getSite().name }}</a>
-                    {% endif %}
-                </td>
-                <td>{{ log.getElementLink() }}</td>
-                <td>{{ log.getUserLink() }}</td>
-                <td>{{ log.ip }}</td>
-                <td>{{ log.formattedDate }}</td>
-                <td>
-                    <a href="{{ log.getCpEditUrl() }}">&rarr;</a>
-                </td>
-            </tr>
-        {% endif %}
-    {% endfor %}
-    </tbody>
-</table>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
