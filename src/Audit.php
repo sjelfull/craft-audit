@@ -244,31 +244,31 @@ class Audit extends Plugin
         Event::on(
             Queue::class,
             Queue::EVENT_BEFORE_EXEC,
-            function(ExecEvent $event) {
+            $this->guard(function(ExecEvent $event) {
                 if ($event->job instanceof ResaveElements) {
                     $this->elementHandler->onBeforeResave($event->job);
                 }
-            }
+            })
         );
 
         Event::on(
             Queue::class,
             Queue::EVENT_AFTER_EXEC,
-            function(ExecEvent $event) {
+            $this->guard(function(ExecEvent $event) {
                 if ($event->job instanceof ResaveElements) {
                     $this->elementHandler->onResaveEnd($event->job);
                 }
-            }
+            })
         );
 
         Event::on(
             Queue::class,
             Queue::EVENT_AFTER_ERROR,
-            function(ExecEvent $event) {
+            $this->guard(function(ExecEvent $event) {
                 if ($event->job instanceof ResaveElements) {
                     $this->elementHandler->onResaveEnd($event->job, failed: true);
                 }
-            }
+            })
         );
     }
 
@@ -569,7 +569,7 @@ class Audit extends Plugin
             Event::on(
                 $event['class'],
                 $event['event'],
-                $event['handler']
+                $this->guard($event['handler'])
             );
         }
 
@@ -577,16 +577,34 @@ class Audit extends Plugin
         Event::on(
             ProjectConfig::class,
             ProjectConfig::EVENT_UPDATE_ITEM,
-            function(ConfigEvent $event) {
+            $this->guard(function(ConfigEvent $event) {
                 if (str_starts_with($event->path, 'system')) {
                     $this->settingsHandler->onSettingsChanged($event, 'system');
                 } elseif (str_starts_with($event->path, 'email')) {
                     $this->settingsHandler->onSettingsChanged($event, 'email');
                 }
-            }
+            })
         );
 
         $this->setupQueueEvents();
+    }
+
+    /**
+     * Wraps an event handler so a failure is logged instead of thrown into the save, sign-in or deploy
+     * that triggered it.
+     */
+    public function guard(callable $handler): \Closure
+    {
+        return static function(...$args) use ($handler): void {
+            try {
+                $handler(...$args);
+            } catch (\Throwable $e) {
+                try {
+                    Craft::error(sprintf('Audit: an event handler failed: %s', $e->getMessage()), 'audit');
+                } catch (\Throwable) {
+                }
+            }
+        };
     }
 
     /**

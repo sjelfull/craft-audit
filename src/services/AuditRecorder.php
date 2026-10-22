@@ -4,15 +4,17 @@ namespace superbig\audit\services;
 
 use Craft;
 use craft\base\Component;
-use craft\helpers\Json;
+use craft\db\Connection;
+use craft\helpers\DateTimeHelper;
+use craft\helpers\Db;
 use craft\helpers\Session as SessionHelper;
+use craft\helpers\StringHelper;
 use superbig\audit\Audit;
 use superbig\audit\enums\AuditEvent;
 use superbig\audit\events\BeforeRecordEvent;
 use superbig\audit\events\SnapshotEvent;
 use superbig\audit\models\AuditModel;
 use superbig\audit\records\AuditRecord;
-use yii\base\Exception;
 
 /**
  * Single entry point for recording audit events.
@@ -26,6 +28,26 @@ class AuditRecorder extends Component
     public const EVENT_SNAPSHOT = 'snapshot';
 
     /**
+     * The connection rows are written to and whose transactions they follow. Null means Craft's own.
+     */
+    public ?Connection $db = null;
+
+    /**
+     * Hold rows recorded inside a transaction until it commits, so a rolled-back save leaves no row.
+     */
+    public bool $writeAfterCommit = true;
+
+    /**
+     * @var AuditRecord[]
+     */
+    private array $pending = [];
+
+    /**
+     * @var array<int, true> Connections whose transaction events are being followed.
+     */
+    private array $listening = [];
+
+    /**
      * Record an audit event.
      *
      * @param AuditEvent|string $event         The event type (enum or string backing value)
@@ -33,6 +55,8 @@ class AuditRecorder extends Component
      * @param array             $snapshot      Full state snapshot (JSON-serializable)
      * @param array             $changedFields Diff data from FieldDiffService (optional)
      * @param array             $overrides     Optional: override any AuditModel property
+     * @param bool              $writeNow      Write inside any open transaction instead of waiting for it to commit,
+     *                                         so the row has an id straight away (batch parents need one)
      */
     public function record(
         AuditEvent|string $event,
@@ -40,9 +64,24 @@ class AuditRecorder extends Component
         array $snapshot = [],
         array $changedFields = [],
         array $overrides = [],
+        bool $writeNow = false,
     ): ?AuditModel {
-        $settings = Audit::$plugin->getSettings();
+        try {
+            return $this->recordModel($event, $title, $snapshot, $changedFields, $overrides, $writeNow);
+        } catch (\Throwable $e) {
+            $this->fail('Could not record an event', $e);
+            return null;
+        }
+    }
 
+    private function recordModel(
+        AuditEvent|string $event,
+        ?string $title,
+        array $snapshot,
+        array $changedFields,
+        array $overrides,
+        bool $writeNow,
+    ): ?AuditModel {
         // Build model
         $model = new AuditModel();
         $model->event = $event instanceof AuditEvent ? $event->value : $event;
@@ -80,7 +119,100 @@ class AuditRecorder extends Component
             return null;
         }
 
-        // Persist
+        $record = $this->toRecord($model);
+        $record->location = $model->location ?: null;
+        $record->request = $model->request;
+
+        if (!$this->write($record, $writeNow)) {
+            return null;
+        }
+
+        $model->id = $record->id;
+        $model->dateCreated = DateTimeHelper::toDateTime($record->dateCreated) ?: null;
+
+        return $model;
+    }
+
+    /**
+     * Rows waiting for the outermost transaction to commit, for a batch's child count.
+     */
+    public function pendingChildCount(int $parentId): int
+    {
+        return count(array_filter($this->pending, fn(AuditRecord $record) => (int)$record->parentId === $parentId));
+    }
+
+    public function getDb(): Connection
+    {
+        return $this->db ?? Craft::$app->getDb();
+    }
+
+    /**
+     * Writes a row now, or holds it until the outermost transaction commits and drops it if that rolls back.
+     * Yii reports only the outermost commit and rollback, so a savepoint rolled back inside a committed
+     * transaction keeps its rows.
+     */
+    private function write(AuditRecord $record, bool $writeNow = false): bool
+    {
+        try {
+            $now = Db::prepareDateForDb(DateTimeHelper::now());
+            $record->dateCreated ??= $now;
+            $record->dateUpdated ??= $now;
+            $record->uid ??= StringHelper::UUID();
+
+            $db = $this->getDb();
+            if ($writeNow || !$this->writeAfterCommit || $db->getTransaction() === null) {
+                return $this->insert($db, $record);
+            }
+
+            $this->listen($db);
+            $this->pending[] = $record;
+
+            return true;
+        } catch (\Throwable $e) {
+            $this->fail('Could not write an audit row', $e);
+            return false;
+        }
+    }
+
+    private function insert(Connection $db, AuditRecord $record): bool
+    {
+        $values = $record->getDirtyAttributes();
+        unset($values['id']);
+        $keys = $db->getSchema()->insert(AuditRecord::tableName(), $values);
+        if ($keys === false) {
+            return false;
+        }
+        $record->id = (int)$keys['id'];
+
+        return true;
+    }
+
+    private function listen(Connection $db): void
+    {
+        $key = spl_object_id($db);
+        if (isset($this->listening[$key])) {
+            return;
+        }
+        $this->listening[$key] = true;
+
+        $db->on(Connection::EVENT_COMMIT_TRANSACTION, function() use ($db) {
+            $rows = $this->pending;
+            $this->pending = [];
+            foreach ($rows as $record) {
+                try {
+                    $this->insert($db, $record);
+                } catch (\Throwable $e) {
+                    $this->fail('Could not write an audit row', $e);
+                }
+            }
+        });
+        $db->on(Connection::EVENT_ROLLBACK_TRANSACTION, function() {
+            $this->pending = [];
+        });
+    }
+
+    private function toRecord(AuditModel $model): AuditRecord
+    {
         $record = new AuditRecord();
         $record->siteId = $model->siteId;
         $record->sessionId = $model->sessionId;
@@ -93,23 +225,19 @@ class AuditRecorder extends Component
         $record->title = $model->title;
         $record->ip = $model->ip;
         $record->userAgent = $model->userAgent;
-        $record->location = $model->location ?: null;
         $record->snapshot = $model->snapshot ?: [];
         $record->changedFields = !empty($model->changedFields) ? $model->changedFields : null;
-        $record->request = $model->request;
 
-        if (!$record->save()) {
-            Craft::warning(
-                'Audit: failed to save record: ' . Json::encode($record->getErrors()),
-                __METHOD__
-            );
-            return null;
+        return $record;
+    }
+
+    private function fail(string $message, \Throwable $e): void
+    {
+        try {
+            Craft::error(sprintf('%s: %s', $message, $e->getMessage()), 'audit');
+        } catch (\Throwable) {
+            // Nowhere left to report it, and recording must never throw.
         }
-
-        $model->id = $record->id;
-        $model->dateCreated = $record->dateCreated;
-
-        return $model;
     }
 
     /**
@@ -226,53 +354,33 @@ class AuditRecorder extends Component
      */
     public function saveRecord(AuditModel &$model, bool $unique = true): bool
     {
-        // Auto-attach to the currently-open batch if no parentId was set explicitly.
-        // Mirrors the same hook in record(); needed because the 8 handler services
-        // still use getStandardModel() + saveRecord() rather than record().
-        if ($model->parentId === null) {
-            $model->parentId = Audit::$plugin->batch->currentBatchId();
-        }
-
         try {
+            // Auto-attach to the currently-open batch if no parentId was set explicitly.
+            if ($model->parentId === null) {
+                $model->parentId = Audit::$plugin->batch->currentBatchId();
+            }
+
             if ($model->id) {
                 $record = AuditRecord::findOne($model->id);
-            } else {
-                $record = new AuditRecord();
+                if ($record === null) {
+                    return false;
+                }
+                foreach ($this->toRecord($model)->getDirtyAttributes() as $name => $value) {
+                    $record->setAttribute($name, $value);
+                }
+
+                return $record->save(false);
             }
 
-            $record->event = $model->event;
-            $record->title = $model->title;
-            $record->parentId = $model->parentId;
-            $record->userId = $model->userId;
-            $record->impersonatorId = $model->impersonatorId;
-            $record->elementId = $model->elementId;
-            $record->elementType = $model->elementType;
-            $record->ip = $model->ip;
-            $record->userAgent = $model->userAgent;
-            $record->siteId = $model->siteId;
-            $record->snapshot = $model->snapshot ?: [];
-            $record->sessionId = $model->sessionId;
-            $record->changedFields = !empty($model->changedFields) ? $model->changedFields : null;
-
-            if (!$record->save()) {
-                Craft::error(
-                    Craft::t('audit', 'An error occured when saving audit log record: {error}',
-                        [
-                            'error' => print_r($record->getErrors(), true),
-                        ]),
-                    'audit');
+            $record = $this->toRecord($model);
+            if (!$this->write($record)) {
+                return false;
             }
-
             $model->id = $record->id;
 
             return true;
-        } catch (Exception $e) {
-            Craft::error(
-                Craft::t('audit', 'An error occured when saving audit log record: {error}',
-                    [
-                        'error' => $e->getMessage(),
-                    ]),
-                'audit');
+        } catch (\Throwable $e) {
+            $this->fail('Could not save an audit row', $e);
 
             return false;
         }
@@ -285,18 +393,10 @@ class AuditRecorder extends Component
     {
         try {
             return $callable();
-        } catch (\Exception $e) {
-            $this->logSaveError($e);
+        } catch (\Throwable $e) {
+            $this->fail('Error when logging', $e);
 
             return false;
         }
-    }
-
-    private function logSaveError(\Exception $e): void
-    {
-        Craft::error(
-            Craft::t('audit', 'Error when logging: {error}', ['error' => $e->getMessage()]),
-            __METHOD__
-        );
     }
 }

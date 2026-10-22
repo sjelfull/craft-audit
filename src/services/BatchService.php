@@ -116,6 +116,7 @@ class BatchService extends Component
             title: $title,
             snapshot: $snapshot,
             overrides: $overrides,
+            writeNow: true,
         );
 
         if ($model === null || $model->id === null) {
@@ -183,7 +184,7 @@ class BatchService extends Component
         // Count children
         $childCount = (int) AuditRecord::find()
             ->where(['parentId' => $batchId])
-            ->count();
+            ->count() + Audit::$plugin->auditRecorder->pendingChildCount($batchId);
 
         // Load the parent row and update its snapshot + event
         $parentRecord = AuditRecord::findOne($batchId);

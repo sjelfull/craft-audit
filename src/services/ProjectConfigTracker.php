@@ -96,17 +96,17 @@ class ProjectConfigTracker extends Component
         foreach ($this->configMap() as $path => $spec) {
             $fullPath = $path . '.{uid}';
 
-            $projectConfig->onAdd($fullPath, function(ConfigEvent $event) use ($spec) {
+            $projectConfig->onAdd($fullPath, Audit::$plugin->guard(function(ConfigEvent $event) use ($spec) {
                 $this->handleAdd($event, $spec);
-            });
+            }));
 
-            $projectConfig->onUpdate($fullPath, function(ConfigEvent $event) use ($spec) {
+            $projectConfig->onUpdate($fullPath, Audit::$plugin->guard(function(ConfigEvent $event) use ($spec) {
                 $this->handleUpdate($event, $spec);
-            });
+            }));
 
-            $projectConfig->onRemove($fullPath, function(ConfigEvent $event) use ($spec) {
+            $projectConfig->onRemove($fullPath, Audit::$plugin->guard(function(ConfigEvent $event) use ($spec) {
                 $this->handleRemove($event, $spec);
-            });
+            }));
         }
     }
 

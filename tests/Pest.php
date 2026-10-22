@@ -75,5 +75,9 @@ function audit_decode_json_column(mixed $raw): array
 uses()
     ->beforeEach(function () {
         _audit_register_listeners_for_tests();
+        // craft-pest wraps every test in a transaction that is rolled back, never committed,
+        // so rows waiting for a commit would never be written. WriteAfterCommitTest covers that path.
+        Audit::$plugin->auditRecorder->writeAfterCommit = false;
+        Audit::$plugin->auditRecorder->db = null;
     })
     ->in('Feature', 'Unit');
