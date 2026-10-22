@@ -17,5 +17,9 @@ cp -r ./vendor/markhuot/craft-pest-core/stubs/config/general.php ./config/genera
 # Copy our project stubs (includes audit plugin)
 cp -r ./stubs/project/* ./config/project/
 
+# Craft refuses to install when project.yaml's schema version doesn't match the installed release.
+SCHEMA=$(php -r 'require "vendor/autoload.php"; echo (require "vendor/craftcms/cms/src/config/app.php")["schemaVersion"];')
+sed -i "s/^  schemaVersion: .*/  schemaVersion: $SCHEMA/" ./config/project/project.yaml
+
 echo "==> Running test suite..."
 ./vendor/bin/pest
