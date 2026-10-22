@@ -111,6 +111,8 @@ class Audit extends Plugin
     public static $craft37 = false;
     public string $schemaVersion = '1.0.3';
 
+    private bool $logEventsRegistered = false;
+
     /**
      * Determine whether our table schema exists or not; this is needed because
      * migrations such as the install migration and base_install migration may
@@ -301,6 +303,11 @@ class Audit extends Plugin
 
     protected function initLogEvents()
     {
+        if ($this->logEventsRegistered) {
+            return;
+        }
+        $this->logEventsRegistered = true;
+
         $events = [
             [
                 'class' => User::class,

@@ -20,6 +20,9 @@ uses(\markhuot\craftpest\test\TestCase::class)
  * and assert that audit records are written. This exercises the wiring
  * between Craft event handles and audit handlers — the full path that
  * direct handler calls bypass.
+ *
+ * initLogEvents() is idempotent, so this is safe when the plugin already
+ * registered its listeners during boot.
  */
 function _audit_register_listeners_for_tests(): void
 {
