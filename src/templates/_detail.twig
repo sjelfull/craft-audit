@@ -1,0 +1,63 @@
+{#
+ # Main content of a log entry, shown as a page or in a slideout.
+ #
+ # Expects:
+ #   - log: AuditModel
+ #   - fieldMap: array
+ #   - logsInSession: AuditModel[]
+ #}
+
+{% macro eventList(logs, current) %}
+    <ul class="audit-event-list">
+        {% for entry in logs %}
+            <li class="{{ entry.id == current.id ? 'is-current' }}">
+                <a href="{{ entry.getCpEditUrl() }}" class="audit-event audit-event--{{ entry.getTone() }}" data-audit-open data-audit-log="{{ entry.id }}">{{ entry.getEventLabel() }}</a>
+                <span class="audit-event-list__title">{{ entry.displayTitle }}</span>
+                <time class="light smalltext" datetime="{{ entry.dateCreated|atom }}" title="{{ entry.getFormattedDate('medium') }}">{{ entry.getFormattedDate('short') }}</time>
+            </li>
+        {% endfor %}
+    </ul>
+{% endmacro %}
+
+{% import _self as detail %}
+
+<div class="audit-detail">
+    <header class="audit-detail__header">
+        <span class="audit-event audit-event--{{ log.getTone() }}">{{ log.getEventLabel() }}</span>
+        <h1>{{ log.displayTitle ?: log.getEventLabel() }}</h1>
+        <p class="light">
+            {{- (log.getUser() ? (log.getUser().fullName ?: log.getUser().username) : 'Guest or system'|t('audit')) }} · {{ log.getFormattedDate('medium') -}}
+        </p>
+    </header>
+
+    {% if log.changedFields %}
+        <section class="audit-detail__section">
+            <h2>{{ 'Changes'|t('audit') }}</h2>
+            {% include 'audit/_changed-fields' with { changedFields: log.changedFields, fieldMap: fieldMap } only %}
+        </section>
+    {% endif %}
+
+    {% set children = log.getChildren() ?? [] %}
+    {% if children %}
+        <section class="audit-detail__section">
+            <h2>{{ 'Events in this batch'|t('audit') }} <span class="light">({{ children|length }})</span></h2>
+            {{ detail.eventList(children, log) }}
+        </section>
+    {% endif %}
+
+    {% if logsInSession|length > 1 %}
+        <section class="audit-detail__section">
+            <h2>{{ 'Events in this session'|t('audit') }}</h2>
+            {{ detail.eventList(logsInSession|slice(0, 10), log) }}
+            <p><a href="{{ cpUrl('audit', { sessionId: log.sessionId }) }}">{{ 'Show all {count} in the log'|t('audit', { count: logsInSession|length }) }}</a></p>
+        </section>
+    {% endif %}
+
+    <section class="audit-detail__section">
+        <details class="audit-detail__snapshot"{{ log.changedFields or children ? '' : ' open' }}>
+            <summary><h2>{{ 'Snapshot'|t('audit') }}</h2></summary>
+            {{ log.getSnapshotTable() }}
+            <pre class="audit-snapshot-json"><code>{{ log.getSnapshotJson() }}</code></pre>
+        </details>
+    </section>
+</div>

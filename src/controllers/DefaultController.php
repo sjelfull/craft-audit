@@ -7,11 +7,13 @@ use craft\helpers\Template;
 use craft\helpers\UrlHelper;
 
 use craft\web\Controller;
+use superbig\audit\assetbundles\indexcpsection\IndexCPSectionAsset;
 use superbig\audit\Audit;
 use superbig\audit\models\AuditModel;
 use superbig\audit\models\LogFilter;
 use superbig\audit\records\AuditRecord;
 use superbig\audit\web\assets\diff\AuditDiffAsset;
+use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
 class DefaultController extends Controller
@@ -60,17 +62,31 @@ class DefaultController extends Controller
     {
         $this->requirePermission(Audit::PERMISSION_VIEW_LOGS);
 
-        Craft::$app->view->registerAssetBundle(AuditDiffAsset::class);
-
         $service = Audit::$plugin->auditService;
         $log = $service->getEventById($id);
-        $logsInSession = $service->getEventsBySessionId($log->sessionId);
 
-        return $this->renderTemplate('audit/_view', [
+        if (!$log) {
+            throw new NotFoundHttpException('Log entry not found');
+        }
+
+        $view = $this->getView();
+        $view->registerAssetBundle(AuditDiffAsset::class);
+        $view->registerAssetBundle(IndexCPSectionAsset::class);
+
+        $variables = [
             'settings' => Audit::$plugin->getSettings(),
             'log' => $log,
-            'logsInSession' => $logsInSession,
-        ]);
+            'logsInSession' => $log->sessionId ? $service->getEventsBySessionId($log->sessionId) : [],
+            'fieldMap' => $log->getFieldMap(),
+        ];
+
+        return $this->asCpScreen()
+            ->title($log->getEventLabel() . ($log->title ? ': ' . $log->getDisplayTitle() : ''))
+            ->docTitle($log->getEventLabel())
+            ->editUrl($log->getCpEditUrl())
+            ->addCrumb(Craft::t('audit', 'Audit'), UrlHelper::cpUrl('audit'))
+            ->contentTemplate('audit/_detail', $variables)
+            ->metaSidebarTemplate('audit/_detail-meta', $variables);
     }
 
     public function actionPruneLogs()

@@ -1,0 +1,26 @@
+{#
+ # Expects:
+ #   - changedFields: array handle => { handler, from, to }
+ #   - fieldMap: array handle => { name } (optional, falls back to the handle)
+ #}
+{% set fields = changedFields ?? [] %}
+{% set labels = fieldMap ?? [] %}
+
+{% if fields %}
+    <div class="audit-changed-fields">
+        {% for handle, change in fields %}
+            {% set fieldName = labels[handle].name ?? handle %}
+            <div class="audit-changed-field" data-handle="{{ handle }}">
+                <div class="audit-changed-field__label">
+                    <strong>{{ fieldName }}</strong>
+                    {% if handle != fieldName and handle|first != '_' %}
+                        <span class="light code smalltext">{{ handle }}</span>
+                    {% endif %}
+                </div>
+                <div class="audit-changed-field__diff">
+                    {% include 'audit/_diff/index.twig' with { change: change } only %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}

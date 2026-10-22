@@ -1,5 +1,5 @@
 /**
- * Audit log screen: live filters.
+ * Audit log screen: live filters and the details slideout.
  */
 (function (Craft, Garnish, $) {
     'use strict';
@@ -11,6 +11,33 @@
     var form = document.getElementById('audit-filters');
     var results = document.getElementById('audit-results');
     var request = null;
+
+    function openLog(id) {
+        new Craft.CpScreenSlideout('audit/default/details', {
+            params: { id: id },
+            containerElement: 'div',
+        });
+    }
+
+    // Clicking anywhere on a row opens it, except on links and buttons that do their own thing.
+    $(document).on('click', '[data-audit-open]', function (event) {
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.button === 1) {
+            return;
+        }
+        var id = this.getAttribute('data-audit-log') || $(this).closest('[data-audit-log]').attr('data-audit-log');
+        if (!id) {
+            return;
+        }
+        event.preventDefault();
+        openLog(id);
+    });
+
+    $(document).on('click', 'tr.audit-row', function (event) {
+        if ($(event.target).closest('a, button, input, select, label').length || window.getSelection().toString()) {
+            return;
+        }
+        openLog(this.getAttribute('data-audit-log'));
+    });
 
     if (!form || !results) {
         return;

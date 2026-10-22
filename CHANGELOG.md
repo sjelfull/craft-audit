@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - The log can be filtered by kind of event, event, user, element type, site and date range, and searched by title, user name or IP address. Filters apply as you change them and are kept in the URL, so a filtered view can be bookmarked or shared
 
 ### Changed
+- Log entries now open in a slideout over the log. It shows the changed fields as diffs, the rows in a batch, other events from the same session, and links to everything in that session or for that item. The full page shows the same details, so entries can still be linked to
 - The log table has been redesigned: events are colour-coded by what happened, users and elements show as Craft chips, element rows list the fields that changed, and dates are shown relative to now
 - Log rows recorded inside a database transaction are now written only once it commits, so a rolled-back save no longer leaves a row behind
 
