@@ -6,12 +6,15 @@ use Craft;
 
 use craft\base\Plugin;
 use craft\console\Application as ConsoleApplication;
+use craft\controllers\AuthController;
+use craft\controllers\UsersController;
 use craft\db\Connection as DbConnection;
 use craft\events\BackupEvent;
 use craft\events\ConfigEvent;
 use craft\events\ElementEvent;
 use craft\events\EntryTypeEvent;
 use craft\events\FieldEvent;
+use craft\events\LoginFailureEvent;
 use craft\events\PluginEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
@@ -25,6 +28,9 @@ use craft\events\UserPermissionsEvent;
 use craft\helpers\StringHelper;
 use craft\queue\jobs\ResaveElements;
 use craft\queue\Queue;
+use craft\records\Authenticator as AuthenticatorRecord;
+use craft\records\User as UserRecord;
+use craft\records\WebAuthn as WebAuthnRecord;
 use craft\services\Elements;
 use craft\services\Entries;
 use craft\services\Fields;
@@ -73,7 +79,11 @@ use superbig\audit\services\handlers\UserHandler;
 use superbig\audit\services\ProjectConfigTracker;
 
 use superbig\audit\variables\AuditVariable;
+use yii\base\ActionEvent;
+use yii\base\Controller;
 use yii\base\Event;
+use yii\db\ActiveRecord;
+use yii\db\AfterSaveEvent;
 use yii\queue\ExecEvent;
 use yii\web\User;
 use yii\web\UserEvent;
@@ -109,7 +119,7 @@ class Audit extends Plugin
     public static $craft33 = false;
     public static $craft34 = false;
     public static $craft37 = false;
-    public string $schemaVersion = '1.0.3';
+    public string $schemaVersion = '1.0.4';
 
     private bool $logEventsRegistered = false;
 
@@ -415,6 +425,48 @@ class Audit extends Plugin
                 'event' => Users::EVENT_AFTER_UNLOCK_USER,
                 'handler' => function(\craft\events\UserEvent $event) {
                     $this->userHandler->onUserUnlocked($event);
+                },
+            ],
+            [
+                'class' => UsersController::class,
+                'event' => UsersController::EVENT_LOGIN_FAILURE,
+                'handler' => function(LoginFailureEvent $event) {
+                    $this->userHandler->onLoginFailure($event);
+                },
+            ],
+            [
+                'class' => UserRecord::class,
+                'event' => ActiveRecord::EVENT_AFTER_UPDATE,
+                'handler' => function(AfterSaveEvent $event) {
+                    $this->userHandler->onUserRecordUpdated($event);
+                },
+            ],
+            [
+                'class' => AuthenticatorRecord::class,
+                'event' => ActiveRecord::EVENT_AFTER_INSERT,
+                'handler' => function(AfterSaveEvent $event) {
+                    $this->userHandler->onAuthenticatorAdded($event);
+                },
+            ],
+            [
+                'class' => AuthController::class,
+                'event' => Controller::EVENT_AFTER_ACTION,
+                'handler' => function(ActionEvent $event) {
+                    $this->userHandler->onAfterAuthAction($event);
+                },
+            ],
+            [
+                'class' => WebAuthnRecord::class,
+                'event' => ActiveRecord::EVENT_AFTER_INSERT,
+                'handler' => function(AfterSaveEvent $event) {
+                    $this->userHandler->onPasskeyAdded($event);
+                },
+            ],
+            [
+                'class' => WebAuthnRecord::class,
+                'event' => ActiveRecord::EVENT_AFTER_DELETE,
+                'handler' => function(Event $event) {
+                    $this->userHandler->onPasskeyRemoved($event);
                 },
             ],
             [

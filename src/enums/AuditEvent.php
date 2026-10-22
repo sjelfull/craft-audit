@@ -58,6 +58,14 @@ enum AuditEvent: string
     case UserLocked = 'user-locked';
     case UserUnlocked = 'user-unlocked';
     case UserGroupsAssigned = 'user-groups-assigned';
+    case UserLoginFailed = 'user-login-failed';
+    case UserImpersonated = 'user-impersonated';
+    case UserPasswordChanged = 'user-password-changed';
+    case UserEmailChanged = 'user-email-changed';
+    case UserMfaEnabled = 'user-mfa-enabled';
+    case UserMfaDisabled = 'user-mfa-disabled';
+    case UserPasskeyAdded = 'user-passkey-added';
+    case UserPasskeyRemoved = 'user-passkey-removed';
 
     // Permission events
     case UserPermissionsSaved = 'user-permissions-saved';

@@ -41,6 +41,14 @@ return [
     \superbig\audit\enums\AuditEvent::UserLocked->value => 'User locked',
     \superbig\audit\enums\AuditEvent::UserUnlocked->value => 'User unlocked',
     \superbig\audit\enums\AuditEvent::UserGroupsAssigned->value => 'User groups assigned',
+    \superbig\audit\enums\AuditEvent::UserLoginFailed->value => 'Login failed',
+    \superbig\audit\enums\AuditEvent::UserImpersonated->value => 'Impersonated user',
+    \superbig\audit\enums\AuditEvent::UserPasswordChanged->value => 'Password changed',
+    \superbig\audit\enums\AuditEvent::UserEmailChanged->value => 'Email changed',
+    \superbig\audit\enums\AuditEvent::UserMfaEnabled->value => 'Two-step verification enabled',
+    \superbig\audit\enums\AuditEvent::UserMfaDisabled->value => 'Two-step verification removed',
+    \superbig\audit\enums\AuditEvent::UserPasskeyAdded->value => 'Passkey added',
+    \superbig\audit\enums\AuditEvent::UserPasskeyRemoved->value => 'Passkey removed',
 
     // Permissions
     \superbig\audit\enums\AuditEvent::UserPermissionsSaved->value => 'User permissions saved',

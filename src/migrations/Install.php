@@ -65,6 +65,7 @@ class Install extends Migration
                     'elementId' => $this->integer()->null()->defaultValue(null),
                     'elementType' => $this->string()->null()->defaultValue(null),
                     'userId' => $this->integer()->null()->defaultValue(null),
+                    'impersonatorId' => $this->integer()->null()->defaultValue(null),
                     'event' => $this->string()->null()->defaultValue(null),
                     'title' => $this->string()->null()->defaultValue(null),
                     'ip' => $this->string()->null()->defaultValue(null),
@@ -86,6 +87,7 @@ class Install extends Migration
     protected function createIndexes()
     {
         $this->createIndex(null, $this->tableName, 'userId', false);
+        $this->createIndex(null, $this->tableName, 'impersonatorId', false);
         $this->createIndex(null, $this->tableName, 'elementId', false);
         $this->createIndex(null, $this->tableName, 'sessionId', false);
         $this->createIndex(null, $this->tableName, 'parentId', false);
@@ -104,6 +106,7 @@ class Install extends Migration
         $this->addForeignKey(null, $this->tableName, 'siteId', '{{%sites}}', 'id', 'CASCADE', 'CASCADE');
         $this->addForeignKey(null, $this->tableName, 'elementId', '{{%elements}}', 'id', 'SET NULL', 'SET NULL');
         $this->addForeignKey(null, $this->tableName, 'userId', '{{%users}}', 'id', 'SET NULL', 'SET NULL');
+        $this->addForeignKey(null, $this->tableName, 'impersonatorId', '{{%users}}', 'id', 'SET NULL', 'SET NULL');
         $this->addForeignKey(null, $this->tableName, 'parentId', $this->tableName, 'id', 'CASCADE', 'CASCADE');
     }
 

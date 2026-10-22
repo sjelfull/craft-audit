@@ -46,6 +46,7 @@
 {{ forms.booleanMenuField({
     name: 'logUserEvents',
     label: 'Log User Events',
+    instructions: 'Log sign-ins, sign-outs, failed sign-ins and impersonation',
     value: settings.logUserEvents,
     includeEnvVars: true
 }) }}
@@ -60,7 +61,7 @@
 {{ forms.booleanMenuField({
     name: 'logUserSecurityEvents',
     label: 'Log User Security Events',
-    instructions: 'Log user activation, suspension, locking, and group assignment changes',
+    instructions: 'Log user activation, suspension, locking, group assignment, password and email changes, and two-step verification and passkey changes',
     value: settings.logUserSecurityEvents,
     includeEnvVars: true
 }) }}
