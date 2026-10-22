@@ -342,3 +342,46 @@ a.audit-event:hover {
 .audit-meta + .audit-meta {
     margin-top: 14px;
 }
+
+/* Element history */
+.audit-history__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.audit-history__item {
+    padding: 10px 8px;
+    border-top: 1px solid var(--hairline-color, #e3e5e8);
+    cursor: pointer;
+}
+
+.audit-history__item:first-child {
+    border-top: 0;
+}
+
+.audit-history__item:hover {
+    background: var(--gray-050, #f3f7fc);
+}
+
+.audit-history__head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.audit-history__user {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.audit-history__meta {
+    margin-top: 4px;
+}
+
+.audit-history__footer {
+    margin-top: 16px;
+}

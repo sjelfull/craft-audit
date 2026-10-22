@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - Setting up and removing two-step verification and passkeys is now logged
 - Element saves now record which fields changed, with their before and after values, and new elements record their starting values
 - The log can be filtered by kind of event, event, user, element type, site and date range, and searched by title, user name or IP address. Filters apply as you change them and are kept in the URL, so a filtered view can be bookmarked or shared
+- Elements have a History item in their action menu that lists their audit events in a slideout, newest first, each opening its full details. It appears on entries, assets, users, categories, Commerce products and every other element type, for anyone who can view the audit log
 
 ### Changed
 - Log entries now open in a slideout over the log. It shows the changed fields as diffs, the rows in a batch, other events from the same session, and links to everything in that session or for that item. The full page shows the same details, so entries can still be linked to

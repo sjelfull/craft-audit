@@ -32,7 +32,7 @@
         openLog(id);
     });
 
-    $(document).on('click', 'tr.audit-row', function (event) {
+    $(document).on('click', 'tr.audit-row, .audit-history__item', function (event) {
         if ($(event.target).closest('a, button, input, select, label').length || window.getSelection().toString()) {
             return;
         }
