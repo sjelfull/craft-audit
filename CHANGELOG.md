@@ -12,7 +12,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - Password and email changes are now logged
 - Setting up and removing two-step verification and passkeys is now logged
 
+### Changed
+- Log rows recorded inside a database transaction are now written only once it commits, so a rolled-back save no longer leaves a row behind
+
 ### Fixed
+- An error while logging can no longer break the save, login or project config apply that triggered it
 - Entries created in the control panel are now logged as created when their draft is applied, instead of as saved or not at all ([#126](https://github.com/sjelfull/craft-audit/pull/126))
 
 ## 3.0.3 - 2024-01-31
