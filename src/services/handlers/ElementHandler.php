@@ -35,6 +35,77 @@ class ElementHandler extends Component
     private array $resaveBatchIds = [];
 
     /**
+     * Stored field state of elements about to be saved, by "id:siteId", for the diff after the save.
+     *
+     * @var array<string, array>
+     */
+    private array $statesBeforeSave = [];
+
+    /**
+     * Captures the stored version of an element before it is overwritten, so the save can record what changed.
+     */
+    public function onBeforeSaveElement(ElementInterface $element, bool $isNew = false): void
+    {
+        if ($isNew || !$element->id || !$this->tracksChanges($element)) {
+            return;
+        }
+
+        /** @var Element|null $stored */
+        $stored = $element::find()
+            ->id($element->id)
+            ->siteId($element->siteId)
+            ->status(null)
+            ->drafts(null)
+            ->provisionalDrafts(null)
+            ->one();
+
+        if ($stored !== null) {
+            $this->statesBeforeSave[$this->stateKey($element)] = Audit::$plugin->fieldDiffService->captureState($stored);
+        }
+    }
+
+    private function tracksChanges(ElementInterface $element): bool
+    {
+        $settings = Audit::$plugin->getSettings();
+        $root = ElementHelper::rootElement($element);
+
+        return $settings->logElementEvents
+            && ($root->id === $element->id || $settings->logChildElementEvents)
+            && !$root->getIsRevision()
+            && ($settings->logDraftEvents || !$root->getIsDraft())
+            && !$element->propagating
+            && !$element->resaving;
+    }
+
+    /**
+     * What a save changed, or every non-empty value for a new element.
+     */
+    private function changedFields(ElementInterface $element, bool $isNew): array
+    {
+        $key = $this->stateKey($element);
+        $before = $this->statesBeforeSave[$key] ?? null;
+        unset($this->statesBeforeSave[$key]);
+
+        if (!$isNew && $before === null) {
+            return [];
+        }
+
+        $diffService = Audit::$plugin->fieldDiffService;
+        $after = $diffService->captureState($element);
+
+        if ($isNew) {
+            $after = array_filter($after, fn(array $state) => !in_array($state['value'] ?? null, [null, '', []], true));
+        }
+
+        return $diffService->diff($isNew ? [] : $before, $after);
+    }
+
+    private function stateKey(ElementInterface $element): string
+    {
+        return $element->id . ':' . $element->siteId;
+    }
+
+    /**
      * @param ElementInterface $element
      * @param bool $isNew
      *
@@ -137,6 +208,7 @@ class ElementHandler extends Component
             }
 
             $snapshot['content'] = $element->getSerializedFieldValues();
+            $model->changedFields = $this->changedFields($element, $isNew);
 
             if ($title) {
                 $model->title = Html::encode($title);
