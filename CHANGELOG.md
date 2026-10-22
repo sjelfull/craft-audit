@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - Impersonation is now logged, and every row written while impersonating names both the impersonated user and the impersonator
 - Password and email changes are now logged
 - Setting up and removing two-step verification and passkeys is now logged
+- Element saves now record which fields changed, with their before and after values, and new elements record their starting values
 
 ### Changed
 - Log rows recorded inside a database transaction are now written only once it commits, so a rolled-back save no longer leaves a row behind

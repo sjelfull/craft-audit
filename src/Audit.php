@@ -335,6 +335,13 @@ class Audit extends Plugin
             ],
             [
                 'class' => Elements::class,
+                'event' => Elements::EVENT_BEFORE_SAVE_ELEMENT,
+                'handler' => function(ElementEvent $event) {
+                    $this->elementHandler->onBeforeSaveElement($event->element, $event->element->firstSave || $event->isNew);
+                },
+            ],
+            [
+                'class' => Elements::class,
                 'event' => Elements::EVENT_AFTER_SAVE_ELEMENT,
                 'handler' => function(ElementEvent $event) {
                     $isNew = $event->element->firstSave || $event->isNew;
